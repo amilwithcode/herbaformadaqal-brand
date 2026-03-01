@@ -104,11 +104,6 @@ export default function AdminCampaignsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: "campaign" | "coupon"; id: number } | null>(null);
 
   /* ──── Fetch ──── */
-  useEffect(() => {
-    fetchCampaigns();
-    fetchCoupons();
-  }, []);
-
   const fetchCampaigns = async () => {
     setLoadingCampaigns(true);
     try {
@@ -126,6 +121,11 @@ export default function AdminCampaignsPage() {
     } catch {}
     setLoadingCoupons(false);
   };
+
+  useEffect(() => {
+    fetchCampaigns();
+    fetchCoupons();
+  }, []);
 
   /* ──── Campaign CRUD ──── */
   const saveCampaign = async () => {

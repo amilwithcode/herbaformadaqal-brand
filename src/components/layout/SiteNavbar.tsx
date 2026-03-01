@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -231,10 +231,10 @@ export default function SiteNavbar({
     )},
   ].filter(s => s.url);
 
-  const SocialIconsRow = ({ className = "" }: { className?: string }) => {
+  const SocialIconsRow = useMemo(() => {
     if (socialItems.length === 0) return null;
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
+      <div className="flex items-center gap-2">
         {socialItems.map((s) => (
           <a
             key={s.key}
@@ -249,7 +249,7 @@ export default function SiteNavbar({
         ))}
       </div>
     );
-  };
+  }, [socialItems]);
 
   const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,7 +275,7 @@ export default function SiteNavbar({
           <span className="font-medium">{t("nav.top.free_delivery")}</span>
         </span>
         <div className="flex items-center gap-3">
-          <SocialIconsRow />
+          {SocialIconsRow}
           <LocaleSwitcher />
         </div>
       </div>
