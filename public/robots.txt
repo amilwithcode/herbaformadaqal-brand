@@ -1,0 +1,48 @@
+# Robots.txt - Herbalife ECommerce
+# https://www.robotstxt.org/
+
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /products/*
+Allow: /categories/*
+Allow: /blog/*
+Allow: /programs
+Allow: /programs/*
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /privacy
+Allow: /shipping
+Allow: /returns
+
+# Admin panel - indeksləşdirmə qadağandır
+Disallow: /admin
+Disallow: /admin/*
+
+# İstifadəçi hesab səhifələri
+Disallow: /account
+Disallow: /account/*
+
+# Autentifikasiya səhifələri
+Disallow: /auth
+Disallow: /auth/*
+
+# API endpointləri
+Disallow: /api
+Disallow: /api/*
+
+# Axtarış səhifəsi (dublikat content qarşısını almaq üçün)
+Disallow: /search
+Disallow: /search?*
+
+# Səbət və ödəniş
+Disallow: /cart
+Disallow: /wishlist
+
+# Next.js daxili fayllar
+Disallow: /_next
+Disallow: /_next/*
+
+# Sitemap
+Sitemap: https://example.com/sitemap.xml

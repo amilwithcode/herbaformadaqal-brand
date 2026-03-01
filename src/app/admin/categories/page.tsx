@@ -1,0 +1,241 @@
+"use client";
+import { useEffect, useState, useRef } from "react";
+import type { Category, Product } from "@/modules/products/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+
+export default function AdminCategories() {
+  const [items, setItems] = useState<Category[]>([]);
+  const [name, setName] = useState("");
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState("#10b981");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/admin/categories").then((r) =>
+        r.ok ? r.json() : Promise.resolve([])
+      ),
+      fetch("/api/admin/products").then((r) =>
+        r.ok ? r.json() : Promise.resolve([])
+      ),
+      fetch("/api/admin/settings").then((r) =>
+        r.ok ? r.json() : Promise.resolve(null)
+      ),
+    ])
+      .then(([cats, prods, settings]) => {
+        setItems((cats || []) as Category[]);
+        setProducts((prods || []) as Product[]);
+        if (settings && typeof settings.primary_color === "string") {
+          const raw = settings.primary_color as string;
+          if (raw && raw.startsWith("#")) {
+            setPrimaryColor(raw);
+          }
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const uploadFile = async (file: File) => {
+    const supabase = getSupabaseBrowserClient();
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const { data, error } = await supabase.storage
+      .from('categories')
+      .upload(fileName, file);
+    
+    if (error) {
+      console.error('Upload error:', error);
+      return null;
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('categories')
+      .getPublicUrl(fileName);
+      
+    return publicUrl;
+  };
+
+  const add = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setSaving(true);
+    
+    let iconUrl = null;
+    if (iconFile) {
+      iconUrl = await uploadFile(iconFile);
+    }
+
+    fetch("/api/admin/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed, icon: iconUrl }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((created) => {
+        if (!created) return;
+        setItems((prev) => [...prev, created as Category]);
+        setName("");
+        setIconFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      })
+      .finally(() => setSaving(false));
+  };
+
+  const remove = (id: number) => {
+    const prev = items;
+    setItems((current) => current.filter((i) => i.id !== id));
+    setExpanded((current) => {
+      const copy = { ...current };
+      delete copy[id];
+      return copy;
+    });
+    setSaving(true);
+    fetch("/api/admin/categories", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          setItems(prev);
+        }
+      })
+      .catch(() => setItems(prev))
+      .finally(() => setSaving(false));
+  };
+
+  const toggle = (id: number) => {
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="space-y-1">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
+          Kateqoriyalar
+        </p>
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Kateqoriya idarəetməsi
+        </h1>
+        <p className="text-sm text-slate-500">
+          Saytda görünən məhsul kateqoriyalarını buradan əlavə edib silə bilərsiniz.
+        </p>
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Form Section */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-slate-900">
+              Yeni kateqoriya
+            </h2>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700">Ad</label>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Məs: Arıqlama"
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700">İkon</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={(e) => setIconFile(e.target.files ? e.target.files[0] : null)}
+                  className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-emerald-700 hover:file:bg-emerald-100"
+                />
+                <p className="text-[10px] text-slate-400">Tövsiyə olunan ölçü: 100x100px</p>
+              </div>
+
+              <button
+                onClick={add}
+                disabled={saving || !name.trim()}
+                className="flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {saving ? "Əlavə edilir..." : "Əlavə et"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* List Section */}
+        <div className="lg:col-span-2">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-600"></div>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-2xl">
+                📂
+              </div>
+              <h3 className="text-sm font-medium text-slate-900">Kateqoriya yoxdur</h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Sol tərəfdən yeni kateqoriya əlavə edin.
+              </p>
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {items.map((i) => (
+                <li
+                  key={i.id}
+                  className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between p-4">
+                    <div 
+                      className="flex cursor-pointer items-center gap-4 flex-1"
+                      onClick={() => setExpanded(prev => ({ ...prev, [i.id]: !prev[i.id] }))}
+                    >
+                      <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-slate-50">
+                        {i.icon ? (
+                          <img
+                            src={i.icon}
+                            alt={i.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-slate-300">
+                            📷
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-900">{i.name}</h3>
+                        <p className="text-xs text-slate-500">
+                          {products.filter(p => p.category_id === i.id).length} məhsul
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => remove(i.id)}
+                        className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        title="Sil"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"></path>
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,350 @@
+import { getSupabaseServerClient } from "@/lib/supabase-server";
+import type { Category, Product, ProductVariant } from "./types";
+
+export async function getHomeProducts() {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase
+    .from("products")
+    .select("*")
+    .eq("is_active", true)
+    .limit(12);
+  
+  const products = (data || []) as Product[];
+  return await enrichProductsWithTranslationsAndRatings(products);
+}
+
+export async function getBrowseProducts() {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase
+    .from("products")
+    .select("*")
+    .eq("is_active", true)
+    .order("id");
+  
+  const products = (data || []) as Product[];
+  return await enrichProductsWithTranslationsAndRatings(products);
+}
+
+export async function getProductBySlug(slug: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data: product } = await supabase
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!product) return null;
+
+  const [translationsResult, imagesResult, reviewsResult] = await Promise.all([
+    supabase
+      .from("translations")
+      .select("*")
+      .eq("entity_table", "products")
+      .eq("entity_id", product.id),
+    supabase
+      .from("product_images")
+      .select("*")
+      .eq("product_id", product.id)
+      .order("position"),
+    supabase
+      .from("reviews")
+      .select("*")
+      .eq("product_id", product.id)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const reviews = reviewsResult.data || [];
+  const reviewCount = reviews.length;
+  const ratingSum = reviews.reduce((acc, r) => acc + r.rating, 0);
+  const ratingAverage = reviewCount > 0 ? ratingSum / reviewCount : 0;
+
+  return {
+    ...product,
+    translations: translationsResult.data || [],
+    product_images: imagesResult.data || [],
+    reviews,
+    rating_average: ratingAverage,
+    review_count: reviewCount,
+  } as Product;
+}
+
+export async function getProductVariants(productId: number) {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase
+    .from("product_variants")
+    .select("*")
+    .eq("product_id", productId);
+  return (data || []) as ProductVariant[];
+}
+
+export async function getCategories() {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase.from("categories").select("*").order("id");
+  
+  // Ensure every category has a slug (fallback to generated slug if missing in DB)
+  return (data || []).map((cat: any) => ({
+    ...cat,
+    slug: cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  })) as Category[];
+}
+
+export async function getCategoryBySlug(slug: string) {
+  const supabase = await getSupabaseServerClient();
+  
+  // Try direct lookup first
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+    
+  if (data) return data as Category;
+
+  // Fallback: Fetch all and find match (handles cases where DB slug is missing)
+  const { data: allCategories } = await supabase.from("categories").select("*");
+  const match = (allCategories || []).find((c: any) => {
+    const generated = c.slug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return generated === slug;
+  });
+  
+  return match as Category | null;
+}
+
+export async function getProductsByCategory(categoryId: number) {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase
+    .from("products")
+    .select("*")
+    .eq("category_id", categoryId)
+    .eq("is_active", true);
+  
+  return await enrichProductsWithTranslationsAndRatings((data || []) as Product[]);
+}
+
+export async function getPrograms() {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase
+    .from("programs")
+    .select("id, title, description, image_url, duration, price, slug, is_active")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+    
+  return data || [];
+}
+
+export async function searchProducts(query: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase
+    .from("products")
+    .select("*")
+    .eq("is_active", true)
+    .or(`slug.ilike.%${query}%,name.ilike.%${query}%,description.ilike.%${query}%`)
+    .limit(20);
+  
+  return await enrichProductsWithRatings((data || []) as Product[]);
+}
+
+export async function getRecommendedProducts(limit = 4) {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let recommendedProducts: Product[] = [];
+
+  if (user) {
+    // Get last viewed products by this user
+    const { data: views } = await supabase
+      .from("product_views")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .order("viewed_at", { ascending: false })
+      .limit(5);
+
+    if (views && views.length > 0) {
+      const viewedProductIds = views.map((v) => v.product_id);
+
+      // Get categories of these viewed products
+      // We need to fetch the products first to know their categories
+      const { data: viewedProductsDetails } = await supabase
+        .from("products")
+        .select("category_id")
+        .in("id", viewedProductIds);
+
+      const categoryIds = viewedProductsDetails
+        ?.map((p) => p.category_id)
+        .filter((id): id is number => id !== null) || [];
+      
+      const uniqueCategoryIds = Array.from(new Set(categoryIds));
+
+      if (uniqueCategoryIds.length > 0) {
+        // Fetch products from these categories
+        const { data: products } = await supabase
+          .from("products")
+          .select("*")
+          .in("category_id", uniqueCategoryIds)
+          .eq("is_active", true)
+          .limit(limit);
+
+        if (products) {
+          recommendedProducts = products as Product[];
+        }
+      }
+    }
+  }
+
+  // If we don't have enough recommendations (or user not logged in), fetch popular/random products
+  if (recommendedProducts.length < limit) {
+    const needed = limit - recommendedProducts.length;
+    // For now, just fetch latest active products as fallback
+    const { data: fallbackProducts } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(needed + 5); // Fetch a bit more to avoid duplicates
+
+    if (fallbackProducts) {
+      const existingIds = new Set(recommendedProducts.map((p) => p.id));
+      const newProducts = (fallbackProducts as Product[])
+        .filter((p) => !existingIds.has(p.id))
+        .slice(0, needed);
+      
+      recommendedProducts = [...recommendedProducts, ...newProducts];
+    }
+  }
+
+  return await enrichProductsWithRatings(recommendedProducts);
+}
+
+export async function getMostViewedProducts(excludeProductId?: number, limit = 8) {
+  const supabase = await getSupabaseServerClient();
+
+  // Count views per product from the product_views table
+  const { data: viewCounts } = await supabase
+    .from("product_views")
+    .select("product_id");
+
+  if (!viewCounts || viewCounts.length === 0) {
+    // Fallback: return popular products by created_at
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(limit + 1);
+    const products = ((data || []) as Product[]).filter(p => p.id !== excludeProductId).slice(0, limit);
+    return await enrichProductsWithTranslationsAndRatings(products);
+  }
+
+  // Count views per product
+  const countMap = new Map<number, number>();
+  viewCounts.forEach((v: any) => {
+    countMap.set(v.product_id, (countMap.get(v.product_id) || 0) + 1);
+  });
+
+  // Sort by view count descending
+  const sortedIds = Array.from(countMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .filter(([pid]) => pid !== excludeProductId)
+    .slice(0, limit)
+    .map(([pid]) => pid);
+
+  if (sortedIds.length === 0) {
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return await enrichProductsWithTranslationsAndRatings((data || []) as Product[]);
+  }
+
+  const { data: products } = await supabase
+    .from("products")
+    .select("*")
+    .in("id", sortedIds)
+    .eq("is_active", true);
+
+  // Preserve order from sortedIds
+  const productMap = new Map((products || []).map((p: any) => [p.id, p]));
+  const ordered = sortedIds
+    .map(id => productMap.get(id))
+    .filter(Boolean) as Product[];
+
+  return await enrichProductsWithTranslationsAndRatings(ordered);
+}
+
+async function enrichProductsWithRatings(products: Product[]): Promise<Product[]> {
+  if (!products.length) return [];
+  const productIds = products.map((p) => p.id);
+  const supabase = await getSupabaseServerClient();
+  const { data: reviews } = await supabase
+    .from("reviews")
+    .select("product_id, rating")
+    .in("product_id", productIds);
+
+  const reviewsMap = new Map<number, number[]>();
+  (reviews || []).forEach((r) => {
+    const pid = (r as { product_id: number; rating: number }).product_id;
+    const rating = (r as { product_id: number; rating: number }).rating;
+    const list = reviewsMap.get(pid) || [];
+    list.push(rating);
+    reviewsMap.set(pid, list);
+  });
+
+  return products.map((p) => {
+    const ratings = reviewsMap.get(p.id) || [];
+    const count = ratings.length;
+    const sum = ratings.reduce((a, b) => a + b, 0);
+    const avg = count > 0 ? sum / count : 0;
+    return { ...p, rating_average: avg, review_count: count };
+  });
+}
+
+async function enrichProductsWithTranslationsAndRatings(products: Product[]): Promise<Product[]> {
+  if (!products.length) return [];
+  const productIds = products.map((p) => p.id);
+  const supabase = await getSupabaseServerClient();
+
+  // Fetch translations and reviews in parallel
+  const [{ data: translations }, { data: reviews }] = await Promise.all([
+    supabase
+      .from("translations")
+      .select("entity_id, language, field, value")
+      .eq("entity_table", "products")
+      .in("entity_id", productIds),
+    supabase
+      .from("reviews")
+      .select("product_id, rating")
+      .in("product_id", productIds),
+  ]);
+
+  // Build translations map
+  const translationsMap = new Map<number, Array<{ language: string; field: string; value: string }>>();
+  (translations || []).forEach((t: any) => {
+    const list = translationsMap.get(t.entity_id) || [];
+    list.push({ language: t.language, field: t.field, value: t.value });
+    translationsMap.set(t.entity_id, list);
+  });
+
+  // Build reviews map
+  const reviewsMap = new Map<number, number[]>();
+  (reviews || []).forEach((r: any) => {
+    const list = reviewsMap.get(r.product_id) || [];
+    list.push(r.rating);
+    reviewsMap.set(r.product_id, list);
+  });
+
+  return products.map((p) => {
+    const ratings = reviewsMap.get(p.id) || [];
+    const count = ratings.length;
+    const sum = ratings.reduce((a, b) => a + b, 0);
+    const avg = count > 0 ? sum / count : 0;
+    const productTranslations = translationsMap.get(p.id) || [];
+    return {
+      ...p,
+      translations: productTranslations as any,
+      rating_average: avg,
+      review_count: count,
+    };
+  });
+}
