@@ -24,6 +24,7 @@ type Slide = {
   button_text: string;
   button_link: string;
   image_url: string;
+  image_position?: string;
   is_active: boolean;
   sort_order: number;
 };
@@ -42,6 +43,7 @@ export default function AdminSlidesPage() {
     button_text: "Məhsullara keç →",
     button_link: "/products",
     image_url: "",
+    image_position: "center center",
     is_active: true,
     sort_order: 0,
   });
@@ -73,6 +75,7 @@ export default function AdminSlidesPage() {
       button_text: "Məhsullara keç →",
       button_link: "/products",
       image_url: "",
+      image_position: "center center",
       is_active: true,
       sort_order: slides.length,
     });
@@ -87,6 +90,7 @@ export default function AdminSlidesPage() {
       button_text: slide.button_text,
       button_link: slide.button_link,
       image_url: slide.image_url,
+      image_position: slide.image_position || "center center",
       is_active: slide.is_active,
       sort_order: slide.sort_order,
     });
@@ -235,6 +239,7 @@ export default function AdminSlidesPage() {
                     src={form.image_url}
                     alt="Slide preview"
                     className="w-full h-40 object-cover"
+                    style={{ objectPosition: form.image_position || "center center" }}
                   />
                   <button
                     onClick={() => setForm({ ...form, image_url: "" })}
@@ -274,6 +279,44 @@ export default function AdminSlidesPage() {
                 placeholder="https://example.com/image.jpg"
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-black focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
+              
+              {/* Image Position Selector */}
+              {form.image_url && (
+                <div className="space-y-2 pt-2 border-t border-slate-200">
+                  <label className="text-xs font-medium text-slate-600">
+                    Şəkilin mövqeyi
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Yuxarı sol", value: "top left" },
+                      { label: "Yuxarı", value: "top center" },
+                      { label: "Yuxarı sağ", value: "top right" },
+                      { label: "Sol", value: "center left" },
+                      { label: "Mərkəz", value: "center center" },
+                      { label: "Sağ", value: "center right" },
+                      { label: "Aşağı sol", value: "bottom left" },
+                      { label: "Aşağı", value: "bottom center" },
+                      { label: "Aşağı sağ", value: "bottom right" },
+                    ].map((pos) => (
+                      <button
+                        key={pos.value}
+                        type="button"
+                        onClick={() => setForm({ ...form, image_position: pos.value })}
+                        className={`rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${
+                          form.image_position === pos.value
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        {pos.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    Seçilmiş: {form.image_position}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Title */}

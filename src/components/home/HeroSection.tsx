@@ -14,6 +14,7 @@ export type HeroSlide = {
   button_text: string;
   button_link: string;
   image_url: string;
+  image_position?: string;
   is_active: boolean;
   sort_order: number;
 };
@@ -114,7 +115,10 @@ export default function HeroSection({
                   src={slide.image_url}
                   alt={slide.title || "Hero"}
                   fill
-                  className="object-cover object-center"
+                  className="object-cover"
+                  style={{
+                    objectPosition: slide.image_position || "center center",
+                  }}
                   priority={idx === 0}
                   sizes="100vw"
                   quality={75}

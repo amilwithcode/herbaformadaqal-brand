@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     button_text: body.button_text || "",
     button_link: body.button_link || "/products",
     image_url: body.image_url || "",
+    image_position: body.image_position || "center center",
     is_active: body.is_active ?? true,
     sort_order: body.sort_order ?? 0,
   };
@@ -71,6 +72,7 @@ export async function PUT(req: NextRequest) {
   if (typeof body.button_text === "string") patch.button_text = body.button_text;
   if (typeof body.button_link === "string") patch.button_link = body.button_link;
   if (typeof body.image_url === "string") patch.image_url = body.image_url;
+  if (typeof body.image_position === "string") patch.image_position = body.image_position;
   if (typeof body.is_active === "boolean") patch.is_active = body.is_active;
   if (typeof body.sort_order === "number") patch.sort_order = body.sort_order;
 
