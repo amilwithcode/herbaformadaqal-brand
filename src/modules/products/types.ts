@@ -3,6 +3,7 @@ export type Category = {
   slug: string;
   name: string;
   icon: string | null;
+  description?: string | null;
 };
 
 export type Product = {
