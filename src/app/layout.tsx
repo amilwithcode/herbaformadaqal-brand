@@ -7,7 +7,8 @@ import Providers from "./providers";
 const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"], // Including weights as requested (Regular, Medium, Bold shown in image)
+  weight: ["400", "500", "600", "700"],
+  display: "swap", // Font yüklənənə qədər system font göstər - CLS yaxşılaşır
 });
 
 export async function generateMetadata(): Promise<Metadata> {

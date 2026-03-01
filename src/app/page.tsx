@@ -1,21 +1,25 @@
+import dynamic from "next/dynamic";
 import HeroSection from "@/components/home/HeroSection";
-import CategoriesSection from "@/components/home/CategoriesSection";
-import ProgramsSection from "@/components/home/ProgramsSection";
-import ReviewsSection from "@/components/home/ReviewsSection";
 import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
-import BlogSection from "@/components/home/BlogSection";
-import FAQSection from "@/components/home/FAQSection";
-import PromoBannerSection from "@/components/home/PromoBannerSection";
-import HomeFooter from "@/components/home/HomeFooter";
+import BenefitsStrip from "@/components/home/BenefitsStrip";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getHomeProducts, getCategories } from "@/modules/products/queries";
 import { getSiteSettings, getPageSections, getHeroSlides } from "@/modules/settings/queries";
-import WeightCalculatorSection from "@/components/home/WeightCalculatorSection";
-import BenefitsStrip from "@/components/home/BenefitsStrip";
-import GoalsStrip from "@/components/home/GoalsStrip";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-export const dynamic = "force-dynamic";
+// Below-the-fold komponentləri lazy load edirik - ilk yüklənməni sürətləndirir
+const CategoriesSection = dynamic(() => import("@/components/home/CategoriesSection"), { ssr: true });
+const ProgramsSection = dynamic(() => import("@/components/home/ProgramsSection"), { ssr: true });
+const ReviewsSection = dynamic(() => import("@/components/home/ReviewsSection"), { ssr: true });
+const BlogSection = dynamic(() => import("@/components/home/BlogSection"), { ssr: true });
+const FAQSection = dynamic(() => import("@/components/home/FAQSection"), { ssr: true });
+const PromoBannerSection = dynamic(() => import("@/components/home/PromoBannerSection"), { ssr: true });
+const WeightCalculatorSection = dynamic(() => import("@/components/home/WeightCalculatorSection"), { ssr: true });
+const GoalsStrip = dynamic(() => import("@/components/home/GoalsStrip"), { ssr: true });
+const HomeFooter = dynamic(() => import("@/components/home/HomeFooter"), { ssr: true });
+
+// ISR: Səhifəni hər 60 saniyədə yenilə, lakin keşlə
+export const revalidate = 60;
 
 export default async function Home() {
   const supabase = await getSupabaseServerClient();
