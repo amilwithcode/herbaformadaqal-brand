@@ -6,7 +6,7 @@ import HomeFooter from "@/components/home/HomeFooter";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function ProductsPage() {
   const supabase = await getSupabaseServerClient();

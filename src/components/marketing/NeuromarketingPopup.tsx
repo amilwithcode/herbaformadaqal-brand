@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { X, CheckCircle, User, ShoppingBag } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 
 type Notification = {
   id: number;
@@ -155,51 +154,47 @@ export default function NeuromarketingPopup() {
   if (!notification) return null;
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 50, x: -50 }}
-          animate={{ opacity: 1, y: 0, x: 0 }}
-          exit={{ opacity: 0, y: 20, x: -20 }}
-          transition={{ duration: 0.5 }}
-          className="fixed bottom-4 left-4 z-50 max-w-sm w-full md:w-auto"
-        >
-          <div className="bg-white rounded-xl shadow-lg border border-emerald-100 p-4 flex items-start gap-3 relative overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -z-10 opacity-50" />
-            
-            <div className="bg-emerald-100 p-2 rounded-full flex-shrink-0">
-              {notification.action === "qoşuldu" ? (
-                <User size={20} className="text-emerald-600" />
-              ) : notification.action === "sifariş etdi" ? (
-                <ShoppingBag size={20} className="text-emerald-600" />
-              ) : (
-                <CheckCircle size={20} className="text-emerald-600" />
-              )}
-            </div>
-            
-            <div className="flex-1 pr-6">
-              <p className="text-sm text-emerald-950 font-medium">
-                <span className="font-bold">{notification.name}</span> <span className="text-slate-500 font-normal text-xs">({notification.city})</span>
-              </p>
-              <p className="text-xs text-emerald-600 mt-0.5">
-                {notification.product} {notification.action}
-              </p>
-              <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                {notification.timeAgo}
-              </p>
-            </div>
+    <div
+      className={`fixed bottom-4 left-4 z-50 max-w-sm w-full md:w-auto transition-all duration-500 ease-out ${
+        isVisible
+          ? "opacity-100 translate-y-0 translate-x-0"
+          : "opacity-0 translate-y-12 -translate-x-12 pointer-events-none"
+      }`}
+    >
+      <div className="bg-white rounded-xl shadow-lg border border-emerald-100 p-4 flex items-start gap-3 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -z-10 opacity-50" />
+        
+        <div className="bg-emerald-100 p-2 rounded-full flex-shrink-0">
+          {notification.action === "qoşuldu" ? (
+            <User size={20} className="text-emerald-600" />
+          ) : notification.action === "sifariş etdi" ? (
+            <ShoppingBag size={20} className="text-emerald-600" />
+          ) : (
+            <CheckCircle size={20} className="text-emerald-600" />
+          )}
+        </div>
+        
+        <div className="flex-1 pr-6">
+          <p className="text-sm text-emerald-950 font-medium">
+            <span className="font-bold">{notification.name}</span> <span className="text-slate-500 font-normal text-xs">({notification.city})</span>
+          </p>
+          <p className="text-xs text-emerald-600 mt-0.5">
+            {notification.product} {notification.action}
+          </p>
+          <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            {notification.timeAgo}
+          </p>
+        </div>
 
-            <button 
-              onClick={closeNotification}
-              className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        <button 
+          onClick={closeNotification}
+          className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    </div>
   );
 }

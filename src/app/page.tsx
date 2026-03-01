@@ -5,7 +5,6 @@ import BenefitsStrip from "@/components/home/BenefitsStrip";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getHomeProducts, getCategories } from "@/modules/products/queries";
 import { getSiteSettings, getPageSections, getHeroSlides } from "@/modules/settings/queries";
-import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 // Below-the-fold komponentləri lazy load edirik - ilk yüklənməni sürətləndirir
 const CategoriesSection = dynamic(() => import("@/components/home/CategoriesSection"), { ssr: true });
@@ -22,7 +21,6 @@ const HomeFooter = dynamic(() => import("@/components/home/HomeFooter"), { ssr: 
 export const revalidate = 60;
 
 export default async function Home() {
-  const supabase = await getSupabaseServerClient();
   const [rawProducts, categories, settings, homeSections, heroSlides] = await Promise.all([
     getHomeProducts(),
     getCategories(),

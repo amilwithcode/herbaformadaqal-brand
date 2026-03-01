@@ -4,7 +4,7 @@ import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function ProgramsPage() {
   const supabase = await getSupabaseServerClient();

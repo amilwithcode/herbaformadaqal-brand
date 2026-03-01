@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useI18n } from "@/contexts/I18nContext";
 import CountUp from "@/components/ui/CountUp";
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -106,13 +107,19 @@ export default function HeroSection({
                 : "opacity-0 z-0"
             }`}
           >
-            {/* Background Image */}
+            {/* Background Image - next/image ilə optimallaşdırılmış */}
             {slide.image_url ? (
-              <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url(${slide.image_url})` }}
-              >
-                {/* Overlay - yalnız sol tərəfdə yüngül qaraltma (mətn oxunması üçün) */}
+              <div className="absolute inset-0">
+                <Image
+                  src={slide.image_url}
+                  alt={slide.title || "Hero"}
+                  fill
+                  className="object-cover object-center"
+                  priority={idx === 0}
+                  sizes="100vw"
+                  quality={75}
+                />
+                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />
               </div>
             ) : (

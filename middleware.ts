@@ -52,42 +52,43 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          );
-          response = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
   // Define protected paths
   const path = request.nextUrl.pathname;
-
-  // Always refresh the session so auth tokens stay valid for API calls
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
   const isAdminRoute = path.startsWith("/admin") && path !== "/admin/login";
   const isAccountRoute = path.startsWith("/account");
-  
-  if (isAdminRoute || isAccountRoute) {
+  const isProtectedRoute = isAdminRoute || isAccountRoute;
+
+  // ⚡ PERFORMANS: Yalnız qorunan (protected) marşrutlarda Supabase auth yoxla
+  // Public səhifələr üçün gərəksiz network sorğusu göndərmirik
+  if (isProtectedRoute) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              request.cookies.set(name, value)
+            );
+            response = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
     // If not authenticated
     if (error || !user) {
       const url = request.nextUrl.clone();
@@ -105,7 +106,6 @@ export async function middleware(request: NextRequest) {
         .maybeSingle();
 
       if (!profile || profile.role !== "admin") {
-        // Non-admin users see "not found" page — /admin yolu onlar üçün mövcud deyil
         const url = request.nextUrl.clone();
         url.pathname = "/404";
         return NextResponse.rewrite(url);

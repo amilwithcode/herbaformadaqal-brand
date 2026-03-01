@@ -18,12 +18,23 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       }
     ],
+    // Şəkil optimallaşdırma: WebP/AVIF formatlarını dəstəklə (daha kiçik ölçü)
+    formats: ["image/avif", "image/webp"],
+    // Lazım olan ölçülər - gərəksiz şəkil variantları yaratmasın
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // Şəkilləri bir müddət keşlə
+    minimumCacheTTL: 60 * 60 * 24, // 24 saat
   },
   experimental: {
     serverActions: {
       bodySizeLimit: "5mb",
     },
+    // Paket optimallaşdırması - lazım olan modulları ağac silkələməsi ilə kiçilt
+    optimizePackageImports: ["lucide-react"],
   },
+  // Sıxılma aktiv et
+  compress: true,
 };
 
 export default nextConfig;

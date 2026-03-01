@@ -37,6 +37,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="az">
+      <head>
+        {/* DNS Prefetch & Preconnect - xarici resursları öncədən bağla */}
+        <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
+        <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
+      </head>
       <body
         className={`${notoSans.variable} antialiased bg-slate-950 text-slate-100 font-sans`}
       >

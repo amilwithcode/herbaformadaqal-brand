@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type PromoBanner = {
   id: number;
@@ -92,13 +93,16 @@ export default function PromoBannerSection() {
               )}
             </div>
 
-            {/* Right - Product Image */}
+            {/* Right - Product Image - next/image ilə optimallaşdırılmış */}
             {banner.image_url && (
-              <div className="flex-shrink-0 z-10">
-                <img
+              <div className="relative flex-shrink-0 z-10 h-[200px] md:h-[280px] w-[200px] md:w-[280px]">
+                <Image
                   src={banner.image_url}
                   alt={banner.title}
-                  className="h-[200px] md:h-[280px] w-auto object-contain drop-shadow-2xl"
+                  fill
+                  className="object-contain drop-shadow-2xl"
+                  sizes="(max-width: 768px) 200px, 280px"
+                  loading="lazy"
                 />
               </div>
             )}
