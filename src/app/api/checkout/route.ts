@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
           const productLines = lines.filter(
             (l: { productId?: number }) => l.productId === p.id
           );
-          return productLines.map((line) => {
+          return productLines.map((line: { productId?: number; quantity?: number | string }) => {
             const qty = Number(line.quantity) || 0;
             const base = Number(p.base_price) || 0;
             const discountPercent = Number(p.discount_percent) || 0;
