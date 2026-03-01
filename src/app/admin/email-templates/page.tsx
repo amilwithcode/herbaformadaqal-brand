@@ -493,7 +493,7 @@ export default function EmailTemplatesPage() {
 
       {/* Env Warning */}
       {error &&
-        error.includes("SUPABASE_SERVICE_ROLE_KEY") && (
+        (error.includes("SUPABASE_ACCESS_TOKEN") || error.includes("JWT failed")) && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-amber-800">
               <AlertCircle size={16} />
@@ -501,18 +501,24 @@ export default function EmailTemplatesPage() {
             </h3>
             <div className="mt-3 space-y-2 text-xs text-amber-700">
               <p>
-                Email şablonlarını idarə etmək üçün{" "}
+                Email şablonlarını idarə etmək üçün Supabase <strong>Personal Access Token</strong> lazımdır.{" "}
                 <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono">
                   .env
                 </code>{" "}
                 faylına aşağıdakı dəyişəni əlavə edin:
               </p>
               <div className="rounded-lg bg-amber-100/60 p-3 font-mono text-[11px]">
-                <p>SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here</p>
+                <p>SUPABASE_ACCESS_TOKEN=sbp_xxxxxxxxxxxxxxxxxxxxxxxx</p>
               </div>
-              <p>
-                Service Role Key-i Supabase Dashboard → Settings → API
-                bölməsindən tapa bilərsiniz.
+              <p className="font-semibold">Access Token necə yaradılır:</p>
+              <ol className="list-decimal list-inside space-y-1 pl-1">
+                <li><a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener" className="underline text-blue-600 hover:text-blue-800">supabase.com/dashboard/account/tokens</a> səhifəsinə daxil olun</li>
+                <li>&quot;Generate new token&quot; düyməsinə basın</li>
+                <li>Token-ə ad verin (məs: &quot;Herbalife Admin&quot;)</li>
+                <li>Yaradılan token-i <code className="rounded bg-amber-100 px-1 py-0.5 font-mono">.env</code> faylına kopyalayın</li>
+              </ol>
+              <p className="mt-2 text-amber-600">
+                ⚠️ <strong>Qeyd:</strong> Bu, <code className="font-mono">service_role</code> açarı DEYİL. Management API üçün ayrıca Personal Access Token lazımdır.
               </p>
             </div>
           </div>

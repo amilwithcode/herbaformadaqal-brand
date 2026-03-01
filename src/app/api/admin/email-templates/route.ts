@@ -8,8 +8,12 @@ export const dynamic = "force-dynamic";
  * Supabase Management API vasitəsilə email template-lərini idarə edir.
  * 
  * Tələb olunan env variables:
- * - NEXT_PUBLIC_SUPABASE_URL  (project ref buradan çıxarılır)
- * - SUPABASE_SERVICE_ROLE_KEY (Management API üçün)
+ * - NEXT_PUBLIC_SUPABASE_URL      (project ref buradan çıxarılır)
+ * - SUPABASE_ACCESS_TOKEN         (Management API üçün Personal Access Token)
+ * 
+ * QEYD: Management API (api.supabase.com) service_role key qəbul ETMİR.
+ * Personal Access Token lazımdır:
+ *   Supabase Dashboard → Account (sol alt) → Access Tokens → Generate New Token
  */
 
 function getProjectRef(): string | null {
@@ -20,8 +24,8 @@ function getProjectRef(): string | null {
   return match ? match[1] : null;
 }
 
-function getServiceRoleKey(): string | null {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY || null;
+function getAccessToken(): string | null {
+  return process.env.SUPABASE_ACCESS_TOKEN || null;
 }
 
 // Template type-lar
@@ -44,13 +48,13 @@ type TemplateData = {
 type AllTemplates = Record<TemplateType, TemplateData>;
 
 // Supabase Management API-dən auth config oxumaq
-async function fetchAuthConfig(projectRef: string, serviceRoleKey: string) {
+async function fetchAuthConfig(projectRef: string, accessToken: string) {
   const res = await fetch(
     `https://api.supabase.com/v1/projects/${projectRef}/config/auth`,
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${serviceRoleKey}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     }
@@ -58,7 +62,7 @@ async function fetchAuthConfig(projectRef: string, serviceRoleKey: string) {
 
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(`Supabase API error (${res.status}): ${errorText}`);
+    throw new Error(`Supabase Management API xətası (${res.status}): ${errorText}`);
   }
 
   return res.json();
@@ -67,7 +71,7 @@ async function fetchAuthConfig(projectRef: string, serviceRoleKey: string) {
 // Supabase Management API-yə auth config yazmaq
 async function updateAuthConfig(
   projectRef: string,
-  serviceRoleKey: string,
+  accessToken: string,
   payload: Record<string, string>
 ) {
   const res = await fetch(
@@ -75,7 +79,7 @@ async function updateAuthConfig(
     {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${serviceRoleKey}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
@@ -84,7 +88,7 @@ async function updateAuthConfig(
 
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(`Supabase API error (${res.status}): ${errorText}`);
+    throw new Error(`Supabase Management API xətası (${res.status}): ${errorText}`);
   }
 
   return res.json();
@@ -120,20 +124,20 @@ export async function GET() {
   }
 
   const projectRef = getProjectRef();
-  const serviceRoleKey = getServiceRoleKey();
+  const accessToken = getAccessToken();
 
-  if (!projectRef || !serviceRoleKey) {
+  if (!projectRef || !accessToken) {
     return NextResponse.json(
       {
         error:
-          "Supabase konfiqurasiyası natamamdır. NEXT_PUBLIC_SUPABASE_URL və SUPABASE_SERVICE_ROLE_KEY lazımdır.",
+          "Supabase konfiqurasiyası natamamdır. NEXT_PUBLIC_SUPABASE_URL və SUPABASE_ACCESS_TOKEN lazımdır. Access Token-i Supabase Dashboard → Account → Access Tokens bölməsindən yarada bilərsiniz.",
       },
       { status: 500 }
     );
   }
 
   try {
-    const config = await fetchAuthConfig(projectRef, serviceRoleKey);
+    const config = await fetchAuthConfig(projectRef, accessToken);
     const templates = extractTemplates(config);
     return NextResponse.json({ templates }, { status: 200 });
   } catch (err: unknown) {
@@ -155,13 +159,13 @@ export async function PUT(req: NextRequest) {
   }
 
   const projectRef = getProjectRef();
-  const serviceRoleKey = getServiceRoleKey();
+  const accessToken = getAccessToken();
 
-  if (!projectRef || !serviceRoleKey) {
+  if (!projectRef || !accessToken) {
     return NextResponse.json(
       {
         error:
-          "Supabase konfiqurasiyası natamamdır. NEXT_PUBLIC_SUPABASE_URL və SUPABASE_SERVICE_ROLE_KEY lazımdır.",
+          "Supabase konfiqurasiyası natamamdır. NEXT_PUBLIC_SUPABASE_URL və SUPABASE_ACCESS_TOKEN lazımdır.",
       },
       { status: 500 }
     );
@@ -197,7 +201,7 @@ export async function PUT(req: NextRequest) {
 
     const updatedConfig = await updateAuthConfig(
       projectRef,
-      serviceRoleKey,
+      accessToken,
       payload
     );
     const updatedTemplates = extractTemplates(updatedConfig);
