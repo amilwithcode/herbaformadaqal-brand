@@ -293,8 +293,13 @@ export default function AdminContentPage() {
         setPostBody("");
         setPostCategory("");
         setPostImageUrl("");
+      } else {
+        const errorData = await res.json().catch(() => ({ error: "Naməlum xəta" }));
+        alert("Xəta: " + (errorData.error || "Post əlavə edilə bilmədi"));
       }
-    } catch {
+    } catch (err: any) {
+      console.error("Post add error:", err);
+      alert("Xəta baş verdi: " + (err.message || "Naməlum xəta"));
     } finally {
       setSavingPost(false);
     }
