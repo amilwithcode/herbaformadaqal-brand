@@ -12,7 +12,7 @@ interface CountUpProps {
 export default function CountUp({ end, duration = 2000, suffix = "", decimals = 0 }: CountUpProps) {
   const [count, setCount] = useState(0);
   const startTimeRef = useRef<number | null>(null);
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
     const animate = (time: number) => {
