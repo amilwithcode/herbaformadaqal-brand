@@ -119,7 +119,7 @@ export default async function AccountOrderDetailPage({ params }: Props) {
     }
     if (!parts.length) {
       const extra = Object.values(addr)
-        .filter((v): v is string => typeof v === "string" && v.trim())
+        .filter((v): v is string => typeof v === "string" && v.trim() !== "")
         .slice(0, 4);
       parts.push(...extra);
     }

@@ -43,17 +43,37 @@ const couponTypeLabels: Record<string, string> = {
 };
 
 /* ──── Default forms ──── */
-const emptyCampaign = {
+type CampaignForm = {
+  slug: string;
+  campaign_type: "discount" | "bundle" | "bogo";
+  starts_at: string;
+  ends_at: string;
+  is_active: boolean;
+};
+
+const emptyCampaign: CampaignForm = {
   slug: "",
-  campaign_type: "discount" as const,
+  campaign_type: "discount",
   starts_at: "",
   ends_at: "",
   is_active: true,
 };
 
-const emptyCoupon = {
+type CouponForm = {
+  code: string;
+  coupon_type: "percentage" | "fixed" | "free_shipping";
+  value: number;
+  min_order_amount: number;
+  max_discount_amount: string;
+  usage_limit: string;
+  starts_at: string;
+  ends_at: string;
+  is_active: boolean;
+};
+
+const emptyCoupon: CouponForm = {
   code: "",
-  coupon_type: "percentage" as const,
+  coupon_type: "percentage",
   value: 0,
   min_order_amount: 0,
   max_discount_amount: "",
@@ -72,14 +92,14 @@ export default function AdminCampaignsPage() {
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
   const [showCampaignForm, setShowCampaignForm] = useState(false);
   const [editingCampaignId, setEditingCampaignId] = useState<number | null>(null);
-  const [campaignForm, setCampaignForm] = useState(emptyCampaign);
+  const [campaignForm, setCampaignForm] = useState<CampaignForm>(emptyCampaign);
 
   // Coupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loadingCoupons, setLoadingCoupons] = useState(true);
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<number | null>(null);
-  const [couponForm, setCouponForm] = useState(emptyCoupon);
+  const [couponForm, setCouponForm] = useState<CouponForm>(emptyCoupon);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: "campaign" | "coupon"; id: number } | null>(null);
 
