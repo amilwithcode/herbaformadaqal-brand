@@ -226,6 +226,31 @@ function TranslationInput({
   onTitleChange: (v: string) => void;
   onDescChange: (v: string) => void;
 }) {
+  const descRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const wrapSelection = (before: string, after: string) => {
+    const el = descRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const value = descValue || "";
+    const selected = value.slice(start, end) || "";
+    const next =
+      value.slice(0, start) + before + selected + after + value.slice(end);
+    onDescChange(next);
+    // Seçilən sahəni təxminən yerində saxlayaq
+    requestAnimationFrame(() => {
+      const pos = start + before.length + selected.length + after.length;
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    });
+  };
+
+  const makeBold = () => wrapSelection("<strong>", "</strong>");
+  const makeBig = () => wrapSelection('<span style="font-size: 1.1em;">', "</span>");
+  const makeBigger = () =>
+    wrapSelection('<span style="font-size: 1.25em;">', "</span>");
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -236,14 +261,42 @@ function TranslationInput({
       </div>
       <input
         placeholder={`Məhsulun adı (${locale.toUpperCase()})`}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-200 transition-shadow"
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-200 transition-shadow"
         value={titleValue}
         onChange={(e) => onTitleChange(e.target.value)}
       />
+      {/* Sadə rich-text toolbar: qalın və ölçü düymələri */}
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+        <span className="mr-1 text-[10px] uppercase tracking-wide text-slate-400">
+          Format:
+        </span>
+        <button
+          type="button"
+          onClick={makeBold}
+          className="rounded border border-slate-200 bg-slate-50 px-2 py-1 font-semibold text-xs hover:border-emerald-400 hover:bg-emerald-50"
+        >
+          B
+        </button>
+        <button
+          type="button"
+          onClick={makeBig}
+          className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] hover:border-emerald-400 hover:bg-emerald-50"
+        >
+          A+
+        </button>
+        <button
+          type="button"
+          onClick={makeBigger}
+          className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[12px] font-medium hover:border-emerald-400 hover:bg-emerald-50"
+        >
+          A++
+        </button>
+      </div>
       <textarea
         placeholder={`Təsvir (${locale.toUpperCase()})`}
-        rows={2}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-200 transition-shadow resize-none"
+        rows={8}
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-200 transition-shadow resize-y min-h-[200px]"
+        ref={descRef}
         value={descValue}
         onChange={(e) => onDescChange(e.target.value)}
       />
@@ -774,7 +827,7 @@ export default function AdminProducts() {
                     Daxili ad (Slug üçün)
                   </label>
                   <input
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Məs: formula-1-vanilla"
@@ -791,7 +844,7 @@ export default function AdminProducts() {
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
                       value={originalPrice}
                       onChange={(e) => setOriginalPrice(e.target.value)}
                       placeholder="0.00"
@@ -803,7 +856,7 @@ export default function AdminProducts() {
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="0.00"
@@ -818,7 +871,7 @@ export default function AdminProducts() {
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
                       value={stock}
                       onChange={(e) => setStock(e.target.value)}
                       placeholder="0"
@@ -830,7 +883,7 @@ export default function AdminProducts() {
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
                       value={points}
                       onChange={(e) => setPoints(e.target.value)}
                       placeholder="0"

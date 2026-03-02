@@ -15,7 +15,7 @@ export default function ProductsClient({
   products,
   categories,
 }: ProductsClientProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const initialSearch =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("search") || ""
@@ -51,7 +51,24 @@ export default function ProductsClient({
       list = list.filter((p) => {
         const normalizedSlug = p.slug.toLowerCase().replace(/-/g, " ");
         const normalizedQuery = q.replace(/-/g, " ");
-        return normalizedSlug.includes(normalizedQuery) || p.slug.toLowerCase().includes(q);
+
+        // Axtarışı həm slug, həm də tərcümə olunmuş adlar üzrə edək
+        const titleTrans = p.translations?.find(
+          (tr) => tr.language === locale && tr.field === "title"
+        );
+        const anyTitle = p.translations?.find(
+          (tr) => tr.field === "title"
+        );
+        const localizedName =
+          titleTrans?.value ||
+          anyTitle?.value ||
+          normalizedSlug;
+
+        return (
+          normalizedSlug.includes(normalizedQuery) ||
+          p.slug.toLowerCase().includes(q) ||
+          localizedName.toLowerCase().includes(q)
+        );
       });
     }
     if (sort === "price_low") {
@@ -68,11 +85,25 @@ export default function ProductsClient({
       const price = Number(p.base_price) || 0;
       const discount = Number(p.discount_percent) || 0;
       const finalPrice = price * (1 - discount / 100);
+
+      // Kartlarda dilə uyğun adı göstər
+      const titleTrans = p.translations?.find(
+        (tr) => tr.language === locale && tr.field === "title"
+      );
+      const anyTitle = p.translations?.find(
+        (tr) => tr.field === "title"
+      );
+      const name =
+        titleTrans?.value ||
+        anyTitle?.value ||
+        p.slug
+          .split("-")
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(" ");
+
       return {
         id: p.id,
-        name:
-          p.slug.charAt(0).toUpperCase() +
-          p.slug.slice(1).replace(/-/g, " "),
+        name,
         price: finalPrice,
         originalPrice: discount ? price : null,
         imageUrl: p.image_url,
@@ -81,7 +112,7 @@ export default function ProductsClient({
         reviewCount: p.review_count || 0,
       };
     });
-  }, [products, categoryId, search, sort]);
+  }, [products, categoryId, search, sort, locale]);
 
   return (
     <div className="space-y-6">

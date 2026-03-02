@@ -69,14 +69,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
   }
 
-  const basePrice = Number(body.price) || 0;
-  const originalPrice = Number(body.originalPrice) || basePrice;
+  // Admin formundan gələn qiymətləri düzgün xəritələyək:
+  // - originalPrice: endirimdən əvvəlki əsas qiymət
+  // - price: endirimdən sonrakı real satış qiyməti
+  // DB-də isə base_price + discount_percent saxlanılır
+  const originalPriceInput = Number(body.originalPrice);
+  const currentPriceInput = Number(body.price);
+
+  const basePrice =
+    !Number.isNaN(originalPriceInput) && originalPriceInput > 0
+      ? originalPriceInput
+      : !Number.isNaN(currentPriceInput) && currentPriceInput > 0
+      ? currentPriceInput
+      : 0;
+
+  const finalPrice =
+    !Number.isNaN(currentPriceInput) && currentPriceInput > 0
+      ? currentPriceInput
+      : basePrice;
   
   // Calculate discount safely to avoid numeric overflow
   // Postgres numeric(5,2) max value is 999.99
   let discountPercent = 0;
-  if (originalPrice > basePrice && originalPrice > 0) {
-    discountPercent = ((originalPrice - basePrice) / originalPrice) * 100;
+  if (basePrice > finalPrice && basePrice > 0) {
+    discountPercent = ((basePrice - finalPrice) / basePrice) * 100;
   }
   
   // Clamp discount percent to valid range for numeric(5,2)
@@ -88,8 +104,15 @@ export async function POST(req: NextRequest) {
       ? body.name.trim()
       : "product";
 
-  // Append a timestamp to ensure uniqueness
-  const slug = `${slugSource.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
+  // Adminin daxil etdiyi daxili adı stabil slug kimi istifadə edirik.
+  // Boşluqları defis ilə əvəzləyib, yalnız latın hərfləri/rəqəmləri saxlayırıq.
+  const slug = slugSource
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
   const insertPayload = {
     slug,
@@ -202,14 +225,27 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
   }
 
-  const basePrice = Number(body.price) || 0;
-  const originalPrice = Number(body.originalPrice) || basePrice;
-  
+  // Eyni məntiqi update zamanı da tətbiq edirik
+  const originalPriceInput = Number(body.originalPrice);
+  const currentPriceInput = Number(body.price);
+
+  const basePrice =
+    !Number.isNaN(originalPriceInput) && originalPriceInput > 0
+      ? originalPriceInput
+      : !Number.isNaN(currentPriceInput) && currentPriceInput > 0
+      ? currentPriceInput
+      : 0;
+
+  const finalPrice =
+    !Number.isNaN(currentPriceInput) && currentPriceInput > 0
+      ? currentPriceInput
+      : basePrice;
+
   let discountPercent = 0;
-  if (originalPrice > basePrice && originalPrice > 0) {
-    discountPercent = ((originalPrice - basePrice) / originalPrice) * 100;
+  if (basePrice > finalPrice && basePrice > 0) {
+    discountPercent = ((basePrice - finalPrice) / basePrice) * 100;
   }
-  
+
   if (discountPercent > 999.99) discountPercent = 999.99;
   if (discountPercent < -999.99) discountPercent = -999.99;
 

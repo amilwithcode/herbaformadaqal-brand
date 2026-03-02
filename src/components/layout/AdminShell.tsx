@@ -23,6 +23,7 @@ import {
   HelpCircle,
   Megaphone,
   Mail,
+  Bell,
 } from "lucide-react";
 
 type Props = {
@@ -40,6 +41,7 @@ const navItems = [
   { href: "/admin/faqs", label: "FAQ Suallar", icon: HelpCircle },
   { href: "/admin/promo-banners", label: "Tanıtım Bannerləri", icon: Megaphone },
   { href: "/admin/campaigns", label: "Kampaniyalar & Kuponlar", icon: Tag },
+  { href: "/admin/popup", label: "Popup Ayarları", icon: Bell },
   { href: "/admin/settings", label: "Sayt ayarları", icon: Settings },
   { href: "/admin/meta-tags", label: "Meta Teqlər", icon: Globe },
   { href: "/admin/email-templates", label: "Email Şablonları", icon: Mail },

@@ -443,7 +443,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
            {activeTab === "features" && (
              <div className="prose prose-sm prose-slate max-w-none">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">{t("product.about")}</h3>
-                <p>{translatedContent.description || t("product.no_description")}</p>
+                {translatedContent.description ? (
+                  // Admin panelindən gələn HTML-i render edirik ki, bold və ölçü dəyişiklikləri görünsün
+                  <div
+                    dangerouslySetInnerHTML={{ __html: translatedContent.description }}
+                  />
+                ) : (
+                  <p>{t("product.no_description")}</p>
+                )}
              </div>
            )}
 

@@ -115,13 +115,13 @@ export default function HeroSection({
                   src={slide.image_url}
                   alt={slide.title || "Hero"}
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                   style={{
                     objectPosition: slide.image_position || "center center",
                   }}
                   priority={idx === 0}
                   sizes="100vw"
-                  quality={75}
+                  quality={90}
                 />
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />

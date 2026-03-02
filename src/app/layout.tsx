@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import Script from "next/script";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -41,11 +42,15 @@ export default function RootLayout({
         {/* DNS Prefetch & Preconnect - xarici resursları öncədən bağla */}
         <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
         <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
+        {/* Popup CSS */}
+        <link rel="stylesheet" href="/popup.css" />
       </head>
       <body
         className={`${notoSans.variable} antialiased bg-slate-950 text-slate-100 font-sans`}
       >
         <Providers>{children}</Providers>
+        {/* Popup Script - Load after page content */}
+        <Script src="/popup.js" strategy="afterInteractive" />
       </body>
     </html>
   );

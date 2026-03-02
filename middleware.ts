@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // For distributed systems (Vercel/Serverless), use Redis (e.g., Upstash)
 const rateLimit = new Map<string, { count: number; startTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS = 100; // 100 requests per minute
+const MAX_REQUESTS = 300; // 300 requests per minute (increased to prevent false positives)
 
 // Cleanup interval to prevent memory leaks (every 5 minutes)
 setInterval(() => {
@@ -41,9 +41,17 @@ function checkRateLimit(ip: string) {
 
 export async function middleware(request: NextRequest) {
   // 1. DDoS / Rate Limiting Protection
-  const ip = request.headers.get("x-forwarded-for") || "unknown";
-  if (checkRateLimit(ip)) {
-    return new NextResponse("Too Many Requests", { status: 429 });
+  // Skip rate limiting for static assets and API routes (except admin)
+  const path = request.nextUrl.pathname;
+  const isStaticAsset = path.startsWith("/_next") || 
+                        path.startsWith("/api/chat") || 
+                        path.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/);
+  
+  if (!isStaticAsset) {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    if (checkRateLimit(ip)) {
+      return new NextResponse("Too Many Requests", { status: 429 });
+    }
   }
 
   let response = NextResponse.next({
@@ -52,8 +60,7 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Define protected paths
-  const path = request.nextUrl.pathname;
+  // Define protected paths (path already defined above)
   const isAdminRoute = path.startsWith("/admin") && path !== "/admin/login";
   const isAccountRoute = path.startsWith("/account");
   const isProtectedRoute = isAdminRoute || isAccountRoute;
