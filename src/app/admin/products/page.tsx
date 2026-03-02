@@ -310,6 +310,7 @@ export default function AdminProducts() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
@@ -345,6 +346,7 @@ export default function AdminProducts() {
     setEditingProductId(product.id);
     setShowForm(true);
     setName(product.name);
+    setSlug(product.slug || product.name);
     setOriginalPrice(product.originalPrice.toString());
     setPrice(product.price.toString());
     setStock(product.stock.toString());
@@ -376,6 +378,7 @@ export default function AdminProducts() {
     setEditingProductId(null);
     setShowForm(false);
     setName("");
+    setSlug("");
     setOriginalPrice("");
     setPrice("");
     setStock("");
@@ -491,6 +494,7 @@ export default function AdminProducts() {
       return {
         id: p.id,
         name: p.slug || `Product #${p.id}`,
+        slug: p.slug || `product-${p.id}`,
         originalPrice: basePrice,
         price: finalPrice,
         stock: Number(p.stock) || 0,
@@ -552,8 +556,15 @@ export default function AdminProducts() {
 
   const addProduct = async () => {
     const trimmedName = name.trim();
+    const trimmedSlug = slug.trim();
+    
     if (!trimmedName) {
       alert("Zəhmət olmasa məhsulun adını daxil edin.");
+      return;
+    }
+
+    if (!trimmedSlug) {
+      alert("Zəhmət olmasa slug daxil edin.");
       return;
     }
 
@@ -603,8 +614,18 @@ export default function AdminProducts() {
 
       const finalGalleryUrls = [...existingGalleryUrls, ...galleryImageUrls];
 
+      // Slug-u təmizlə (artıq input-da formatlanıb, amma yenidən təmizləyək)
+      const trimmedSlug = slug.trim();
+      const cleanSlug = trimmedSlug
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+
       let payload: any = {
         name: trimmedName,
+        slug: cleanSlug,
         originalPrice: Number(originalPrice),
         price: Number(price),
         stock: Number(stock),
@@ -824,16 +845,39 @@ export default function AdminProducts() {
                 </h3>
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-slate-700">
-                    Daxili ad (Slug üçün)
+                    Daxili ad
                   </label>
                   <input
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    placeholder="Məs: Formula 1 Vanilla"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    Məhsulun daxili adı.
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-700">
+                    Slug (URL) <span className="text-emerald-600">*</span>
+                  </label>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
+                    value={slug}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s-]/g, "")
+                        .replace(/\s+/g, "-")
+                        .replace(/-+/g, "-")
+                        .replace(/^-|-$/g, "");
+                      setSlug(value);
+                    }}
                     placeholder="Məs: formula-1-vanilla"
                   />
                   <p className="text-[10px] text-slate-400">
-                    Yalnız latın hərfləri və defis istifadə edin.
+                    URL-də görünəcək slug. Yalnız latın hərfləri, rəqəmlər və defis istifadə edin. Dəyişdirildikdə yadda qalacaq.
                   </p>
                 </div>
 

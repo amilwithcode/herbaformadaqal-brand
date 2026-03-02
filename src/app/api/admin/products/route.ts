@@ -99,20 +99,40 @@ export async function POST(req: NextRequest) {
   if (discountPercent > 999.99) discountPercent = 999.99;
   if (discountPercent < -999.99) discountPercent = -999.99;
 
-  const slugSource =
-    typeof body.name === "string" && body.name.trim()
-      ? body.name.trim()
-      : "product";
+  // Adminin yazdığı slug-u istifadə et, yoxdursa name-dən generasiya et
+  let slug = "";
+  if (typeof body.slug === "string" && body.slug.trim()) {
+    slug = body.slug.trim();
+  } else {
+    const slugSource =
+      typeof body.name === "string" && body.name.trim()
+        ? body.name.trim()
+        : "product";
+    slug = slugSource
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
 
-  // Adminin daxil etdiyi daxili adı stabil slug kimi istifadə edirik.
-  // Boşluqları defis ilə əvəzləyib, yalnız latın hərfləri/rəqəmləri saxlayırıq.
-  const slug = slugSource
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+  // Slug-un unikal olmasını yoxla (yalnız yeni məhsul üçün)
+  if (slug) {
+    const { data: existing } = await supabase
+      .from("products")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    
+    if (existing) {
+      // Əgər slug artıq istifadə olunursa, xəta ver
+      return NextResponse.json(
+        { error: "Bu slug artıq istifadə olunur. Zəhmət olmasa başqa slug seçin." },
+        { status: 400 }
+      );
+    }
+  }
 
   const insertPayload = {
     slug,
@@ -249,6 +269,37 @@ export async function PUT(req: NextRequest) {
   if (discountPercent > 999.99) discountPercent = 999.99;
   if (discountPercent < -999.99) discountPercent = -999.99;
 
+  // Adminin yazdığı slug-u istifadə et
+  let slug = "";
+  if (typeof body.slug === "string" && body.slug.trim()) {
+    slug = body.slug.trim();
+  } else {
+    // Əgər slug göndərilməyibsə, mövcud slug-u saxla
+    const { data: currentProduct } = await supabase
+      .from("products")
+      .select("slug")
+      .eq("id", body.id)
+      .maybeSingle();
+    slug = currentProduct?.slug || "";
+  }
+
+  // Slug-un unikal olmasını yoxla (yalnız başqa məhsullar üçün)
+  if (slug) {
+    const { data: existing } = await supabase
+      .from("products")
+      .select("id")
+      .eq("slug", slug)
+      .neq("id", body.id) // Özü istisna olmaqla
+      .maybeSingle();
+    
+    if (existing) {
+      return NextResponse.json(
+        { error: "Bu slug artıq istifadə olunur. Zəhmət olmasa başqa slug seçin." },
+        { status: 400 }
+      );
+    }
+  }
+
   const updatePayload: any = {
     base_price: basePrice,
     discount_percent: discountPercent,
@@ -261,10 +312,10 @@ export async function PUT(req: NextRequest) {
     updated_at: new Date().toISOString(),
   };
 
-  // Only update slug if name is explicitly changed? 
-  // For simplicity, let's keep slug stable or update only if needed.
-  // Actually, usually slug should be stable. Let's not update slug automatically to avoid breaking SEO.
-  // But we can update it if we want. Let's stick to stable slug for now unless we add a specific field for it.
+  // Slug-u update et
+  if (slug) {
+    updatePayload.slug = slug;
+  }
   
   if (body.imageUrl) {
     updatePayload.image_url = body.imageUrl;
