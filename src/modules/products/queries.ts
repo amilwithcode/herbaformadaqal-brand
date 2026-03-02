@@ -35,7 +35,7 @@ export async function getProductBySlug(slug: string) {
 
   if (!product) return null;
 
-  const [translationsResult, imagesResult, reviewsResult] = await Promise.all([
+  const [translationsResult, imagesResult, reviewsResult, campaignsResult] = await Promise.all([
     supabase
       .from("translations")
       .select("*")
@@ -51,12 +51,53 @@ export async function getProductBySlug(slug: string) {
       .select("*")
       .eq("product_id", product.id)
       .order("created_at", { ascending: false }),
+    // Aktiv kampaniyaları gətir
+    supabase
+      .from("campaign_products")
+      .select(`
+        discount_percent,
+        campaigns (
+          id,
+          slug,
+          campaign_type,
+          starts_at,
+          ends_at,
+          is_active
+        )
+      `)
+      .eq("product_id", product.id),
   ]);
 
   const reviews = reviewsResult.data || [];
   const reviewCount = reviews.length;
   const ratingSum = reviews.reduce((acc, r) => acc + r.rating, 0);
   const ratingAverage = reviewCount > 0 ? ratingSum / reviewCount : 0;
+
+  // Aktiv kampaniyaları filtrlə
+  const now = new Date();
+  const activeCampaigns = (campaignsResult.data || [])
+    .filter((cp: any) => {
+      const campaign = cp.campaigns;
+      if (!campaign || !campaign.is_active) return false;
+      if (campaign.starts_at && new Date(campaign.starts_at) > now) return false;
+      if (campaign.ends_at && new Date(campaign.ends_at) < now) return false;
+      return true;
+    })
+    .map((cp: any) => ({
+      id: cp.campaigns.id,
+      slug: cp.campaigns.slug,
+      campaign_type: cp.campaigns.campaign_type,
+      discount_percent: Number(cp.discount_percent) || 0,
+    }));
+
+  // Ən yüksək endirim faizini tap
+  const maxCampaignDiscount = activeCampaigns.length > 0
+    ? Math.max(...activeCampaigns.map((c: any) => c.discount_percent))
+    : 0;
+
+  // Məhsulun öz endirimi ilə kampaniya endirmini birləşdir
+  const productDiscount = Number(product.discount_percent) || 0;
+  const totalDiscount = Math.max(productDiscount, maxCampaignDiscount);
 
   return {
     ...product,
@@ -65,7 +106,9 @@ export async function getProductBySlug(slug: string) {
     reviews,
     rating_average: ratingAverage,
     review_count: reviewCount,
-  } as Product;
+    campaigns: activeCampaigns,
+    effective_discount_percent: totalDiscount > productDiscount ? totalDiscount : productDiscount,
+  } as Product & { campaigns?: any[]; effective_discount_percent?: number };
 }
 
 export async function getProductVariants(productId: number) {
@@ -81,44 +124,174 @@ export async function getCategories() {
   const supabase = await getSupabaseServerClient();
   const { data } = await supabase.from("categories").select("*").order("id");
   
-  // Ensure every category has a slug (fallback to generated slug if missing in DB)
-  return (data || []).map((cat: any) => ({
-    ...cat,
-    slug: cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-  })) as Category[];
+  // Ensure every category has a slug and name (fallback if missing in DB)
+  return (data || []).map((cat: any) => {
+    const slug = cat.slug || (cat.name ? cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : `category-${cat.id}`);
+    const name = cat.name || slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
+    return {
+      ...cat,
+      slug,
+      name,
+    };
+  }) as Category[];
 }
 
 export async function getCategoryBySlug(slug: string) {
   const supabase = await getSupabaseServerClient();
   
+  // Decode URL-encoded slug (Next.js should do this automatically, but handle it anyway)
+  const decodedSlug = decodeURIComponent(slug);
+  
   // Try direct lookup first
   const { data } = await supabase
     .from("categories")
     .select("*")
-    .eq("slug", slug)
+    .eq("slug", decodedSlug)
     .maybeSingle();
     
-  if (data) return data as Category;
+  if (data) {
+    // Ensure name exists (fallback to slug if name is missing)
+    return {
+      ...data,
+      name: data.name || data.slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+    } as Category;
+  }
 
-  // Fallback: Fetch all and find match (handles cases where DB slug is missing)
+  // Fallback: Fetch all and find match (handles cases where DB slug is missing or different format)
   const { data: allCategories } = await supabase.from("categories").select("*");
   const match = (allCategories || []).find((c: any) => {
-    const generated = c.slug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    return generated === slug;
+    const dbSlug = c.slug || (c.name ? c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '');
+    // Compare both decoded and original slug
+    return dbSlug === decodedSlug || dbSlug === slug || decodeURIComponent(dbSlug) === decodedSlug;
   });
   
-  return match as Category | null;
+  if (match) {
+    // Ensure name exists
+    return {
+      ...match,
+      name: match.name || match.slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+    } as Category;
+  }
+  
+  return null;
+}
+
+export async function getCategoryById(id: number) {
+  const supabase = await getSupabaseServerClient();
+  
+  if (!id || isNaN(id)) {
+    console.error("getCategoryById: Invalid id provided:", id);
+    return null;
+  }
+  
+  // Try direct lookup first
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  
+  if (error) {
+    console.error("getCategoryById error:", error);
+    return null;
+  }
+    
+  if (data) {
+    // Ensure name and slug exist
+    const slug = data.slug || (data.name ? data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : `category-${data.id}`);
+    const name = data.name || (data.slug ? data.slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ") : `Category ${data.id}`);
+    
+    return {
+      ...data,
+      slug,
+      name,
+    } as Category;
+  }
+
+  // Fallback: Fetch all and find match (handles cases where query fails)
+  const { data: allCategories, error: allError } = await supabase.from("categories").select("*");
+  
+  if (allError) {
+    console.error("getCategoryById - fetch all error:", allError);
+    return null;
+  }
+  
+  const match = (allCategories || []).find((c: any) => c.id === id);
+  
+  if (match) {
+    // Ensure name and slug exist
+    const slug = match.slug || (match.name ? match.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : `category-${match.id}`);
+    const name = match.name || (match.slug ? match.slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ") : `Category ${match.id}`);
+    
+    return {
+      ...match,
+      slug,
+      name,
+    } as Category;
+  }
+  
+  console.warn("getCategoryById: Category not found with id:", id);
+  return null;
 }
 
 export async function getProductsByCategory(categoryId: number) {
   const supabase = await getSupabaseServerClient();
-  const { data } = await supabase
+  
+  const allProductIds = new Set<number>();
+  
+  // 1. product_categories cədvəlindən məhsul ID-lərini gətir (əgər cədvəl mövcuddursa)
+  try {
+    const { data: productCategories, error: pcError } = await supabase
+      .from("product_categories")
+      .select("product_id")
+      .eq("category_id", categoryId);
+    
+    // Əgər error yoxdursa və data varsa, istifadə et
+    if (!pcError && productCategories) {
+      productCategories.forEach((pc: any) => {
+        if (pc.product_id) {
+          allProductIds.add(pc.product_id);
+        }
+      });
+    }
+  } catch (err) {
+    // product_categories cədvəli mövcud deyilsə, error ignore et
+    console.log("product_categories table may not exist, using category_id only");
+  }
+  
+  // 2. category_id ilə məhsulları gətir (fallback və ya əlavə)
+  const { data: productsByCategoryId, error: catError } = await supabase
     .from("products")
-    .select("*")
+    .select("id")
     .eq("category_id", categoryId)
     .eq("is_active", true);
   
-  return await enrichProductsWithTranslationsAndRatings((data || []) as Product[]);
+  if (!catError && productsByCategoryId) {
+    productsByCategoryId.forEach((p: any) => {
+      if (p.id) {
+        allProductIds.add(p.id);
+      }
+    });
+  }
+  
+  // Əgər heç bir məhsul tapılmadısa, boş array qaytar
+  if (allProductIds.size === 0) {
+    return [];
+  }
+  
+  // 3. Bütün məhsulları gətir (yalnız aktiv olanlar)
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select("*")
+    .in("id", Array.from(allProductIds))
+    .eq("is_active", true);
+  
+  if (productsError) {
+    console.error("Error fetching products by category:", productsError);
+    return [];
+  }
+  
+  return await enrichProductsWithTranslationsAndRatings((products || []) as Product[]);
 }
 
 export async function getPrograms() {

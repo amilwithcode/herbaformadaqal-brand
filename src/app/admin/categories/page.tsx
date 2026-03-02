@@ -61,28 +61,49 @@ export default function AdminCategories() {
 
   const add = async () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      alert("Zəhmət olmasa kateqoriyanın adını daxil edin.");
+      return;
+    }
     setSaving(true);
     
-    let iconUrl = null;
-    if (iconFile) {
-      iconUrl = await uploadFile(iconFile);
-    }
+    try {
+      let iconUrl = null;
+      if (iconFile) {
+        iconUrl = await uploadFile(iconFile);
+        if (!iconUrl) {
+          alert("Şəkil yüklənmədi. Zəhmət olmasa yenidən cəhd edin.");
+          setSaving(false);
+          return;
+        }
+      }
 
-    fetch("/api/admin/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: trimmed, icon: iconUrl }),
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((created) => {
-        if (!created) return;
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed, icon: iconUrl }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Xəta baş verdi" }));
+        alert(errorData.error || "Kateqoriya əlavə edilmədi");
+        setSaving(false);
+        return;
+      }
+
+      const created = await res.json();
+      if (created) {
         setItems((prev) => [...prev, created as Category]);
         setName("");
         setIconFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
-      })
-      .finally(() => setSaving(false));
+      }
+    } catch (err) {
+      console.error("Add category error:", err);
+      alert("Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const remove = (id: number) => {

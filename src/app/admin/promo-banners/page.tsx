@@ -57,8 +57,14 @@ export default function AdminPromoBannersPage() {
       if (res.ok) {
         const data = await res.json();
         setBanners(Array.isArray(data) ? data : []);
+      } else {
+        const errorData = await res.json().catch(() => ({ error: "Bannerlər yüklənmədi" }));
+        console.error("Fetch banners error:", errorData);
+        setBanners([]);
       }
-    } catch {
+    } catch (err) {
+      console.error("Fetch banners error:", err);
+      setBanners([]);
     } finally {
       setLoading(false);
     }
@@ -104,6 +110,9 @@ export default function AdminPromoBannersPage() {
           const updated = await res.json();
           setBanners((prev) => prev.map((b) => (b.id === editingId ? updated : b)));
           resetForm();
+        } else {
+          const errorData = await res.json().catch(() => ({ error: "Banner yenilənmədi" }));
+          alert(`Xəta: ${errorData.error || "Banner yenilənmədi"}`);
         }
       } else {
         const maxOrder = banners.length > 0 ? Math.max(...banners.map((b) => b.sort_order)) : 0;
@@ -116,9 +125,14 @@ export default function AdminPromoBannersPage() {
           const created = await res.json();
           setBanners((prev) => [...prev, created]);
           resetForm();
+        } else {
+          const errorData = await res.json().catch(() => ({ error: "Banner əlavə edilmədi" }));
+          alert(`Xəta: ${errorData.error || "Banner əlavə edilmədi"}`);
         }
       }
-    } catch {
+    } catch (err: any) {
+      console.error("Save error:", err);
+      alert(`Xəta baş verdi: ${err.message || "Banner saxlanılmadı"}`);
     } finally {
       setSaving(false);
     }

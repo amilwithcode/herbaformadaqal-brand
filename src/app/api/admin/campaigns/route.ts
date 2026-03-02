@@ -1,16 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-import { NextResponse } from "next/server";
-
-async function isAdmin(supabase: any) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  return profile?.role === "admin";
-}
+import { NextRequest, NextResponse } from "next/server";
+import { verifyAdmin } from "@/lib/auth-utils";
 
 // GET – list all campaigns
 export async function GET() {
@@ -28,11 +18,13 @@ export async function GET() {
 }
 
 // POST – create a campaign
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient();
-    if (!(await isAdmin(supabase)))
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authCheck = await verifyAdmin(supabase);
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
 
     const body = await req.json();
     const slug = (body.slug || body.title || `campaign-${Date.now()}`)
@@ -41,7 +33,7 @@ export async function POST(req: Request) {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
-    const { data, error } = await supabase
+    const { data: campaign, error } = await supabase
       .from("campaigns")
       .insert({
         slug,
@@ -54,18 +46,43 @@ export async function POST(req: Request) {
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data, { status: 201 });
+    if (!campaign) return NextResponse.json({ error: "Campaign create failed" }, { status: 500 });
+
+    // Məhsulları kampaniyaya əlavə et
+    if (Array.isArray(body.productIds) && body.productIds.length > 0 && campaign.id) {
+      const discountPercent = Number(body.discount_percent) || 0;
+      const campaignProducts = body.productIds.map((productId: number) => ({
+        campaign_id: campaign.id,
+        product_id: productId,
+        discount_percent: discountPercent,
+      }));
+
+      const { error: cpError } = await supabase
+        .from("campaign_products")
+        .insert(campaignProducts);
+
+      if (cpError) {
+        console.error("Campaign products insert error:", cpError);
+        // Kampaniyanı sil və xəta qaytar
+        await supabase.from("campaigns").delete().eq("id", campaign.id);
+        return NextResponse.json({ error: "Məhsullar əlavə edilmədi: " + cpError.message }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json(campaign, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 // PUT – update a campaign
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient();
-    if (!(await isAdmin(supabase)))
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authCheck = await verifyAdmin(supabase);
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
 
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
@@ -85,6 +102,33 @@ export async function PUT(req: Request) {
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data) return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
+
+    // Məhsulları yenilə
+    if (Array.isArray(body.productIds)) {
+      // Köhnə məhsulları sil
+      await supabase.from("campaign_products").delete().eq("campaign_id", body.id);
+
+      // Yeni məhsulları əlavə et
+      if (body.productIds.length > 0) {
+        const discountPercent = Number(body.discount_percent) || 0;
+        const campaignProducts = body.productIds.map((productId: number) => ({
+          campaign_id: body.id,
+          product_id: productId,
+          discount_percent: discountPercent,
+        }));
+
+        const { error: cpError } = await supabase
+          .from("campaign_products")
+          .insert(campaignProducts);
+
+        if (cpError) {
+          console.error("Campaign products update error:", cpError);
+          return NextResponse.json({ error: "Məhsullar yenilənmədi: " + cpError.message }, { status: 500 });
+        }
+      }
+    }
+
     return NextResponse.json(data);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -92,11 +136,13 @@ export async function PUT(req: Request) {
 }
 
 // DELETE – remove a campaign
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient();
-    if (!(await isAdmin(supabase)))
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authCheck = await verifyAdmin(supabase);
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");

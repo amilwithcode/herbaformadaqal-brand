@@ -1,16 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-import { NextResponse } from "next/server";
-
-async function isAdmin(supabase: any) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  return profile?.role === "admin";
-}
+import { NextRequest, NextResponse } from "next/server";
+import { verifyAdmin } from "@/lib/auth-utils";
 
 // GET – list all coupons
 export async function GET() {
@@ -28,11 +18,13 @@ export async function GET() {
 }
 
 // POST – create a coupon
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient();
-    if (!(await isAdmin(supabase)))
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authCheck = await verifyAdmin(supabase);
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
 
     const body = await req.json();
     if (!body.code) return NextResponse.json({ error: "Kupon kodu tələb olunur" }, { status: 400 });
@@ -61,11 +53,13 @@ export async function POST(req: Request) {
 }
 
 // PUT – update a coupon
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient();
-    if (!(await isAdmin(supabase)))
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authCheck = await verifyAdmin(supabase);
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
 
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
@@ -96,11 +90,13 @@ export async function PUT(req: Request) {
 }
 
 // DELETE – remove a coupon
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient();
-    if (!(await isAdmin(supabase)))
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authCheck = await verifyAdmin(supabase);
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");

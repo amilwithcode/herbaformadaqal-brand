@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminShell } from "@/components/layout/AdminShell";
 import { Plus, Trash2, Edit3, Tag, Percent, Gift, Truck, X, Check } from "lucide-react";
 
 /* ──── Types ──── */
@@ -49,6 +48,8 @@ type CampaignForm = {
   starts_at: string;
   ends_at: string;
   is_active: boolean;
+  productIds: number[];
+  discount_percent: number;
 };
 
 const emptyCampaign: CampaignForm = {
@@ -57,6 +58,8 @@ const emptyCampaign: CampaignForm = {
   starts_at: "",
   ends_at: "",
   is_active: true,
+  productIds: [],
+  discount_percent: 0,
 };
 
 type CouponForm = {
@@ -93,6 +96,8 @@ export default function AdminCampaignsPage() {
   const [showCampaignForm, setShowCampaignForm] = useState(false);
   const [editingCampaignId, setEditingCampaignId] = useState<number | null>(null);
   const [campaignForm, setCampaignForm] = useState<CampaignForm>(emptyCampaign);
+  const [products, setProducts] = useState<Array<{ id: number; slug: string; name?: string }>>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   // Coupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -108,24 +113,65 @@ export default function AdminCampaignsPage() {
     setLoadingCampaigns(true);
     try {
       const res = await fetch("/api/admin/campaigns");
-      if (res.ok) setCampaigns(await res.json());
-    } catch {}
-    setLoadingCampaigns(false);
+      if (res.ok) {
+        const data = await res.json();
+        setCampaigns(Array.isArray(data) ? data : []);
+      } else {
+        const errorData = await res.json().catch(() => ({ error: "Kampaniyalar yüklənmədi" }));
+        console.error("Fetch campaigns error:", errorData);
+        setCampaigns([]);
+      }
+    } catch (err) {
+      console.error("Fetch campaigns error:", err);
+      setCampaigns([]);
+    } finally {
+      setLoadingCampaigns(false);
+    }
   };
 
   const fetchCoupons = async () => {
     setLoadingCoupons(true);
     try {
       const res = await fetch("/api/admin/coupons");
-      if (res.ok) setCoupons(await res.json());
-    } catch {}
-    setLoadingCoupons(false);
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons(Array.isArray(data) ? data : []);
+      } else {
+        const errorData = await res.json().catch(() => ({ error: "Kuponlar yüklənmədi" }));
+        console.error("Fetch coupons error:", errorData);
+        setCoupons([]);
+      }
+    } catch (err) {
+      console.error("Fetch coupons error:", err);
+      setCoupons([]);
+    } finally {
+      setLoadingCoupons(false);
+    }
   };
 
   useEffect(() => {
     fetchCampaigns();
     fetchCoupons();
+    fetchProducts();
   }, []);
+
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const res = await fetch("/api/admin/products");
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(Array.isArray(data) ? data.map((p: any) => ({
+          id: p.id,
+          slug: p.slug,
+          name: p.name || p.slug,
+        })) : []);
+      }
+    } catch {
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   /* ──── Campaign CRUD ──── */
   const saveCampaign = async () => {
@@ -135,6 +181,8 @@ export default function AdminCampaignsPage() {
       starts_at: campaignForm.starts_at || null,
       ends_at: campaignForm.ends_at || null,
       is_active: campaignForm.is_active,
+      productIds: campaignForm.productIds,
+      discount_percent: campaignForm.discount_percent,
     };
     if (editingCampaignId) payload.id = editingCampaignId;
 
@@ -160,15 +208,49 @@ export default function AdminCampaignsPage() {
     }
   };
 
-  const editCampaign = (c: Campaign) => {
+  const editCampaign = async (c: Campaign) => {
     setEditingCampaignId(c.id);
-    setCampaignForm({
-      slug: c.slug,
-      campaign_type: c.campaign_type,
-      starts_at: c.starts_at ? c.starts_at.slice(0, 16) : "",
-      ends_at: c.ends_at ? c.ends_at.slice(0, 16) : "",
-      is_active: c.is_active,
-    });
+    
+    // Kampaniyanın məhsullarını gətir
+    try {
+      const res = await fetch(`/api/admin/campaigns/${c.id}/products`);
+      if (res.ok) {
+        const data = await res.json();
+        const productIds = Array.isArray(data) ? data.map((p: any) => p.product_id) : [];
+        const discountPercent = Array.isArray(data) && data.length > 0 ? Number(data[0].discount_percent) || 0 : 0;
+        
+        setCampaignForm({
+          slug: c.slug,
+          campaign_type: c.campaign_type,
+          starts_at: c.starts_at ? c.starts_at.slice(0, 16) : "",
+          ends_at: c.ends_at ? c.ends_at.slice(0, 16) : "",
+          is_active: c.is_active,
+          productIds,
+          discount_percent: discountPercent,
+        });
+      } else {
+        setCampaignForm({
+          slug: c.slug,
+          campaign_type: c.campaign_type,
+          starts_at: c.starts_at ? c.starts_at.slice(0, 16) : "",
+          ends_at: c.ends_at ? c.ends_at.slice(0, 16) : "",
+          is_active: c.is_active,
+          productIds: [],
+          discount_percent: 0,
+        });
+      }
+    } catch {
+      setCampaignForm({
+        slug: c.slug,
+        campaign_type: c.campaign_type,
+        starts_at: c.starts_at ? c.starts_at.slice(0, 16) : "",
+        ends_at: c.ends_at ? c.ends_at.slice(0, 16) : "",
+        is_active: c.is_active,
+        productIds: [],
+        discount_percent: 0,
+      });
+    }
+    
     setShowCampaignForm(true);
   };
 
@@ -239,8 +321,7 @@ export default function AdminCampaignsPage() {
 
   /* ──── Render ──── */
   return (
-    <AdminShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -348,7 +429,64 @@ export default function AdminCampaignsPage() {
                       className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-black focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Endirim faizi (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={campaignForm.discount_percent}
+                      onChange={(e) => setCampaignForm({ ...campaignForm, discount_percent: Number(e.target.value) || 0 })}
+                      placeholder="0"
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-black focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
                 </div>
+                
+                {/* Məhsul seçimi */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-2">Məhsullar</label>
+                  {loadingProducts ? (
+                    <div className="text-sm text-slate-500 py-2">Məhsullar yüklənir...</div>
+                  ) : (
+                    <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg p-3 space-y-2">
+                      {products.length === 0 ? (
+                        <div className="text-sm text-slate-500 py-2">Məhsul yoxdur</div>
+                      ) : (
+                        products.map((product) => (
+                          <label key={product.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 p-2 rounded">
+                            <input
+                              type="checkbox"
+                              checked={campaignForm.productIds.includes(product.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setCampaignForm({
+                                    ...campaignForm,
+                                    productIds: [...campaignForm.productIds, product.id],
+                                  });
+                                } else {
+                                  setCampaignForm({
+                                    ...campaignForm,
+                                    productIds: campaignForm.productIds.filter((id) => id !== product.id),
+                                  });
+                                }
+                              }}
+                              className="accent-emerald-600 w-4 h-4"
+                            />
+                            <span className="text-slate-700">{product.name || product.slug}</span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  )}
+                  {campaignForm.productIds.length > 0 && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      {campaignForm.productIds.length} məhsul seçilib
+                    </p>
+                  )}
+                </div>
+                
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
                     <input
@@ -678,6 +816,5 @@ export default function AdminCampaignsPage() {
           </div>
         )}
       </div>
-    </AdminShell>
   );
 }

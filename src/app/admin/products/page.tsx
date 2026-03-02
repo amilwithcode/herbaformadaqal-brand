@@ -499,7 +499,9 @@ export default function AdminProducts() {
         price: finalPrice,
         stock: Number(p.stock) || 0,
         points: Number(p.points) || 0,
-        categoryIds: p.category_id ? [p.category_id] : [],
+        categoryIds: Array.isArray(p.categoryIds) && p.categoryIds.length > 0 
+          ? p.categoryIds 
+          : (p.category_id ? [p.category_id] : []),
         translations,
         imageUrl: p.image_url,
         galleryImages: p.product_images,

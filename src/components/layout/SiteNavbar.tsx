@@ -26,7 +26,7 @@ import {
   UserPlus,
   LayoutDashboard
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 type NavbarUser = {
   fullName: string;
@@ -66,6 +66,7 @@ export default function SiteNavbar({
   } | null
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { t } = useI18n();
   const { items: cartItems } = useCart();
   const { items: wishlistItems } = useWishlist();
@@ -255,10 +256,48 @@ export default function SiteNavbar({
     e.preventDefault();
     const q = searchValue.trim();
     if (!q) return;
-    const encoded = encodeURIComponent(q);
-    setSearchOpen(false);
-    router.push(`/search?q=${encoded}`);
+    
+    // Əsas səhifədə və məhsullar səhifəsində local filtering
+    if (pathname === "/") {
+      // Əsas səhifədə: FeaturedProductsSection-a event göndər
+      const event = new CustomEvent("homepage-search", { detail: q });
+      window.dispatchEvent(event);
+      // URL-i yenilə
+      router.push(`/?search=${encodeURIComponent(q)}`, { scroll: false });
+      setSearchOpen(false);
+    } else if (pathname === "/products") {
+      // Məhsullar səhifəsində: ProductsClient-a event göndər
+      const event = new CustomEvent("products-search", { detail: q });
+      window.dispatchEvent(event);
+      // URL-i yenilə
+      router.push(`/products?search=${encodeURIComponent(q)}`, { scroll: false });
+      setSearchOpen(false);
+    } else {
+      // Digər səhifələrdə: /search səhifəsinə yönləndir
+      const encoded = encodeURIComponent(q);
+      setSearchOpen(false);
+      router.push(`/search?q=${encoded}`);
+    }
   };
+  
+  // URL-dən search query-ni oxu
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("search") || "";
+      if (q) {
+        setSearchValue(q);
+        // Əgər əsas səhifədə və ya məhsullar səhifəsindədirsə, event göndər
+        if (pathname === "/") {
+          const event = new CustomEvent("homepage-search", { detail: q });
+          window.dispatchEvent(event);
+        } else if (pathname === "/products") {
+          const event = new CustomEvent("products-search", { detail: q });
+          window.dispatchEvent(event);
+        }
+      }
+    }
+  }, [pathname]);
 
   return (
     <header className="text-sm">

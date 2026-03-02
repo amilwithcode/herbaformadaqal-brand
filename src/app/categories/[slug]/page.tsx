@@ -19,6 +19,9 @@ export default async function CategoryPage({ params }: Props) {
     notFound();
   }
 
+  // Ensure category has name
+  const categoryName = category.name || category.slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
+
   const supabase = await getSupabaseServerClient();
   const [products, settingsResult] = await Promise.all([
     getProductsByCategory(category.id),
@@ -37,10 +40,10 @@ export default async function CategoryPage({ params }: Props) {
             <span className="mx-1">/</span>
             <a href="/products" className="hover:underline">Məhsullar</a>
             <span className="mx-1">/</span>
-            <span className="font-medium">{category.name}</span>
+            <span className="font-medium">{categoryName}</span>
           </nav>
           <h1 className="text-3xl md:text-4xl font-semibold text-emerald-950">
-            {category.name}
+            {categoryName}
           </h1>
           {category.description && (
             <p className="text-sm text-emerald-700 max-w-2xl">

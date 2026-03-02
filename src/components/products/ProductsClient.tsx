@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { Category, Product } from "@/modules/products/types";
 import ProductsFilters from "./ProductsFilters";
 import ProductsList from "./ProductsList";
@@ -24,6 +24,17 @@ export default function ProductsClient({
   const [categoryId, setCategoryId] = useState<number | "all">("all");
   const [sort, setSort] = useState("popular");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  // Global search event listener (SiteNavbar-dan gələn axtarış)
+  useEffect(() => {
+    const handleSearch = (e: CustomEvent<string>) => {
+      setSearch(e.detail);
+    };
+    window.addEventListener("products-search" as any, handleSearch as EventListener);
+    return () => {
+      window.removeEventListener("products-search" as any, handleSearch as EventListener);
+    };
+  }, []);
 
   const categoryOptions = useMemo(
     () =>
@@ -116,6 +127,13 @@ export default function ProductsClient({
 
   return (
     <div className="space-y-6">
+      {search && (
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2">
+          <p className="text-sm text-emerald-900">
+            <span className="font-medium">{filteredProducts.length}</span> məhsul tapıldı: &quot;{search}&quot;
+          </p>
+        </div>
+      )}
       <ProductsFilters
         search={search}
         onSearchChange={setSearch}
@@ -127,7 +145,15 @@ export default function ProductsClient({
         viewMode={viewMode}
         onViewChange={setViewMode}
       />
-      <ProductsList products={filteredProducts} viewMode={viewMode} />
+      {filteredProducts.length === 0 && search ? (
+        <div className="rounded-2xl border border-emerald-100 bg-white p-8 text-center">
+          <p className="text-emerald-700">
+            &quot;{search}&quot; üçün məhsul tapılmadı.
+          </p>
+        </div>
+      ) : (
+        <ProductsList products={filteredProducts} viewMode={viewMode} />
+      )}
     </div>
   );
 }

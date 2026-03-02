@@ -19,6 +19,7 @@ export async function GET() {
   const productIds = (products || []).map(p => p.id);
   let images: any[] = [];
   let translations: any[] = [];
+  let productCategories: any[] = [];
   
   if (productIds.length > 0) {
     // 2. Fetch images separately
@@ -47,14 +48,33 @@ export async function GET() {
     } else {
       translations = trans || [];
     }
+
+    // 4. Fetch product categories
+    const { data: pc, error: pcError } = await supabase
+      .from("product_categories")
+      .select("product_id, category_id")
+      .in("product_id", productIds);
+
+    if (pcError) {
+      console.error("Product categories fetch error:", pcError);
+    } else {
+      productCategories = pc || [];
+    }
   }
 
-  // 4. Merge data
-  const result = (products || []).map(p => ({
-    ...p,
-    product_images: images.filter(img => img.product_id === p.id),
-    translations: translations.filter(t => t.entity_id === p.id)
-  }));
+  // 5. Merge data
+  const result = (products || []).map(p => {
+    const categoryIds = productCategories
+      .filter(pc => pc.product_id === p.id)
+      .map(pc => pc.category_id);
+    
+    return {
+      ...p,
+      product_images: images.filter(img => img.product_id === p.id),
+      translations: translations.filter(t => t.entity_id === p.id),
+      categoryIds: categoryIds.length > 0 ? categoryIds : (p.category_id ? [p.category_id] : [])
+    };
+  });
 
   return NextResponse.json(result, { status: 200 });
 }
@@ -161,6 +181,23 @@ export async function POST(req: NextRequest) {
       { error: error?.message || "Product create failed" },
       { status: 500 }
     );
+  }
+
+  // Save multiple categories to product_categories table
+  if (Array.isArray(body.categoryIds) && body.categoryIds.length > 0 && data.id) {
+    const categoryInserts = body.categoryIds.map((catId: number) => ({
+      product_id: data.id,
+      category_id: Number(catId),
+    }));
+
+    const { error: pcError } = await supabase
+      .from("product_categories")
+      .insert(categoryInserts);
+
+    if (pcError) {
+      console.error("Product categories insert error:", pcError);
+      // Don't fail the request, but log the error
+    }
   }
 
   // Insert gallery images
@@ -334,6 +371,30 @@ export async function PUT(req: NextRequest) {
       { error: error?.message || "Product update failed" },
       { status: 500 }
     );
+  }
+
+  // Update product categories
+  // Strategy: Delete all existing categories for this product and re-insert new ones
+  if (Array.isArray(body.categoryIds)) {
+    // 1. Delete existing categories
+    await supabase.from("product_categories").delete().eq("product_id", body.id);
+
+    // 2. Insert new categories
+    if (body.categoryIds.length > 0) {
+      const categoryInserts = body.categoryIds.map((catId: number) => ({
+        product_id: body.id,
+        category_id: Number(catId),
+      }));
+
+      const { error: pcError } = await supabase
+        .from("product_categories")
+        .insert(categoryInserts);
+
+      if (pcError) {
+        console.error("Product categories update error:", pcError);
+        // Don't fail the request, but log the error
+      }
+    }
   }
 
   // Update gallery images

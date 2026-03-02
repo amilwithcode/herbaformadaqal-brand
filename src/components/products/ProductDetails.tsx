@@ -110,9 +110,16 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     return list;
   }, [product]);
 
-  const finalPrice = Number(product.base_price) * (1 - Number(product.discount_percent) / 100);
+  // Kampaniya endirmini nəzərə al
+  const productDiscount = Number(product.discount_percent) || 0;
+  const campaignDiscount = (product as any).effective_discount_percent || productDiscount;
+  const finalDiscount = Math.max(productDiscount, campaignDiscount);
+  
+  const finalPrice = Number(product.base_price) * (1 - finalDiscount / 100);
   const originalPrice = Number(product.base_price);
-  const hasDiscount = Number(product.discount_percent) > 0;
+  const hasDiscount = finalDiscount > 0;
+  
+  const activeCampaigns = (product as any).campaigns || [];
 
   const buildCartProduct = (): CartProduct => ({
     id: String(product.id),
@@ -226,7 +233,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             />
             {hasDiscount && !hidePrices && (
               <div className="absolute top-4 right-4 bg-orange-600 text-white text-sm font-bold px-3 py-1.5 rounded-md shadow-md z-10">
-                -{product.discount_percent}% {t("product.discount")}
+                -{finalDiscount.toFixed(0)}% {t("product.discount")}
+                {activeCampaigns.length > 0 && (
+                  <span className="ml-1 text-xs opacity-90">🎉</span>
+                )}
               </div>
             )}
             {/* Magnify icon hint */}
@@ -260,15 +270,35 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 {t("product.contact_for_price")}
               </div>
             ) : (
-              <div className="flex items-end gap-3">
-                <span className="text-3xl font-bold text-emerald-700">
-                    {finalPrice.toFixed(2)} ₼
-                </span>
-                {hasDiscount && (
-                    <div className="flex flex-col text-xs">
-                       <span className="text-slate-400 line-through">{originalPrice.toFixed(2)} ₼</span>
-                       <span className="text-orange-600 font-medium">{t("product.lowest_price")}</span>
-                    </div>
+              <div className="space-y-3">
+                <div className="flex items-end gap-3">
+                  <span className="text-3xl font-bold text-emerald-700">
+                      {finalPrice.toFixed(2)} ₼
+                  </span>
+                  {hasDiscount && (
+                      <div className="flex flex-col text-xs">
+                         <span className="text-slate-400 line-through">{originalPrice.toFixed(2)} ₼</span>
+                         <span className="text-orange-600 font-medium">{t("product.lowest_price")}</span>
+                      </div>
+                  )}
+                </div>
+                
+                {/* Aktiv kampaniyalar */}
+                {activeCampaigns.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
+                    {activeCampaigns.map((campaign: any) => (
+                      <div
+                        key={campaign.id}
+                        className="inline-flex items-center gap-1.5 bg-orange-50 border border-orange-200 rounded-full px-3 py-1 text-xs font-medium text-orange-700"
+                      >
+                        <span>🎉</span>
+                        <span className="font-semibold">{campaign.slug}</span>
+                        {campaign.discount_percent > 0 && (
+                          <span className="text-orange-600">-{campaign.discount_percent}%</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
