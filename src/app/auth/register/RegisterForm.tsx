@@ -5,18 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useI18n } from "@/contexts/I18nContext";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus, User, MapPin } from "lucide-react";
 
-export default function RegisterForm() {
+export default function RegisterForm({ siteName }: { siteName?: string }) {
   const supabase = getSupabaseBrowserClient();
   const router = useRouter();
   const { t } = useI18n();
   
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [locationError, setLocationError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -27,10 +31,14 @@ export default function RegisterForm() {
     e.preventDefault();
     setError("");
     setEmailError("");
+    setUsernameError("");
+    setLocationError("");
     setPasswordError("");
     setConfirmPasswordError("");
 
     const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    const trimmedLocation = location.trim();
     const trimmedPassword = password;
     let hasError = false;
 
@@ -44,6 +52,18 @@ export default function RegisterForm() {
         setEmailError(t("auth.validation.email_invalid"));
         hasError = true;
       }
+    }
+
+    // Username validation
+    if (!trimmedUsername) {
+      setUsernameError(t("auth.validation.username_required"));
+      hasError = true;
+    }
+
+    // Location validation
+    if (!trimmedLocation) {
+      setLocationError(t("auth.validation.location_required"));
+      hasError = true;
     }
 
     // Password validation
@@ -72,6 +92,12 @@ export default function RegisterForm() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: trimmedEmail,
         password: trimmedPassword,
+        options: {
+          data: {
+            full_name: trimmedUsername,
+            city: trimmedLocation,
+          },
+        },
       });
 
       if (authError) {
@@ -108,10 +134,48 @@ export default function RegisterForm() {
           {t("auth.register.title")}
         </h1>
         <p className="mt-1 text-sm text-emerald-700">
-          {t("auth.register.subtitle")}
+          {siteName ? `${siteName}-a qoşulun və sağlamlığınızı idarə edin` : t("auth.register.subtitle")}
         </p>
       </div>
       <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-emerald-900">
+            {t("auth.register.username_label")}
+          </label>
+          <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
+            <User size={16} className="mr-2 text-emerald-500" />
+            <input
+              type="text"
+              className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
+              placeholder={t("auth.register.username_placeholder")}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+          {usernameError && (
+            <p className="text-[11px] text-red-500">{usernameError}</p>
+          )}
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-emerald-900">
+            {t("auth.register.location_label")}
+          </label>
+          <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
+            <MapPin size={16} className="mr-2 text-emerald-500" />
+            <input
+              type="text"
+              className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
+              placeholder={t("auth.register.location_placeholder")}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+          {locationError && (
+            <p className="text-[11px] text-red-500">{locationError}</p>
+          )}
+        </div>
         <div className="space-y-1">
           <label className="text-xs font-medium text-emerald-900">
             {t("auth.register.email_label")}
