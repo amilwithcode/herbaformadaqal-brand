@@ -36,6 +36,7 @@ type LocalizedProductTexts = {
 type AdminProduct = {
   id: number;
   name: string;
+  slug?: string;
   originalPrice: number;
   price: number;
   stock: number;
@@ -458,6 +459,7 @@ export default function AdminProducts() {
       stock?: number | string;
       points?: number | string;
       category_id?: number | null;
+      categoryIds?: number[]; // From product_categories table
       image_url?: string | null;
       product_images?: { url: string; position: number }[];
       translations?: Array<{

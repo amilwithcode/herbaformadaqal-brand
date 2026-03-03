@@ -3,6 +3,16 @@
 import { useEffect, useState } from "react";
 import { Save, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 
+// Extend Window interface for HerbalifePopup
+declare global {
+  interface Window {
+    HerbalifePopup?: {
+      updateConfig: (config: PopupConfig) => void;
+      reset: () => void;
+    };
+  }
+}
+
 type PopupConfig = {
   fullName: string;
   title: string;
