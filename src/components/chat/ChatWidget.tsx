@@ -101,11 +101,22 @@ export default function ChatWidget() {
           const res = await fetch(
             `/api/chat?sessionId=${encodeURIComponent(currentSessionId)}`
           );
-          if (!res.ok) return;
+          if (!res.ok) {
+            // Əgər rate limit xətası gəlsə, polling-i dayandır
+            if (res.status === 429) {
+              if (pollRef.current) {
+                window.clearInterval(pollRef.current);
+                pollRef.current = null;
+              }
+              return;
+            }
+            return;
+          }
           const data = (await res.json()) as { messages?: ChatMessage[] };
           const rows = Array.isArray(data.messages) ? data.messages : [];
           setMessages(rows);
         } catch {
+          // Xəta zamanı polling-i dayandırma, sadəcə ignore et
         } finally {
           setLoading(false);
         }
@@ -123,7 +134,7 @@ export default function ChatWidget() {
     }
     pollRef.current = window.setInterval(() => {
       fetchMessages(sessionId);
-    }, 5000);
+    }, 15000); // 15 saniyə interval (əvvəl 5 saniyə idi)
     return () => {
       if (pollRef.current) {
         window.clearInterval(pollRef.current);

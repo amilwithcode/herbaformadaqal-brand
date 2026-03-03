@@ -31,8 +31,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
     
-    // Slug generation - xüsusi simvolları handle et
-    const slug = name
+    // Slug - əgər admin tərəfindən verilibsə istifadə et, yoxsa ad əsasında yarat
+    let slug = (typeof body.slug === "string" && body.slug.trim() && body.slug !== "null" && body.slug !== "undefined")
+      ? body.slug.trim()
+      : name
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+    
+    // Slug-u təmizlə (admin daxil etsə belə)
+    slug = slug
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9\s-]/g, "")
@@ -41,7 +52,7 @@ export async function POST(req: NextRequest) {
       .replace(/^-|-$/g, "");
     
     if (!slug) {
-      return NextResponse.json({ error: "Invalid category name" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid category name or slug" }, { status: 400 });
     }
     
     // Slug-un unikal olmasını yoxla

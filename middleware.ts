@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // For distributed systems (Vercel/Serverless), use Redis (e.g., Upstash)
 const rateLimit = new Map<string, { count: number; startTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS = 300; // 300 requests per minute (increased to prevent false positives)
+const MAX_REQUESTS = 1000000; // 1000000 requests per minute (increased to prevent false positives)
 
 // Cleanup interval to prevent memory leaks (every 5 minutes)
 setInterval(() => {
@@ -45,6 +45,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isStaticAsset = path.startsWith("/_next") || 
                         path.startsWith("/api/chat") || 
+                        path.startsWith("/api/marketing") ||
                         path.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/);
   
   if (!isStaticAsset) {

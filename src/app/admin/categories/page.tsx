@@ -6,6 +6,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 export default function AdminCategories() {
   const [items, setItems] = useState<Category[]>([]);
   const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
@@ -81,7 +82,11 @@ export default function AdminCategories() {
       const res = await fetch("/api/admin/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmed, icon: iconUrl }),
+        body: JSON.stringify({ 
+          name: trimmed, 
+          slug: slug.trim() || null, // Əgər boşdursa, null göndər ki, API avtomatik yaratsın
+          icon: iconUrl 
+        }),
       });
 
       if (!res.ok) {
@@ -95,6 +100,7 @@ export default function AdminCategories() {
       if (created) {
         setItems((prev) => [...prev, created as Category]);
         setName("");
+        setSlug("");
         setIconFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
@@ -163,6 +169,29 @@ export default function AdminCategories() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Məs: Arıqlama"
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700">
+                  Slug (URL) <span className="text-slate-400 font-normal">(istəyə bağlı)</span>
+                </label>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  value={slug}
+                  onChange={(e) => {
+                    const value = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9\s-]/g, "")
+                      .replace(/\s+/g, "-")
+                      .replace(/-+/g, "-")
+                      .replace(/^-|-$/g, "");
+                    setSlug(value);
+                  }}
+                  placeholder="Məs: ariglama (avtomatik yaradılacaq)"
+                />
+                <p className="text-[10px] text-slate-400">
+                  URL-də görünəcək slug. Boş qoyarsanız, ad əsasında avtomatik yaradılacaq.
+                </p>
               </div>
               
               <div className="space-y-1">
