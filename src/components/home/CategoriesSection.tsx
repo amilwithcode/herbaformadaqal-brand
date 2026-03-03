@@ -38,7 +38,7 @@ function CategoryCard({ category, t }: { category: Category; t: (key: string) =>
 
   return (
     <Link
-      href={`/categories/${category.id}`}
+      href={`/categories/${category.slug}`}
       className="group block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-xl"
     >
       <div

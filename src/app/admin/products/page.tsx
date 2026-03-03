@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import type { Category, Product } from "@/modules/products/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
@@ -22,6 +23,7 @@ import {
   DollarSign,
   Layers,
   Tag,
+  ExternalLink,
 } from "lucide-react";
 
 type LocaleCode = "az" | "en" | "ru" | "tr";
@@ -1047,18 +1049,30 @@ export default function AdminProducts() {
                 {categories.map((cat) => {
                   const active = selectedCategoryIds.includes(cat.id);
                   return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => toggleCategory(cat.id)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                        active
-                          ? "bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-200"
-                          : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
-                      }`}
-                    >
-                      {cat.slug}
-                    </button>
+                    <div key={cat.id} className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory(cat.id)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                          active
+                            ? "bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-200"
+                            : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        {cat.name || cat.slug}
+                      </button>
+                      {active && cat.slug && (
+                        <Link
+                          href={`/categories/${cat.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                          title="Kateqoriya detallarına bax"
+                        >
+                          <ExternalLink size={12} />
+                        </Link>
+                      )}
+                    </div>
                   );
                 })}
                 {categories.length === 0 && (
