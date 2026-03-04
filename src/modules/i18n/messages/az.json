@@ -122,6 +122,8 @@
   "wishlist.item.default_description": "Sonradan almaq istədiyin məhsul",
   "wishlist.item.add_to_cart": "Səbətə əlavə et",
   "wishlist.item.remove": "Sil",
+  "notification.added_to_cart": "Məhsul səbətə əlavə edildi",
+  "notification.added_to_wishlist": "Məhsul sevimlilərə əlavə edildi",
   "wishlist.summary.title": "Wishlist xülasəsi",
   "wishlist.summary.count": "Məhsul sayı",
   "wishlist.summary.continue_shopping": "Alış-verişə davam et",

@@ -4,22 +4,34 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 const TABLE = "chat_messages";
 const AI_MODEL = "gpt-4o-mini";
 
-const SYSTEM_PROMPT = `Sən "Aysel" adlı müştəri xidmətləri əməkdaşısan. Sən real insansan, süni intellekt deyilsən.
+const getSystemPrompt = (locale: string = "az") => {
+  const languageNames: Record<string, string> = {
+    az: "Azərbaycan",
+    en: "English",
+    ru: "Русский",
+    tr: "Türkçe",
+  };
+  
+  const languageName = languageNames[locale] || "Azərbaycan";
+  
+  return `Sən "Aysel" adlı müştəri xidmətləri əməkdaşısan. Sən real insansan, süni intellekt deyilsən.
 Şirkət sağlam həyat tərzi və qida əlavələri (Herbalife) satışı ilə məşğuldur.
 
 Qaydalar:
-- Həmişə Azərbaycan dilində cavab ver.
+- Həmişə ${languageName} dilində cavab ver. İstifadəçi hansı dildə sual verirsə, həmin dildə cavab ver.
 - Qısa, səmimi və yardımsevər ol. Mesajlar 2-3 cümlədən çox olmasın.
 - Əgər sual məhsullar haqqındadırsa, ümumi məlumat ver və "Məhsullar" səhifəsinə yönləndir.
-- Çatdırılma haqqında sual olsa: "Bakı daxilində 1-2 iş günü, regionlara 3-5 iş günü ərzində çatdırılır" de.
-- Ödəniş haqqında sual olsa: "Nağd, bank kartı və onlayn ödəniş qəbul edirik" de.
-- Qaytarma haqqında sual olsa: "Açılmamış məhsulları 14 gün ərzində qaytara bilərsiniz" de.
-- Proqramlar haqqında sual olsa: qısa məlumat ver və "Proqramlar" səhifəsinə yönləndir.
-- Endirim haqqında sual olsa: "Mövsümi endirimlərimiz olur. Əsas səhifəni izləyin və ya bizimlə əlaqə saxlayın" de.
+- Çatdırılma haqqında sual olsa: "Bakı daxilində 1-2 iş günü, regionlara 3-5 iş günü ərzində çatdırılır" de (${languageName} dilində).
+- Ödəniş haqqında sual olsa: "Nağd, bank kartı və onlayn ödəniş qəbul edirik" de (${languageName} dilində).
+- Qaytarma haqqında sual olsa: "Açılmamış məhsulları 14 gün ərzində qaytara bilərsiniz" de (${languageName} dilində).
+- Proqramlar haqqında sual olsa: qısa məlumat ver və "Proqramlar" səhifəsinə yönləndir (${languageName} dilində).
+- Endirim haqqında sual olsa: "Mövsümi endirimlərimiz olur. Əsas səhifəni izləyin və ya bizimlə əlaqə saxlayın" de (${languageName} dilində).
 - Emoji istifadə et amma çox deyil. Təbii söhbət tonu saxla.
-- Heç vaxt "Mən süni intellektəm" demə. Sən Aysel adlı real insansan.`;
+- Heç vaxt "Mən süni intellektəm" demə. Sən Aysel adlı real insansan.
+- Əgər istifadəçi başqa dildə sual verirsə (məsələn İngilis, Rus, Türk), həmin dildə cavab ver.`;
+};
 
-async function getAIResponse(userMessage: string, conversationHistory: { role: string; content: string }[]): Promise<{ response: string; needsAdmin: boolean }> {
+async function getAIResponse(userMessage: string, conversationHistory: { role: string; content: string }[], locale: string = "az"): Promise<{ response: string; needsAdmin: boolean }> {
   // Try multiple possible env variable names
   const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
   
@@ -46,31 +58,88 @@ async function getAIResponse(userMessage: string, conversationHistory: { role: s
   
   const isKnownTopic = knownTopics.some(topic => lowerMsg.includes(topic));
   
-  // Helper function for fallback responses
+  // Helper function for fallback responses based on locale
   const getFallbackResponse = (): { response: string; needsAdmin: boolean } => {
-    if (lowerMsg.includes("çatdırılma") || lowerMsg.includes("çatdırma") || lowerMsg.includes("gəlir")) {
-      return { response: "Bakı daxilində 1-2 iş günü, regionlara isə 3-5 iş günü ərzində çatdırılır 📦 Əlavə sualınız varsa yazın!", needsAdmin: false };
+    const responses: Record<string, Record<string, string>> = {
+      az: {
+        delivery: "Bakı daxilində 1-2 iş günü, regionlara isə 3-5 iş günü ərzində çatdırılır 📦 Əlavə sualınız varsa yazın!",
+        payment: "Nağd, bank kartı və onlayn ödəniş qəbul edirik 💳 Sizə başqa necə kömək edə bilərəm?",
+        return: "Açılmamış məhsulları 14 gün ərzində qaytara bilərsiniz ✅ Ətraflı məlumat üçün bizimlə əlaqə saxlayın.",
+        program: "Bizim fərdi qidalanma proqramlarımız var! 💪 'Proqramlar' səhifəsindən ətraflı baxa bilərsiniz. Sizə uyğun olanını birlikdə seçə bilərik.",
+        discount: "Mövsümi endirimlərimiz olur 🎉 Əsas səhifəni izləyin və ya mənə yazın, yeni kampaniyalar haqqında sizə məlumat verərəm!",
+        product: "Məhsullarımız haqqında ətraflı məlumatı 'Məhsullar' səhifəsindən əldə edə bilərsiniz 🌿 Hər məhsulun istifadə qaydası orada yazılıb. Konkret məhsul haqqında soruşa bilərsiniz!",
+        greeting: "Salam! 😊 Xoş gəlmisiniz! Sizə necə kömək edə bilərəm?",
+        default: "Təşəkkür edirəm sualınız üçün! 😊 Mütəxəssis sizinlə tezliklə əlaqə saxlayacaq.",
+      },
+      en: {
+        delivery: "Delivery takes 1-2 business days within Baku, 3-5 business days to regions 📦 Feel free to ask if you have more questions!",
+        payment: "We accept cash, bank cards, and online payments 💳 How else can I help you?",
+        return: "You can return unopened products within 14 days ✅ Contact us for more details.",
+        program: "We have personalized nutrition programs! 💪 Check out the 'Programs' page for details. We can help you choose the right one.",
+        discount: "We have seasonal discounts 🎉 Follow our homepage or message me, and I'll inform you about new campaigns!",
+        product: "You can find detailed information about our products on the 'Products' page 🌿 Each product's usage instructions are listed there. Feel free to ask about specific products!",
+        greeting: "Hello! 😊 Welcome! How can I help you?",
+        default: "Thank you for your question! 😊 A specialist will contact you soon.",
+      },
+      ru: {
+        delivery: "Доставка занимает 1-2 рабочих дня в Баку, 3-5 рабочих дней в регионы 📦 Если у вас есть вопросы, напишите!",
+        payment: "Мы принимаем наличные, банковские карты и онлайн-платежи 💳 Чем еще я могу помочь?",
+        return: "Вы можете вернуть нераспечатанные товары в течение 14 дней ✅ Свяжитесь с нами для получения дополнительной информации.",
+        program: "У нас есть индивидуальные программы питания! 💪 Посмотрите страницу 'Программы' для подробностей. Мы поможем вам выбрать подходящую.",
+        discount: "У нас есть сезонные скидки 🎉 Следите за главной страницей или напишите мне, и я сообщу вам о новых акциях!",
+        product: "Подробную информацию о наших продуктах вы можете найти на странице 'Продукты' 🌿 Инструкции по использованию каждого продукта указаны там. Не стесняйтесь спрашивать о конкретных продуктах!",
+        greeting: "Привет! 😊 Добро пожаловать! Чем я могу помочь?",
+        default: "Спасибо за ваш вопрос! 😊 Специалист свяжется с вами в ближайшее время.",
+      },
+      tr: {
+        delivery: "Bakü içinde 1-2 iş günü, bölgelere 3-5 iş günü içinde teslim edilir 📦 Başka sorularınız varsa yazın!",
+        payment: "Nakit, banka kartı ve online ödeme kabul ediyoruz 💳 Size başka nasıl yardımcı olabilirim?",
+        return: "Açılmamış ürünleri 14 gün içinde iade edebilirsiniz ✅ Daha fazla bilgi için bizimle iletişime geçin.",
+        program: "Kişiselleştirilmiş beslenme programlarımız var! 💪 Detaylar için 'Programlar' sayfasına bakın. Size uygun olanı birlikte seçebiliriz.",
+        discount: "Mevsimsel indirimlerimiz oluyor 🎉 Ana sayfayı takip edin veya bana yazın, yeni kampanyalar hakkında size bilgi vereceğim!",
+        product: "Ürünlerimiz hakkında detaylı bilgiyi 'Ürünler' sayfasından alabilirsiniz 🌿 Her ürünün kullanım talimatları orada yazılı. Belirli ürünler hakkında soru sorabilirsiniz!",
+        greeting: "Merhaba! 😊 Hoş geldiniz! Size nasıl yardımcı olabilirim?",
+        default: "Sorunuz için teşekkür ederim! 😊 Bir uzman yakında sizinle iletişime geçecek.",
+      },
+    };
+
+    const langResponses = responses[locale] || responses.az;
+    
+    // Detect language from message if locale is not set correctly
+    const isEnglish = /^(hi|hello|how|what|when|where|why|can|do|does|is|are|will|would|could|should|delivery|payment|return|product|program|discount|shipping|order)/i.test(userMessage);
+    const isRussian = /^(привет|здравствуй|как|что|когда|где|почему|доставка|оплата|возврат|продукт|программа|скидка|заказ)/i.test(userMessage);
+    const isTurkish = /^(merhaba|nasıl|ne|ne zaman|nerede|neden|teslimat|ödeme|iade|ürün|program|indirim|sipariş)/i.test(userMessage);
+    
+    let detectedLocale = locale;
+    if (isEnglish && locale !== "en") detectedLocale = "en";
+    else if (isRussian && locale !== "ru") detectedLocale = "ru";
+    else if (isTurkish && locale !== "tr") detectedLocale = "tr";
+    
+    const finalResponses = responses[detectedLocale] || responses.az;
+    
+    if (lowerMsg.includes("çatdırılma") || lowerMsg.includes("çatdırma") || lowerMsg.includes("gəlir") || lowerMsg.includes("delivery") || lowerMsg.includes("доставка") || lowerMsg.includes("teslimat")) {
+      return { response: finalResponses.delivery, needsAdmin: false };
     }
-    if (lowerMsg.includes("ödəniş") || lowerMsg.includes("ödəmə") || lowerMsg.includes("kart")) {
-      return { response: "Nağd, bank kartı və onlayn ödəniş qəbul edirik 💳 Sizə başqa necə kömək edə bilərəm?", needsAdmin: false };
+    if (lowerMsg.includes("ödəniş") || lowerMsg.includes("ödəmə") || lowerMsg.includes("kart") || lowerMsg.includes("payment") || lowerMsg.includes("оплата") || lowerMsg.includes("ödeme")) {
+      return { response: finalResponses.payment, needsAdmin: false };
     }
-    if (lowerMsg.includes("qaytarma") || lowerMsg.includes("geri")) {
-      return { response: "Açılmamış məhsulları 14 gün ərzində qaytara bilərsiniz ✅ Ətraflı məlumat üçün bizimlə əlaqə saxlayın.", needsAdmin: false };
+    if (lowerMsg.includes("qaytarma") || lowerMsg.includes("geri") || lowerMsg.includes("return") || lowerMsg.includes("возврат") || lowerMsg.includes("iade")) {
+      return { response: finalResponses.return, needsAdmin: false };
     }
-    if (lowerMsg.includes("proqram") || lowerMsg.includes("qoşul")) {
-      return { response: "Bizim fərdi qidalanma proqramlarımız var! 💪 'Proqramlar' səhifəsindən ətraflı baxa bilərsiniz. Sizə uyğun olanını birlikdə seçə bilərik.", needsAdmin: false };
+    if (lowerMsg.includes("proqram") || lowerMsg.includes("qoşul") || lowerMsg.includes("program") || lowerMsg.includes("программа") || lowerMsg.includes("program")) {
+      return { response: finalResponses.program, needsAdmin: false };
     }
-    if (lowerMsg.includes("endirim") || lowerMsg.includes("kampaniya") || lowerMsg.includes("aksiya")) {
-      return { response: "Mövsümi endirimlərimiz olur 🎉 Əsas səhifəni izləyin və ya mənə yazın, yeni kampaniyalar haqqında sizə məlumat verərəm!", needsAdmin: false };
+    if (lowerMsg.includes("endirim") || lowerMsg.includes("kampaniya") || lowerMsg.includes("aksiya") || lowerMsg.includes("discount") || lowerMsg.includes("скидка") || lowerMsg.includes("indirim")) {
+      return { response: finalResponses.discount, needsAdmin: false };
     }
-    if (lowerMsg.includes("məhsul") || lowerMsg.includes("istifadə")) {
-      return { response: "Məhsullarımız haqqında ətraflı məlumatı 'Məhsullar' səhifəsindən əldə edə bilərsiniz 🌿 Hər məhsulun istifadə qaydası orada yazılıb. Konkret məhsul haqqında soruşa bilərsiniz!", needsAdmin: false };
+    if (lowerMsg.includes("məhsul") || lowerMsg.includes("istifadə") || lowerMsg.includes("product") || lowerMsg.includes("продукт") || lowerMsg.includes("ürün")) {
+      return { response: finalResponses.product, needsAdmin: false };
     }
-    if (lowerMsg.includes("salam") || lowerMsg.includes("merhaba") || lowerMsg.includes("hey")) {
-      return { response: "Salam! 😊 Xoş gəlmisiniz! Sizə necə kömək edə bilərəm?", needsAdmin: false };
+    if (lowerMsg.includes("salam") || lowerMsg.includes("merhaba") || lowerMsg.includes("hey") || lowerMsg.includes("hello") || lowerMsg.includes("hi") || lowerMsg.includes("привет") || lowerMsg.includes("здравствуй")) {
+      return { response: finalResponses.greeting, needsAdmin: false };
     }
     // If not a known topic, needs admin
-    return { response: "Təşəkkür edirəm sualınız üçün! 😊 Mütəxəssis sizinlə tezliklə əlaqə saxlayacaq.", needsAdmin: true };
+    return { response: finalResponses.default, needsAdmin: true };
   };
   
   // If no API key, use fallback responses
@@ -80,8 +149,9 @@ async function getAIResponse(userMessage: string, conversationHistory: { role: s
   }
 
   try {
+    const systemPrompt = getSystemPrompt(locale);
     const messages = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       ...conversationHistory.slice(-10), // Last 10 messages for context
       { role: "user", content: userMessage },
     ];
@@ -225,6 +295,10 @@ export async function POST(req: NextRequest) {
       typeof body.sessionId === "string" ? body.sessionId.trim() : "";
     const message =
       typeof body.message === "string" ? body.message.trim() : "";
+    const locale =
+      typeof body.locale === "string" && ["az", "en", "ru", "tr"].includes(body.locale)
+        ? body.locale
+        : "az"; // Default to Azerbaijani
     
     let sender = "user";
     const supabase = await getSupabaseServerClient();
@@ -294,7 +368,7 @@ export async function POST(req: NextRequest) {
         // Add a small delay for realistic typing effect
         await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 2000));
 
-        const aiResult = await getAIResponse(message, conversationHistory);
+        const aiResult = await getAIResponse(message, conversationHistory, locale);
 
         // If AI needs admin help, send to WhatsApp and notify user
         if (aiResult.needsAdmin) {

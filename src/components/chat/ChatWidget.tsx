@@ -60,7 +60,7 @@ function TypingIndicator() {
 
 export default function ChatWidget() {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -172,6 +172,7 @@ export default function ChatWidget() {
           sessionId,
           message: text.trim(),
           sender: "user",
+          locale: locale, // Send current locale to API
         }),
       });
       if (res.ok) {

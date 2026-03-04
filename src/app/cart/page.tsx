@@ -141,9 +141,9 @@ export default function CartPage() {
               {items.map((i) => (
                 <div
                   key={i.product.id}
-                  className="flex items-center justify-between gap-6 rounded-3xl border border-emerald-100 bg-white px-5 py-4 shadow-sm"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 rounded-3xl border border-emerald-100 bg-white px-4 sm:px-5 py-4 shadow-sm"
                 >
-                  <div className="flex flex-1 items-center gap-4">
+                  <div className="flex flex-1 items-center gap-4 min-w-0">
                     <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50">
                       {i.product.image ? (
                         <img
@@ -157,11 +157,11 @@ export default function CartPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-1 flex-col gap-2">
-                      <div className="text-sm font-semibold text-emerald-950">
+                    <div className="flex flex-1 flex-col gap-2 min-w-0">
+                      <div className="text-sm font-semibold text-emerald-950 line-clamp-2">
                         {i.product.title}
                       </div>
-                      <div className="text-xs text-emerald-500">
+                      <div className="text-xs text-emerald-500 line-clamp-2">
                         {i.product.description || t("cart.item.default_description")}
                       </div>
                       <div className="mt-1 inline-flex items-center rounded-full border border-emerald-100 bg-emerald-50 px-2 py-1 text-xs text-emerald-900">
@@ -185,18 +185,18 @@ export default function CartPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-3">
-                    <button
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-base text-emerald-500 hover:text-red-500"
-                      onClick={() => remove(i.product.id)}
-                    >
-                      🗑
-                    </button>
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-end gap-3 w-full sm:w-auto">
                     {!hidePrices && (
                       <div className="text-sm font-semibold text-emerald-900">
                         {(i.product.price * i.qty).toFixed(2)} ₼
                       </div>
                     )}
+                    <button
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-base text-emerald-500 hover:text-red-500 shrink-0"
+                      onClick={() => remove(i.product.id)}
+                    >
+                      🗑
+                    </button>
                   </div>
                 </div>
               ))}

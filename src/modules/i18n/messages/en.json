@@ -117,6 +117,8 @@
   "wishlist.item.default_description": "Product you want to buy later",
   "wishlist.item.add_to_cart": "Add to Cart",
   "wishlist.item.remove": "Remove",
+  "notification.added_to_cart": "Product added to cart",
+  "notification.added_to_wishlist": "Product added to wishlist",
   "wishlist.summary.title": "Wishlist Summary",
   "wishlist.summary.count": "Number of products",
   "wishlist.summary.continue_shopping": "Continue shopping",

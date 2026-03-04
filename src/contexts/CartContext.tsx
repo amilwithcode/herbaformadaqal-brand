@@ -16,7 +16,13 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "eshop_cart";
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ 
+  children, 
+  showToast 
+}: { 
+  children: React.ReactNode;
+  showToast?: (message: string, type?: "success" | "error" | "info") => void;
+}) {
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -43,6 +49,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { product, qty }];
     });
+    // Show toast notification
+    if (showToast) {
+      showToast("notification.added_to_cart", "success");
+    }
   };
 
   const remove = (productId: string) => {

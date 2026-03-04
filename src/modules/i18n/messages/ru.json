@@ -114,6 +114,8 @@
   "wishlist.item.default_description": "Товар, который вы хотите купить позже",
   "wishlist.item.add_to_cart": "Добавить в корзину",
   "wishlist.item.remove": "Удалить",
+  "notification.added_to_cart": "Товар добавлен в корзину",
+  "notification.added_to_wishlist": "Товар добавлен в избранное",
   "wishlist.summary.title": "Сводка избранного",
   "wishlist.summary.count": "Количество товаров",
   "wishlist.summary.continue_shopping": "Продолжить покупки",

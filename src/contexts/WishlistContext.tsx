@@ -15,7 +15,13 @@ const WishlistContext = createContext<WishlistContextValue | undefined>(
 
 const STORAGE_KEY = "eshop_wishlist";
 
-export function WishlistProvider({ children }: { children: React.ReactNode }) {
+export function WishlistProvider({ 
+  children,
+  showToast 
+}: { 
+  children: React.ReactNode;
+  showToast?: (message: string, type?: "success" | "error" | "info") => void;
+}) {
   const [items, setItems] = useState<Product[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -37,6 +43,10 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       if (prev.find((p) => p.id === product.id)) return prev;
       return [...prev, product];
     });
+    // Show toast notification
+    if (showToast) {
+      showToast("notification.added_to_wishlist", "success");
+    }
   };
 
   const remove = (productId: string) => {
