@@ -1052,17 +1052,17 @@ export default function AdminProducts() {
                   const active = selectedCategoryIds.includes(cat.id);
                   return (
                     <div key={cat.id} className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => toggleCategory(cat.id)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                          active
-                            ? "bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-200"
-                            : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
-                        }`}
-                      >
+                    <button
+                      type="button"
+                      onClick={() => toggleCategory(cat.id)}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                        active
+                          ? "bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-200"
+                          : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
                         {cat.name || cat.slug}
-                      </button>
+                    </button>
                       {active && cat.slug && (
                         <Link
                           href={`/categories/${cat.slug}`}
