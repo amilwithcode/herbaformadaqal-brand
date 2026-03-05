@@ -97,10 +97,28 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
             full_name: trimmedUsername,
             city: trimmedLocation,
           },
+          emailRedirectTo: typeof window !== "undefined" 
+            ? `${window.location.origin}/auth/callback`
+            : undefined,
         },
       });
 
       if (authError) {
+        console.error("Supabase signUp error:", authError);
+        // Show more specific error messages
+        if (authError.message?.includes("already registered") || authError.message?.includes("already exists")) {
+          setError(t("auth.error.email_exists") || "Bu email artıq qeydiyyatdan keçib");
+        } else if (authError.message?.includes("password")) {
+          setError(t("auth.error.password_weak") || "Şifrə çox zəifdir");
+        } else {
+          setError(authError.message || t("auth.error.register_generic"));
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!authData || !authData.user) {
+        console.error("No user data returned from signUp");
         setError(t("auth.error.register_generic"));
         setIsSubmitting(false);
         return;
@@ -109,6 +127,29 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
       // If email confirmation is required, show success message
       // Otherwise, redirect to login or account page
       if (authData.user) {
+        // Send welcome email asynchronously (don't wait for it)
+        try {
+          const locale = typeof window !== "undefined" 
+            ? (window.localStorage.getItem("locale") || "az")
+            : "az";
+          
+          fetch("/api/auth/send-welcome-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: trimmedEmail,
+              fullName: trimmedUsername,
+              locale: locale,
+            }),
+          }).catch((err) => {
+            console.error("Failed to send welcome email:", err);
+            // Don't show error to user, email sending is not critical
+          });
+        } catch (emailErr) {
+          console.error("Welcome email error:", emailErr);
+          // Don't block registration if email fails
+        }
+
         // Check if email confirmation is required
         if (authData.user.email_confirmed_at) {
           // User is immediately confirmed, redirect to account
@@ -119,6 +160,7 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
         }
       }
     } catch (err) {
+      console.error("Registration error:", err);
       setError(t("auth.error.register_generic"));
       setIsSubmitting(false);
     }
