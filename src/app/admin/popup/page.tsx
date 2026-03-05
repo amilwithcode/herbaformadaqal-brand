@@ -70,8 +70,9 @@ export default function AdminPopupPage() {
 
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message || "Xəta baş verdi" });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Xəta baş verdi";
+      setMessage({ type: "error", text: errorMessage });
     } finally {
       setSaving(false);
     }
@@ -91,7 +92,7 @@ export default function AdminPopupPage() {
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-slate-900">Popup Ayarları</h1>
         <p className="text-sm text-slate-500">
-          İlk ziyarətdə görünən popup məzmununu idarə edin. Yalnız "Ad Soyad" dəyişəni redaktə oluna bilər.
+          İlk ziyarətdə görünən popup məzmununu idarə edin. Yalnız &quot;Ad Soyad&quot; dəyişəni redaktə oluna bilər.
         </p>
       </div>
 
@@ -118,7 +119,7 @@ export default function AdminPopupPage() {
         <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
           <h2 className="text-base font-semibold text-slate-900">Popup Məzmunu</h2>
           <p className="text-xs text-slate-500 mt-1">
-            Aşağıdakı mətnlər popup-da görünəcək. Yalnız "Ad Soyad" sahəsi redaktə oluna bilər.
+            Aşağıdakı mətnlər popup-da görünəcək. Yalnız &quot;Ad Soyad&quot; sahəsi redaktə oluna bilər.
           </p>
         </div>
 
@@ -231,7 +232,7 @@ export default function AdminPopupPage() {
             <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
               <li>Popup yalnız ilk ziyarətdə görünür (sessionStorage ilə idarə olunur).</li>
               <li>Başlıq və açıqlama mətnləri sabitdir və dəyişdirilə bilməz.</li>
-              <li>Yalnız "Ad Soyad" sahəsi redaktə oluna bilər.</li>
+              <li>Yalnız &quot;Ad Soyad&quot; sahəsi redaktə oluna bilər.</li>
               <li>Dəyişikliklər dərhal popup.js tərəfindən istifadə olunacaq.</li>
             </ul>
           </div>

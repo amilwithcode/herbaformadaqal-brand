@@ -62,20 +62,20 @@ export default function FeaturedProductsSection({
 
   return (
     <section className="space-y-5">
-      <div className="flex items-baseline justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1">
-          <h2 className="text-lg md:text-xl font-semibold text-emerald-950">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-emerald-950">
             {t("home.featured.title")}
           </h2>
           {searchQuery && (
-            <p className="text-sm text-emerald-700 mt-1">
+            <p className="text-xs sm:text-sm text-emerald-700 mt-1">
               {filteredProducts.length} məhsul tapıldı: &quot;{searchQuery}&quot;
             </p>
           )}
         </div>
         <Link
           href="/products"
-          className="text-xs md:text-sm font-medium text-emerald-700 hover:text-emerald-900"
+          className="text-xs sm:text-sm md:text-base font-medium text-emerald-700 hover:text-emerald-900 whitespace-nowrap"
         >
           {t("home.featured.view_all")} →
         </Link>

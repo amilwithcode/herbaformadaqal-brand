@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Category, Product } from "@/modules/products/types";
 import ProductsFilters from "./ProductsFilters";
 import ProductsList from "./ProductsList";
@@ -16,25 +17,44 @@ export default function ProductsClient({
   categories,
 }: ProductsClientProps) {
   const { t, locale } = useI18n();
-  const initialSearch =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("search") || ""
-      : "";
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // URL-dən search query-ni oxu
+  const initialSearch = searchParams.get("search") || "";
   const [search, setSearch] = useState(initialSearch);
   const [categoryId, setCategoryId] = useState<number | "all">("all");
   const [sort, setSort] = useState("popular");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  // URL dəyişəndə search state-ini yenilə
+  useEffect(() => {
+    const searchQuery = searchParams.get("search") || "";
+    setSearch(searchQuery);
+  }, [searchParams]);
+
+  // Search dəyişəndə URL-i yenilə
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value.trim()) {
+      params.set("search", value.trim());
+    } else {
+      params.delete("search");
+    }
+    router.push(`/products?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
   // Global search event listener (SiteNavbar-dan gələn axtarış)
   useEffect(() => {
     const handleSearch = (e: CustomEvent<string>) => {
-      setSearch(e.detail);
+      handleSearchChange(e.detail);
     };
     window.addEventListener("products-search" as any, handleSearch as EventListener);
     return () => {
       window.removeEventListener("products-search" as any, handleSearch as EventListener);
     };
-  }, []);
+  }, [handleSearchChange]);
 
   const categoryOptions = useMemo(
     () =>
@@ -58,9 +78,9 @@ export default function ProductsClient({
       list = list.filter((p) => p.category_id === categoryId);
     }
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search.toLowerCase().trim();
       list = list.filter((p) => {
-        const normalizedSlug = p.slug.toLowerCase().replace(/-/g, " ");
+        const normalizedSlug = (p.slug || "").toLowerCase().replace(/-/g, " ");
         const normalizedQuery = q.replace(/-/g, " ");
 
         // Axtarışı həm slug, həm də tərcümə olunmuş adlar üzrə edək
@@ -70,15 +90,30 @@ export default function ProductsClient({
         const anyTitle = p.translations?.find(
           (tr) => tr.field === "title"
         );
-        const localizedName =
+        const localizedName = (
           titleTrans?.value ||
           anyTitle?.value ||
-          normalizedSlug;
+          normalizedSlug
+        ).toLowerCase();
+
+        // Description-da da axtarış et
+        const descTrans = p.translations?.find(
+          (tr) => tr.language === locale && tr.field === "description"
+        );
+        const anyDesc = p.translations?.find(
+          (tr) => tr.field === "description"
+        );
+        const localizedDesc = (
+          descTrans?.value ||
+          anyDesc?.value ||
+          ""
+        ).toLowerCase();
 
         return (
           normalizedSlug.includes(normalizedQuery) ||
           p.slug.toLowerCase().includes(q) ||
-          localizedName.toLowerCase().includes(q)
+          localizedName.includes(q) ||
+          localizedDesc.includes(q)
         );
       });
     }
@@ -136,7 +171,7 @@ export default function ProductsClient({
       )}
       <ProductsFilters
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         categoryId={categoryId}
         onCategoryChange={setCategoryId}
         sort={sort}

@@ -45,4 +45,4 @@ Disallow: /_next
 Disallow: /_next/*
 
 # Sitemap
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://www.herbaformadaqal.com/sitemap.xml

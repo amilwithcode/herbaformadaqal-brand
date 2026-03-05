@@ -2,11 +2,11 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2, Image as ImageIcon, Type, Layout } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Layout } from "lucide-react";
 import Link from "next/link";
 
 type SectionContent = {
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 };
 
 type PageSection = {
@@ -75,7 +75,6 @@ const PAGE_CONFIGS: Record<string, { title: string; sections: { key: string; lab
 
 export default function PageEditor({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
-  const router = useRouter();
   const slug = resolvedParams.slug;
   const config = PAGE_CONFIGS[slug];
 
@@ -122,7 +121,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
     }
   };
 
-  const updateField = (sectionKey: string, fieldKey: string, value: any) => {
+  const updateField = (sectionKey: string, fieldKey: string, value: unknown) => {
     setSections((prev) => ({
       ...prev,
       [sectionKey]: {

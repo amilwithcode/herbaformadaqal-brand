@@ -65,8 +65,9 @@ export default function AdminLogin() {
       // Successful admin login
       router.push("/admin");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Giriş zamanı xəta baş verdi.");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Giriş zamanı xəta baş verdi.";
+      setError(errorMessage);
       setLoading(false);
     }
   };

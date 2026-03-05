@@ -297,9 +297,10 @@ export default function AdminContentPage() {
         const errorData = await res.json().catch(() => ({ error: "Naməlum xəta" }));
         alert("Xəta: " + (errorData.error || "Post əlavə edilə bilmədi"));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Naməlum xəta";
       console.error("Post add error:", err);
-      alert("Xəta baş verdi: " + (err.message || "Naməlum xəta"));
+      alert("Xəta baş verdi: " + errorMessage);
     } finally {
       setSavingPost(false);
     }

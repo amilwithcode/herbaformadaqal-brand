@@ -306,15 +306,64 @@ export async function getPrograms() {
 }
 
 export async function searchProducts(query: string) {
+  if (!query || !query.trim()) {
+    return [];
+  }
+
   const supabase = await getSupabaseServerClient();
-  const { data } = await supabase
+  const trimmedQuery = query.trim();
+  // Case-insensitive axtarış üçün % əlavə et (ilike PostgreSQL-də case-insensitive-dir)
+  const searchTerm = `%${trimmedQuery}%`;
+
+  // 1. Products cədvəlində axtarış (slug, name, description) - ilike case-insensitive-dir
+  // Amma əmin olmaq üçün həm böyük, həm də kiçik hərflə axtaraq
+  const { data: productsByDirectMatch } = await supabase
     .from("products")
     .select("*")
     .eq("is_active", true)
-    .or(`slug.ilike.%${query}%,name.ilike.%${query}%,description.ilike.%${query}%`)
-    .limit(20);
-  
-  return await enrichProductsWithRatings((data || []) as Product[]);
+    .or(`slug.ilike.${searchTerm},name.ilike.${searchTerm},description.ilike.${searchTerm}`);
+
+  // 2. Translations cədvəlində axtarış (title və description field-ləri) - ilike case-insensitive-dir
+  // Amma əmin olmaq üçün həm böyük, həm də kiçik hərflə axtaraq
+  const { data: translations } = await supabase
+    .from("translations")
+    .select("entity_id")
+    .eq("entity_table", "products")
+    .in("field", ["title", "description"])
+    .ilike("value", searchTerm);
+
+  // 3. Translations-də tapılan məhsul ID-lərini götür
+  const productIdsFromTranslations = translations
+    ? [...new Set(translations.map((t) => t.entity_id))]
+    : [];
+
+  // 4. Bu ID-lərə görə məhsulları gətir
+  let productsByTranslation: Product[] = [];
+  if (productIdsFromTranslations.length > 0) {
+    const { data: productsFromTranslations } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .in("id", productIdsFromTranslations);
+    
+    productsByTranslation = (productsFromTranslations || []) as Product[];
+  }
+
+  // 5. Hər iki nəticəni birləşdir və unique məhsulları götür
+  const allProducts = [
+    ...(productsByDirectMatch || []),
+    ...productsByTranslation,
+  ] as Product[];
+
+  // 6. Duplicate məhsulları sil (id-yə görə)
+  const uniqueProducts = Array.from(
+    new Map(allProducts.map((p) => [p.id, p])).values()
+  );
+
+  // 7. Limit tətbiq et
+  const limitedProducts = uniqueProducts.slice(0, 50);
+
+  return await enrichProductsWithTranslationsAndRatings(limitedProducts);
 }
 
 export async function getRecommendedProducts(limit = 4) {

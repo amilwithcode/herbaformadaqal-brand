@@ -29,6 +29,13 @@ type Coupon = {
   created_at: string;
 };
 
+type Product = {
+  id: number;
+  slug: string;
+  title?: string;
+  name?: string;
+};
+
 const campaignTypeLabels: Record<string, string> = {
   discount: "Endirim",
   bundle: "Paket",
@@ -161,7 +168,7 @@ export default function AdminCampaignsPage() {
       const res = await fetch("/api/admin/products");
       if (res.ok) {
         const data = await res.json();
-        setProducts(Array.isArray(data) ? data.map((p: any) => ({
+        setProducts(Array.isArray(data) ? data.map((p: Product) => ({
           id: p.id,
           slug: p.slug,
           name: p.name || p.slug,
@@ -175,7 +182,14 @@ export default function AdminCampaignsPage() {
 
   /* ──── Campaign CRUD ──── */
   const saveCampaign = async () => {
-    const payload: any = {
+    const payload: {
+      slug: string;
+      campaign_type: "discount" | "bundle" | "bogo";
+      starts_at: string | null;
+      ends_at: string | null;
+      product_ids?: number[];
+      discount_percent?: number;
+    } = {
       slug: campaignForm.slug,
       campaign_type: campaignForm.campaign_type,
       starts_at: campaignForm.starts_at || null,
@@ -216,7 +230,7 @@ export default function AdminCampaignsPage() {
       const res = await fetch(`/api/admin/campaigns/${c.id}/products`);
       if (res.ok) {
         const data = await res.json();
-        const productIds = Array.isArray(data) ? data.map((p: any) => p.product_id) : [];
+        const productIds = Array.isArray(data) ? data.map((p: { product_id: number }) => p.product_id) : [];
         const discountPercent = Array.isArray(data) && data.length > 0 ? Number(data[0].discount_percent) || 0 : 0;
         
         setCampaignForm({
@@ -262,7 +276,16 @@ export default function AdminCampaignsPage() {
 
   /* ──── Coupon CRUD ──── */
   const saveCoupon = async () => {
-    const payload: any = {
+    const payload: {
+      code: string;
+      coupon_type: "percentage" | "fixed" | "free_shipping";
+      value: number;
+      min_order_amount: number;
+      max_discount_amount: number | null;
+      usage_limit: number | null;
+      starts_at: string | null;
+      ends_at: string | null;
+    } = {
       code: couponForm.code,
       coupon_type: couponForm.coupon_type,
       value: couponForm.value,
@@ -402,7 +425,7 @@ export default function AdminCampaignsPage() {
                     <select
                       value={campaignForm.campaign_type}
                       onChange={(e) =>
-                        setCampaignForm({ ...campaignForm, campaign_type: e.target.value as any })
+                        setCampaignForm({ ...campaignForm, campaign_type: e.target.value as "discount" | "bundle" | "bogo" })
                       }
                       className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-black focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >
@@ -614,7 +637,7 @@ export default function AdminCampaignsPage() {
                     <select
                       value={couponForm.coupon_type}
                       onChange={(e) =>
-                        setCouponForm({ ...couponForm, coupon_type: e.target.value as any })
+                        setCouponForm({ ...couponForm, coupon_type: e.target.value as "percentage" | "fixed" | "free_shipping" })
                       }
                       className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-black focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >

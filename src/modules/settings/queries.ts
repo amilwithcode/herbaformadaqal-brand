@@ -35,3 +35,13 @@ export async function getPageSections(pageSlug: string) {
   }
   return sections;
 }
+
+export async function getMetaTags(page: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data } = await supabase
+    .from("meta_tags")
+    .select("*")
+    .eq("page", page)
+    .maybeSingle();
+  return data;
+}

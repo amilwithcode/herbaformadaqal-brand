@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Ignore legacy backend Node.js code (CommonJS) from Next.js lint scope
     "backend/**",
+    // Ignore check_json.js (CommonJS script)
+    "check_json.js",
   ]),
 ]);
 

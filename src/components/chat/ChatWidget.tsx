@@ -273,11 +273,11 @@ export default function ChatWidget() {
         </div>
       )}
 
-      {/* Chat Toggle Button */}
+      {/* Chat Toggle Button - mobil görünüşdə navbar-dan yuxarıda */}
       <button
         type="button"
         onClick={() => { setOpen((prev) => !prev); setShowBubble(false); setBubbleDismissed(true); }}
-        className={`fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
+        className={`fixed bottom-20 md:bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
           open
             ? "bg-slate-700 hover:bg-slate-800 rotate-0"
             : "bg-gradient-to-br from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800"
@@ -298,9 +298,9 @@ export default function ChatWidget() {
         )}
       </button>
 
-      {/* Chat Window */}
+      {/* Chat Window - mobil görünüşdə navbar-dan yuxarıda */}
       {open && (
-        <div className="fixed bottom-24 right-5 z-40 flex w-[360px] max-w-[calc(100vw-40px)] flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-24 md:bottom-24 right-5 z-40 flex w-[360px] max-w-[calc(100vw-40px)] flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-5 py-4">
             <div className="flex items-center justify-between">

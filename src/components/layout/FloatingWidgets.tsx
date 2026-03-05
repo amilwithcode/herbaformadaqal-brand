@@ -47,7 +47,7 @@ export default function FloatingWidgets() {
         href={whatsappLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-40 flex items-center"
+        className="fixed left-0 top-1/3 -translate-y-1/2 z-40 flex items-center md:top-1/2"
       >
         <div className="flex flex-col items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-4 rounded-r-lg shadow-lg transition-all hover:px-3 cursor-pointer group">
           <ChevronUp size={14} className="group-hover:animate-bounce" />
@@ -60,12 +60,12 @@ export default function FloatingWidgets() {
         </div>
       </a>
 
-      {/* WhatsApp Button - sol tərəfdə, chat düyməsi ilə qarışmasın */}
+      {/* WhatsApp Button - mobil görünüşdə navbar-dan yuxarıda */}
       <a
         href={whatsappLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-5 right-[85px] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-all hover:scale-110 hover:shadow-xl"
+        className="fixed bottom-20 md:bottom-5 right-[85px] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-all hover:scale-110 hover:shadow-xl"
         title={t("floating.whatsapp_contact")}
       >
         <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
@@ -73,11 +73,11 @@ export default function FloatingWidgets() {
         </svg>
       </a>
 
-      {/* Scroll to Top Button - WhatsApp-ın solunda */}
+      {/* Scroll to Top Button - mobil görünüşdə navbar-dan yuxarıda */}
       <button
         type="button"
         onClick={scrollToTop}
-        className={`fixed bottom-7 right-[160px] z-40 flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500 text-white shadow-lg transition-all duration-300 hover:bg-orange-600 hover:scale-110 ${
+        className={`fixed bottom-24 md:bottom-7 right-[160px] z-40 flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500 text-white shadow-lg transition-all duration-300 hover:bg-orange-600 hover:scale-110 ${
           showScrollTop
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4 pointer-events-none"

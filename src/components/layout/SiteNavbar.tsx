@@ -302,29 +302,56 @@ export default function SiteNavbar({
   return (
     <header className="text-sm">
       <div 
-        className="flex items-center justify-between px-6 py-2 text-[11px] text-emerald-50 transition-colors duration-300"
+        className="flex items-center justify-between px-3 sm:px-6 py-1.5 sm:py-2 text-[10px] sm:text-[11px] text-white transition-colors duration-300"
         style={{ backgroundColor: siteSettings.primaryColor }}
       >
-        <span className="flex items-center gap-2">
-          <Phone size={12} className="text-emerald-200" />
-          {siteSettings.topPhone || t("footer.contact.phone")}
-        </span>
-        <span className="hidden sm:flex items-center gap-2">
-          <span className="text-xs">🚚</span>
-          <span className="font-medium">{t("nav.top.free_delivery")}</span>
-        </span>
-        <div className="flex items-center gap-3">
-          {SocialIconsRow}
+        {/* Left: Navigation Links */}
+        <nav className="hidden md:flex items-center gap-4 lg:gap-6">
+          {[
+            { href: "/about", label: t("nav.about") },
+            { href: "/products", label: t("nav.products") },
+            { href: "/programs", label: t("nav.programs") },
+            { href: "/contact", label: t("nav.contact") },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-white hover:text-emerald-200 transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+        
+        {/* Right: WhatsApp, Phone, Language Switcher */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          {siteSettings.socials.whatsapp && (
+            <a
+              href={siteSettings.socials.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-white hover:text-emerald-200 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+            </a>
+          )}
+          <span className="flex items-center gap-1.5 text-white">
+            <Phone size={12} />
+            {siteSettings.topPhone || t("footer.contact.phone")}
+          </span>
           <LocaleSwitcher />
         </div>
       </div>
-      <div className="flex items-center justify-between gap-6 border-b border-emerald-100 bg-white px-6 py-4">
-        <Link href="/" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+      <div className="flex items-center justify-between gap-2 sm:gap-4 md:gap-6 border-b border-emerald-100 bg-white px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
+        {/* Left: Logo and Tagline */}
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-80 transition-opacity">
           {siteSettings.brandLogo &&
           (siteSettings.brandLogo.startsWith("http") ||
             siteSettings.brandLogo.startsWith("/") ||
             siteSettings.brandLogo.startsWith("data:")) ? (
-            <div className="relative h-9 w-9 overflow-hidden rounded-full border border-slate-100">
+            <div className="relative h-8 w-8 sm:h-10 sm:w-10 overflow-hidden rounded-full border border-slate-100">
               <img
                 src={siteSettings.brandLogo}
                 alt={siteSettings.brandName}
@@ -332,50 +359,52 @@ export default function SiteNavbar({
               />
             </div>
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-700 text-sm font-semibold text-emerald-50">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-700 text-xs sm:text-sm font-semibold text-emerald-50">
               {siteSettings.brandLetter}
             </div>
           )}
-          <div className="text-base font-semibold text-emerald-900">
-            {siteSettings.brandName}
+          <div className="flex flex-col">
+            <div className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-emerald-700">
+              {siteSettings.brandName}
+            </div>
+            <div className="hidden sm:block text-[10px] text-slate-600">
+              Herbalife ilə həyatını dəyiş
+            </div>
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 text-xs text-emerald-900">
-          {!searchOpen && (
+        {/* Center: Search Bar */}
+        <div className="flex-1 max-w-md mx-1 sm:mx-2 md:mx-4">
+          {/* Desktop: Full Search Bar */}
+          <form
+            onSubmit={onSearchSubmit}
+            className="hidden md:flex items-center gap-2"
+          >
+            <input
+              className="flex-1 rounded-full border border-emerald-200 bg-white px-4 py-2.5 text-sm text-emerald-900 outline-none focus:border-emerald-400 placeholder:text-emerald-400"
+              placeholder={t("nav.search_placeholder")}
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
             <button
-              className="hidden h-9 w-9 items-center justify-center border border-emerald-200 text-[15px] transition-colors hover:bg-emerald-600 hover:text-white md:flex"
-              onClick={() => setSearchOpen(true)}
+              type="submit"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-white hover:bg-emerald-800 transition-colors shadow-md"
             >
-              <Search></Search>
+              <Search size={20} strokeWidth={2.5} fill="none" />
             </button>
-          )}
-          {searchOpen && (
-            <>
-              <form
-                onSubmit={onSearchSubmit}
-                className="hidden h-9 items-center rounded-full border border-emerald-700 bg-white px-3 text-xs text-emerald-900 md:flex"
-              >
-                <input
-                  className="w-40 bg-transparent text-sm outline-none placeholder:text-emerald-400"
-                  placeholder={t("nav.search_placeholder")}
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  autoFocus
-                />
-              </form>
-              <button
-                type="button"
-                className="hidden h-9 w-9 items-center justify-center text-emerald-800 hover:text-emerald-950 md:flex"
-                onClick={() => {
-                  setSearchValue("");
-                  setSearchOpen(false);
-                }}
-              >
-                <X size={18} />
-              </button>
-            </>
-          )}
+          </form>
+          
+          {/* Mobile: Search Icon Button */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50 transition-colors"
+          >
+            <Search size={18} />
+          </button>
+        </div>
+
+        {/* Right: Cart, Wishlist, User */}
+        <div className="flex items-center gap-1 sm:gap-2 text-xs text-emerald-900">
           <Link
             href="/wishlist"
             className="relative flex h-9 w-9 items-center justify-center border border-emerald-200 bg-white text-emerald-900 transition-colors hover:bg-emerald-600 hover:text-white"
@@ -468,12 +497,9 @@ export default function SiteNavbar({
         </div>
       </div>
 
-      {/* Secondary Navbar (Green Bar) */}
-      <div 
-        className="hidden px-6 py-3 md:block transition-colors duration-300"
-        style={{ backgroundColor: siteSettings.primaryColor }}
-      >
-        <nav className="flex items-center gap-8 text-sm font-medium text-white">
+      {/* Secondary Navbar (White Background) */}
+      <div className="hidden md:flex items-center justify-center gap-6 border-b border-emerald-100 bg-white px-6 py-3">
+        <nav className="flex items-center gap-6 text-sm font-medium text-emerald-900">
           {[
             { href: "/products", label: t("nav.products") },
             { href: "/programs", label: t("nav.programs") },
@@ -483,7 +509,7 @@ export default function SiteNavbar({
             <Link
               key={link.href}
               href={link.href}
-              className="transition-colors hover:text-emerald-200 uppercase tracking-wide text-xs font-bold"
+              className="text-emerald-900 hover:text-emerald-700 transition-colors"
             >
               {link.label}
             </Link>

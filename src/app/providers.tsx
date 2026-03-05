@@ -20,6 +20,10 @@ const FloatingWidgets = dynamic(
   () => import("@/components/layout/FloatingWidgets"),
   { ssr: false }
 );
+const MobileBottomNav = dynamic(
+  () => import("@/components/layout/MobileBottomNav"),
+  { ssr: false }
+);
 
 type Toast = {
   id: string;
@@ -47,6 +51,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             {children}
             <ChatWidget />
             <FloatingWidgets />
+            <MobileBottomNav />
             <NeuromarketingPopup />
             <ToastManager toasts={toasts} onRemove={removeToast} />
           </CartProvider>
