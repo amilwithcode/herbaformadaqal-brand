@@ -105,13 +105,23 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
 
       if (authError) {
         console.error("Supabase signUp error:", authError);
-        // Show more specific error messages
-        if (authError.message?.includes("already registered") || authError.message?.includes("already exists")) {
+        const msg = authError.message || "";
+        if (msg.includes("already registered") || msg.includes("already exists")) {
           setError(t("auth.error.email_exists") || "Bu email artıq qeydiyyatdan keçib");
-        } else if (authError.message?.includes("password")) {
+        } else if (msg.includes("password")) {
           setError(t("auth.error.password_weak") || "Şifrə çox zəifdir");
+        } else if (
+          authError.name === "AuthRetryableFetchError" ||
+          msg === "" ||
+          msg === "{}" ||
+          msg.includes("fetch") ||
+          msg.includes("network") ||
+          msg.includes("504") ||
+          msg.includes("timeout")
+        ) {
+          setError("Server ilə əlaqə qurmaq mümkün olmadı. Zəhmət olmasa bir az gözləyib yenidən cəhd edin.");
         } else {
-          setError(authError.message || t("auth.error.register_generic"));
+          setError(msg || t("auth.error.register_generic"));
         }
         setIsSubmitting(false);
         return;
@@ -159,9 +169,21 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
           router.push("/auth/login?registered=true");
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(t("auth.error.register_generic"));
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (
+        errMsg.includes("fetch") ||
+        errMsg.includes("network") ||
+        errMsg.includes("Failed") ||
+        errMsg.includes("504") ||
+        errMsg.includes("timeout") ||
+        errMsg === "{}"
+      ) {
+        setError("Server ilə əlaqə qurmaq mümkün olmadı. Zəhmət olmasa bir az gözləyib yenidən cəhd edin.");
+      } else {
+        setError(t("auth.error.register_generic"));
+      }
       setIsSubmitting(false);
     }
   };

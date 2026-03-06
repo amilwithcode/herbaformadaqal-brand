@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import Script from "next/script";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import SpeedInsightsWrapper from "@/components/common/SpeedInsightsWrapper";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -111,8 +111,8 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         {/* Popup Script - Load after page content */}
         <Script src="/popup.js" strategy="afterInteractive" />
-        {/* Vercel Speed Insights */}
-        <SpeedInsights />
+        {/* Vercel Speed Insights - yalnız Vercel deployment-da aktivdir */}
+        <SpeedInsightsWrapper />
       </body>
     </html>
   );

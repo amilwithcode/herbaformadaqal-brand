@@ -40,9 +40,17 @@ function checkRateLimit(ip: string) {
 }
 
 export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+
+  // 0. Simple redirects
+  if (path === "/blogs" || path.startsWith("/blogs/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = path.replace(/^\/blogs/, "/blog");
+    return NextResponse.redirect(url, { status: 301 });
+  }
+
   // 1. DDoS / Rate Limiting Protection
   // Skip rate limiting for static assets and API routes (except admin)
-  const path = request.nextUrl.pathname;
   const isStaticAsset = path.startsWith("/_next") || 
                         path.startsWith("/api/chat") || 
                         path.startsWith("/api/marketing") ||
@@ -124,11 +132,11 @@ export async function middleware(request: NextRequest) {
   // 2. Security Headers (XSS, Clickjacking protection)
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co https://*.stripe.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co https://*.stripe.com https://va.vercel-scripts.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https://*.supabase.co https://images.unsplash.com https://*.stripe.com;
     font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://*.supabase.co https://api.stripe.com;
+    connect-src 'self' https://*.supabase.co https://api.stripe.com https://vitals.vercel-insights.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
