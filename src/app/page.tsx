@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    keywords: keywords.split(",").map(k => k.trim()),
+    keywords: keywords.split(",").map((k: string) => k.trim()),
     openGraph: {
       title: metaTags?.og_title || title,
       description: metaTags?.og_description || description,

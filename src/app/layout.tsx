@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import Script from "next/script";
-import { SpeedInsights } from "@vercel/speed-insights";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${settings?.public_site_name || "Herbalife"}`,
     },
     description,
-    keywords: keywords.split(",").map(k => k.trim()),
+    keywords: keywords.split(",").map((k: string) => k.trim()),
     authors: [{ name: settings?.public_site_name || "Herbalife Distribütor" }],
     creator: settings?.public_site_name || "Herbalife Distribütor",
     publisher: settings?.public_site_name || "Herbalife Distribütor",
