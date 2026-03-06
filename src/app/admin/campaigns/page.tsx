@@ -183,10 +183,12 @@ export default function AdminCampaignsPage() {
   /* ──── Campaign CRUD ──── */
   const saveCampaign = async () => {
     const payload: {
+      id?: number;
       slug: string;
       campaign_type: "discount" | "bundle" | "bogo";
       starts_at: string | null;
       ends_at: string | null;
+      is_active?: boolean;
       product_ids?: number[];
       discount_percent?: number;
     } = {
@@ -195,7 +197,7 @@ export default function AdminCampaignsPage() {
       starts_at: campaignForm.starts_at || null,
       ends_at: campaignForm.ends_at || null,
       is_active: campaignForm.is_active,
-      productIds: campaignForm.productIds,
+      product_ids: campaignForm.productIds,
       discount_percent: campaignForm.discount_percent,
     };
     if (editingCampaignId) payload.id = editingCampaignId;
@@ -277,6 +279,7 @@ export default function AdminCampaignsPage() {
   /* ──── Coupon CRUD ──── */
   const saveCoupon = async () => {
     const payload: {
+      id?: number;
       code: string;
       coupon_type: "percentage" | "fixed" | "free_shipping";
       value: number;
@@ -285,13 +288,14 @@ export default function AdminCampaignsPage() {
       usage_limit: number | null;
       starts_at: string | null;
       ends_at: string | null;
+      is_active?: boolean;
     } = {
       code: couponForm.code,
       coupon_type: couponForm.coupon_type,
       value: couponForm.value,
       min_order_amount: couponForm.min_order_amount,
-      max_discount_amount: couponForm.max_discount_amount || null,
-      usage_limit: couponForm.usage_limit || null,
+      max_discount_amount: couponForm.max_discount_amount ? Number(couponForm.max_discount_amount) : null,
+      usage_limit: couponForm.usage_limit ? Number(couponForm.usage_limit) : null,
       starts_at: couponForm.starts_at || null,
       ends_at: couponForm.ends_at || null,
       is_active: couponForm.is_active,

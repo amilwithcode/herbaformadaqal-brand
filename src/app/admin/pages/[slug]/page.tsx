@@ -121,7 +121,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
     }
   };
 
-  const updateField = (sectionKey: string, fieldKey: string, value: unknown) => {
+  const updateField = (sectionKey: string, fieldKey: string, value: string | number | boolean | null | undefined) => {
     setSections((prev) => ({
       ...prev,
       [sectionKey]: {
@@ -202,7 +202,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
                     {field.type === "textarea" ? (
                       <textarea
                         rows={4}
-                        value={sections[section.key]?.[field.key] || ""}
+                        value={String(sections[section.key]?.[field.key] ?? "")}
                         onChange={(e) => updateField(section.key, field.key, e.target.value)}
                         className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                         placeholder={`${field.label} daxil edin...`}
@@ -212,7 +212,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
                         <div className="flex gap-3">
                           <input
                             type="text"
-                            value={sections[section.key]?.[field.key] || ""}
+                            value={String(sections[section.key]?.[field.key] ?? "")}
                             onChange={(e) => updateField(section.key, field.key, e.target.value)}
                             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             placeholder="Şəkil URL-i daxil edin..."
@@ -221,7 +221,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
                         {sections[section.key]?.[field.key] && (
                           <div className="relative h-40 w-full overflow-hidden rounded-xl border border-slate-100 bg-slate-50 sm:w-60">
                             <img
-                              src={sections[section.key]?.[field.key]}
+                              src={String(sections[section.key]?.[field.key] ?? "")}
                               alt="Preview"
                               className="h-full w-full object-cover"
                             />
@@ -231,7 +231,7 @@ export default function PageEditor({ params }: { params: Promise<{ slug: string 
                     ) : (
                       <input
                         type="text"
-                        value={sections[section.key]?.[field.key] || ""}
+                        value={String(sections[section.key]?.[field.key] ?? "")}
                         onChange={(e) => updateField(section.key, field.key, e.target.value)}
                         className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                         placeholder={`${field.label} daxil edin...`}

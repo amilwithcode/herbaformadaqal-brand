@@ -7,7 +7,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("meta_tags")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("page", { ascending: true });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -18,18 +18,16 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const supabase = await getSupabaseServerClient();
-  const { name, content } = await req.json();
+  const body = await req.json();
+  const { page, title, description, keywords, image, og_title, og_description, og_image } = body;
 
-  if (!name || !content) {
-    return NextResponse.json(
-      { error: "Name and content are required" },
-      { status: 400 }
-    );
+  if (!page) {
+    return NextResponse.json({ error: "Page is required" }, { status: 400 });
   }
 
   const { data, error } = await supabase
     .from("meta_tags")
-    .insert({ name, content })
+    .insert({ page, title, description, keywords, image, og_title, og_description, og_image })
     .select()
     .single();
 
@@ -42,18 +40,16 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   const supabase = await getSupabaseServerClient();
-  const { id, name, content } = await req.json();
+  const body = await req.json();
+  const { id, page, title, description, keywords, image, og_title, og_description, og_image } = body;
 
-  if (!id || !name || !content) {
-    return NextResponse.json(
-      { error: "ID, name, and content are required" },
-      { status: 400 }
-    );
+  if (!id) {
+    return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
 
   const { data, error } = await supabase
     .from("meta_tags")
-    .update({ name, content })
+    .update({ page, title, description, keywords, image, og_title, og_description, og_image })
     .eq("id", id)
     .select()
     .single();
