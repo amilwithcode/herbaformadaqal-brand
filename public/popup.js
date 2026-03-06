@@ -128,9 +128,9 @@
     constructor() {
       this.overlay = null;
       this.focusTrap = null;
-      this.boundEscapeHandler = this.handleEscape.bind(this);
       this.boundCloseHandler = this.close.bind(this);
-      this.boundOverlayClickHandler = this.handleOverlayClick.bind(this);
+      // Qeyd: Escape və overlay klik ilə bağlanma YOXDUR —
+      // popup yalnız X düyməsi ilə bağlanır.
     }
 
     init() {
@@ -148,43 +148,25 @@
       temp.innerHTML = createPopupHTML();
       this.overlay = temp.firstElementChild;
       document.body.appendChild(this.overlay);
-      
+
       // Initialize focus trap
       this.focusTrap = new FocusTrap(this.overlay);
     }
 
     attachEvents() {
+      // Yalnız X düyməsi popup-u bağlayır
       const closeBtn = this.overlay.querySelector('.herbalife-popup-close');
       if (closeBtn) {
         closeBtn.addEventListener('click', this.boundCloseHandler);
-      }
-
-      // Escape key handler
-      document.addEventListener('keydown', this.boundEscapeHandler);
-
-      // Overlay click handler (close on backdrop click)
-      this.overlay.addEventListener('click', this.boundOverlayClickHandler);
-    }
-
-    handleEscape(e) {
-      if (e.key === 'Escape' && this.overlay) {
-        this.close();
-      }
-    }
-
-    handleOverlayClick(e) {
-      // Close only if clicking directly on overlay (not on popup content)
-      if (e.target === this.overlay) {
-        this.close();
       }
     }
 
     show() {
       if (!this.overlay) return;
-      
+
       // Prevent body scroll
       document.body.style.overflow = 'hidden';
-      
+
       // Trigger animation
       requestAnimationFrame(() => {
         this.overlay.classList.add('herbalife-popup-visible');
@@ -196,8 +178,8 @@
 
       // Remove visible class for fade-out animation
       this.overlay.classList.remove('herbalife-popup-visible');
-      
-      // Wait for animation to complete
+
+      // Wait for animation to complete before removing from DOM
       setTimeout(() => {
         this.destroy();
       }, 300);
@@ -215,9 +197,6 @@
           closeBtn.removeEventListener('click', this.boundCloseHandler);
         }
 
-        document.removeEventListener('keydown', this.boundEscapeHandler);
-        this.overlay.removeEventListener('click', this.boundOverlayClickHandler);
-        
         this.overlay.remove();
         this.overlay = null;
       }
@@ -227,16 +206,19 @@
     }
   }
 
-  // Initialize on DOM ready
+  // Initialize on DOM ready (5 saniyə gözlə - istifadəçi səhifəni oxusun)
   function init() {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        const popup = new HerbalifePopup();
+    function startPopup() {
+      setTimeout(function () {
+        var popup = new HerbalifePopup();
         popup.init();
-      });
+      }, 5000);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startPopup);
     } else {
-      const popup = new HerbalifePopup();
-      popup.init();
+      startPopup();
     }
   }
 
@@ -275,4 +257,4 @@
       }
     };
   }
-},5000)();
+})();
