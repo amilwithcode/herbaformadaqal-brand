@@ -48,12 +48,40 @@ export default function LoginForm() {
     }
     if (hasError) return;
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // 15 saniyəlik timeout — Supabase cavab verməsə gözləmə
+    const TIMEOUT_MS = 15_000;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("__TIMEOUT__")), TIMEOUT_MS)
+    );
+
+    let authData, authError;
+    try {
+      ({ data: authData, error: authError } = await Promise.race([
+        supabase.auth.signInWithPassword({ email: trimmedEmail, password }),
+        timeoutPromise,
+      ]));
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "";
+      if (errMsg === "__TIMEOUT__") {
+        setError("Sorğu vaxtı bitdi (15 san). Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin.");
+      } else {
+        setError("Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayıb yenidən cəhd edin.");
+      }
+      return;
+    }
+
     if (authError) {
-      setError(t("auth.error.generic"));
+      const msg = (authError.message || "").toLowerCase();
+      if (
+        authError.name === "AuthRetryableFetchError" ||
+        msg === "" || msg === "{}" ||
+        msg.includes("fetch") || msg.includes("network") ||
+        msg.includes("504") || msg.includes("timeout")
+      ) {
+        setError("Serverlə əlaqə qururkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+      } else {
+        setError(t("auth.error.generic"));
+      }
       return;
     }
 
@@ -63,7 +91,7 @@ export default function LoginForm() {
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", authData.user.id)
+      .eq("id", authData?.user?.id)
       .maybeSingle();
     
     if (!profileError && profile?.role === "admin") {

@@ -88,99 +88,95 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
 
     setIsSubmitting(true);
 
+    // 15 saniyəlik timeout — Supabase cavab verməsə istifadəçi gözləməsin
+    const TIMEOUT_MS = 15_000;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("__TIMEOUT__")), TIMEOUT_MS)
+    );
+
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password: trimmedPassword,
-        options: {
-          data: {
-            full_name: trimmedUsername,
-            city: trimmedLocation,
+      const { data: authData, error: authError } = await Promise.race([
+        supabase.auth.signUp({
+          email: trimmedEmail,
+          password: trimmedPassword,
+          options: {
+            data: {
+              full_name: trimmedUsername,
+              city: trimmedLocation,
+            },
+            emailRedirectTo:
+              typeof window !== "undefined"
+                ? `${window.location.origin}/auth/callback`
+                : undefined,
           },
-          emailRedirectTo: typeof window !== "undefined" 
-            ? `${window.location.origin}/auth/callback`
-            : undefined,
-        },
-      });
+        }),
+        timeoutPromise,
+      ]);
 
       if (authError) {
         console.error("Supabase signUp error:", authError);
-        const msg = authError.message || "";
-        if (msg.includes("already registered") || msg.includes("already exists")) {
-          setError(t("auth.error.email_exists") || "Bu email artıq qeydiyyatdan keçib");
-        } else if (msg.includes("password")) {
-          setError(t("auth.error.password_weak") || "Şifrə çox zəifdir");
-        } else if (
+        const msg = (authError.message || "").toLowerCase();
+        const isNetworkError =
           authError.name === "AuthRetryableFetchError" ||
           msg === "" ||
           msg === "{}" ||
           msg.includes("fetch") ||
-          msg.includes("network") ||
+          msg.includes("networkerror") ||
+          msg.includes("failed to fetch") ||
           msg.includes("504") ||
-          msg.includes("timeout")
-        ) {
-          setError("Server ilə əlaqə qurmaq mümkün olmadı. Zəhmət olmasa bir az gözləyib yenidən cəhd edin.");
+          msg.includes("timeout");
+
+        if (msg.includes("already registered") || msg.includes("already exists")) {
+          setError(t("auth.error.email_exists") || "Bu email artıq qeydiyyatdan keçib.");
+        } else if (msg.includes("password")) {
+          setError(t("auth.error.password_weak") || "Şifrə çox zəifdir.");
+        } else if (isNetworkError) {
+          setError(
+            "Serverlə əlaqə qururkən xəta baş verdi. Zəhmət olmasa bir neçə saniyə gözləyib yenidən cəhd edin."
+          );
         } else {
-          setError(msg || t("auth.error.register_generic"));
+          setError(authError.message || t("auth.error.register_generic"));
         }
         setIsSubmitting(false);
         return;
       }
 
-      if (!authData || !authData.user) {
-        console.error("No user data returned from signUp");
+      if (!authData?.user) {
         setError(t("auth.error.register_generic"));
         setIsSubmitting(false);
         return;
       }
 
-      // If email confirmation is required, show success message
-      // Otherwise, redirect to login or account page
-      if (authData.user) {
-        // Send welcome email asynchronously (don't wait for it)
-        try {
-          const locale = typeof window !== "undefined" 
-            ? (window.localStorage.getItem("locale") || "az")
-            : "az";
-          
-          fetch("/api/auth/send-welcome-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: trimmedEmail,
-              fullName: trimmedUsername,
-              locale: locale,
-            }),
-          }).catch((err) => {
-            console.error("Failed to send welcome email:", err);
-            // Don't show error to user, email sending is not critical
-          });
-        } catch (emailErr) {
-          console.error("Welcome email error:", emailErr);
-          // Don't block registration if email fails
-        }
+      // Xoş gəlmisiniz emailini arxa planda göndər (bloklama)
+      const locale =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("locale") || "az"
+          : "az";
+      fetch("/api/auth/send-welcome-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail, fullName: trimmedUsername, locale }),
+      }).catch(() => {});
 
-        // Check if email confirmation is required
-        if (authData.user.email_confirmed_at) {
-          // User is immediately confirmed, redirect to account
-          router.push("/account");
-        } else {
-          // Email confirmation required, redirect to login with message
-          router.push("/auth/login?registered=true");
-        }
+      if (authData.user.email_confirmed_at) {
+        router.push("/account");
+      } else {
+        router.push("/auth/login?registered=true");
       }
     } catch (err: unknown) {
-      console.error("Registration error:", err);
       const errMsg = err instanceof Error ? err.message : String(err);
-      if (
-        errMsg.includes("fetch") ||
-        errMsg.includes("network") ||
-        errMsg.includes("Failed") ||
-        errMsg.includes("504") ||
-        errMsg.includes("timeout") ||
+      if (errMsg === "__TIMEOUT__") {
+        setError(
+          "Sorğu vaxtı bitdi (15 san). Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin."
+        );
+      } else if (
+        errMsg.toLowerCase().includes("fetch") ||
+        errMsg.toLowerCase().includes("network") ||
         errMsg === "{}"
       ) {
-        setError("Server ilə əlaqə qurmaq mümkün olmadı. Zəhmət olmasa bir az gözləyib yenidən cəhd edin.");
+        setError(
+          "Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayıb yenidən cəhd edin."
+        );
       } else {
         setError(t("auth.error.register_generic"));
       }
