@@ -128,9 +128,8 @@
     constructor() {
       this.overlay = null;
       this.focusTrap = null;
+      this.autoCloseTimer = null;
       this.boundCloseHandler = this.close.bind(this);
-      // Qeyd: Escape və overlay klik ilə bağlanma YOXDUR —
-      // popup yalnız X düyməsi ilə bağlanır.
     }
 
     init() {
@@ -141,6 +140,11 @@
       this.attachEvents();
       this.show();
       markPopupShown();
+
+      // 5 saniyə sonra popup özü avtomatik bağlanır
+      this.autoCloseTimer = setTimeout(() => {
+        this.close();
+      }, 5000);
     }
 
     render() {
@@ -186,6 +190,12 @@
     }
 
     destroy() {
+      // Auto-close timer varsa ləğv et
+      if (this.autoCloseTimer) {
+        clearTimeout(this.autoCloseTimer);
+        this.autoCloseTimer = null;
+      }
+
       if (this.focusTrap) {
         this.focusTrap.destroy();
         this.focusTrap = null;
@@ -206,13 +216,11 @@
     }
   }
 
-  // Initialize on DOM ready (5 saniyə gözlə - istifadəçi səhifəni oxusun)
+  // Initialize on DOM ready (dərhal göstər, 5 saniyə sonra avtomatik bağla)
   function init() {
     function startPopup() {
-      setTimeout(function () {
-        var popup = new HerbalifePopup();
-        popup.init();
-      }, 5000);
+      var popup = new HerbalifePopup();
+      popup.init();
     }
 
     if (document.readyState === 'loading') {
