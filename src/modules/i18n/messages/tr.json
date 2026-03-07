@@ -158,6 +158,8 @@
   "contact.info.email_label": "Email",
   "contact.info.address_label": "Adres",
   "contact.form.success": "Mesajınız gönderildi. En kısa sürede sizinle iletişime geçeceğiz.",
+  "contact.form.success_title": "Mesaj Gönderildi!",
+  "contact.form.send_another": "Yeni mesaj gönder",
   "contact.form.error": "Mesaj gönderilirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
   "contact.form.submitting": "Gönderiliyor...",
   "programs.cards.weight_loss.title": "30 Günlük Kilo Verme Programı",

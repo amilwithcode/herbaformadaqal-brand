@@ -160,6 +160,8 @@
   "contact.form.submit": "Göndər",
   "contact.info.title": "Əlaqə məlumatları",
   "contact.form.success": "Mesajınız uğurla göndərildi. Tezliklə sizinlə əlaqə saxlayacağıq.",
+  "contact.form.success_title": "Mesaj göndərildi!",
+  "contact.form.send_another": "Yeni müraciət et",
   "contact.form.error": "Mesaj göndərilərkən xəta baş verdi. Bir az sonra yenidən cəhd edin.",
   "contact.form.submitting": "Göndərilir...",
   "contact.info.phone_label": "Telefon",

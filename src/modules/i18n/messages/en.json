@@ -158,6 +158,8 @@
   "contact.info.email_label": "Email",
   "contact.info.address_label": "Address",
   "contact.form.success": "Your message has been sent. We will get back to you soon.",
+  "contact.form.success_title": "Message Sent!",
+  "contact.form.send_another": "Send another message",
   "contact.form.error": "An error occurred while sending your message. Please try again later.",
   "contact.form.submitting": "Sending...",
   "programs.cards.weight_loss.title": "30-Day Weight Loss Program",

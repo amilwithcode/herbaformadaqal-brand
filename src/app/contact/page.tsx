@@ -1,6 +1,6 @@
 "use client";
 
-import { Phone, Mail, MapPin, Send } from "lucide-react";
+import { Phone, Mail, MapPin, Send, CheckCircle2, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import HomeFooter from "@/components/home/HomeFooter";
 import SiteNavbar from "@/components/layout/SiteNavbar";
@@ -149,79 +149,101 @@ export default function ContactPage() {
                 </div>
               </div>
             </div>
-            <form
-              className="space-y-4 rounded-3xl border border-emerald-100 bg-white px-6 py-6 text-sm text-emerald-900 shadow-sm shadow-emerald-50"
-              onSubmit={handleSubmit}
-            >
-              <div>
-                <label className="block text-xs font-medium text-emerald-800">
-                  {t("contact.form.name_label")}
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
-                  placeholder={t("contact.form.name_placeholder")}
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                />
+            {submitted ? (
+              /* ── Uğur ekranı ── */
+              <div className="flex flex-col items-center justify-center gap-5 rounded-3xl border border-emerald-100 bg-white px-6 py-12 text-center shadow-sm shadow-emerald-50">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
+                  <CheckCircle2 size={44} className="text-emerald-500" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-emerald-950">
+                    {t("contact.form.success_title")}
+                  </h3>
+                  <p className="text-sm text-emerald-700">
+                    {t("contact.form.success")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSubmitted(false)}
+                  className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100"
+                >
+                  <RefreshCw size={14} />
+                  {t("contact.form.send_another")}
+                </button>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-emerald-800">
-                  {t("contact.form.email_label")}
-                </label>
-                <input
-                  type="email"
-                  className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
-                  placeholder={t("contact.form.email_placeholder")}
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-emerald-800">
-                  {t("contact.form.subject_label")}
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
-                  placeholder={t("contact.form.subject_placeholder")}
-                  value={subject}
-                  onChange={(event) => setSubject(event.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-emerald-800">
-                  {t("contact.form.message_label")}
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
-                  rows={4}
-                  placeholder={t("contact.form.message_placeholder")}
-                  value={message}
-                  onChange={(event) => setMessage(event.target.value)}
-                />
-              </div>
-              {submitted && (
-                <p className="text-xs text-emerald-600">
-                  {t("contact.form.success")}
-                </p>
-              )}
-              {error && (
-                <p className="text-xs text-red-600">
-                  {error}
-                </p>
-              )}
-              <button
-                type="submit"
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
-                disabled={submitting}
+            ) : (
+              /* ── Əlaqə formu ── */
+              <form
+                className="space-y-4 rounded-3xl border border-emerald-100 bg-white px-6 py-6 text-sm text-emerald-900 shadow-sm shadow-emerald-50"
+                onSubmit={handleSubmit}
               >
-                <Send size={16} />
-                <span>
-                  {submitting
-                    ? t("contact.form.submitting")
-                    : t("contact.form.submit")}
-                </span>
-              </button>
-            </form>
+                <div>
+                  <label className="block text-xs font-medium text-emerald-800">
+                    {t("contact.form.name_label")}
+                  </label>
+                  <input
+                    className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
+                    placeholder={t("contact.form.name_placeholder")}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-emerald-800">
+                    {t("contact.form.email_label")}
+                  </label>
+                  <input
+                    type="email"
+                    className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
+                    placeholder={t("contact.form.email_placeholder")}
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-emerald-800">
+                    {t("contact.form.subject_label")}
+                  </label>
+                  <input
+                    className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
+                    placeholder={t("contact.form.subject_placeholder")}
+                    value={subject}
+                    onChange={(event) => setSubject(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-emerald-800">
+                    {t("contact.form.message_label")}
+                  </label>
+                  <textarea
+                    className="mt-1 w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 outline-none placeholder:text-emerald-400"
+                    rows={4}
+                    placeholder={t("contact.form.message_placeholder")}
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                  />
+                </div>
+                {error && (
+                  <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+                    <span className="mt-0.5 text-red-500">⚠</span>
+                    <p className="text-xs text-red-700">{error}</p>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                  disabled={submitting}
+                >
+                  <Send size={16} />
+                  <span>
+                    {submitting
+                      ? t("contact.form.submitting")
+                      : t("contact.form.submit")}
+                  </span>
+                </button>
+              </form>
+            )}
           </div>
         </section>
       </main>

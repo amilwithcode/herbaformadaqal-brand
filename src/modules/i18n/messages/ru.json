@@ -155,6 +155,8 @@
   "contact.info.email_label": "Email",
   "contact.info.address_label": "Адрес",
   "contact.form.success": "Ваше сообщение отправлено. Мы свяжемся с вами в ближайшее время.",
+  "contact.form.success_title": "Сообщение отправлено!",
+  "contact.form.send_another": "Отправить ещё",
   "contact.form.error": "При отправке сообщения произошла ошибка. Попробуйте ещё раз позже.",
   "contact.form.submitting": "Отправка...",
   "programs.cards.weight_loss.title": "30‑дневная программа похудения",
