@@ -20,7 +20,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const { add: addToCart } = useCart();
   const { add: addToWishlist, has, remove: removeFromWishlist } = useWishlist();
   const { locale, t } = useI18n();
-  const { hidePrices, hidePoints } = useSiteSettings();
+  const { hidePrices, hidePoints, isLoggedIn } = useSiteSettings();
   const [qty, setQty] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"features" | "reviews">("features");
@@ -277,8 +277,20 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
           <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
             {hidePrices ? (
-              <div className="text-lg font-semibold text-emerald-600">
-                {t("product.contact_for_price")}
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/auth/login"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-emerald-800 transition-colors"
+                >
+                  <span>🔒</span>
+                  {t("product.login_to_see_price")}
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition-colors"
+                >
+                  {t("nav.register")}
+                </Link>
               </div>
             ) : (
               <div className="space-y-3">

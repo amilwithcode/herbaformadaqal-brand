@@ -8,7 +8,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useI18n } from "@/contexts/I18nContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import type { Product } from "@/types";
-import { Heart, ShoppingCart, Star, ImageOff } from "lucide-react";
+import { Heart, ShoppingCart, Star, ImageOff, LogIn } from "lucide-react";
 
 type ProductCardProps = {
   id: number;
@@ -40,7 +40,7 @@ export default function ProductCard({
     remove: removeFromWishlist,
     has,
   } = useWishlist();
-  const { hidePrices, hidePoints } = useSiteSettings();
+  const { hidePrices, hidePoints, isLoggedIn } = useSiteSettings();
 
   const cardRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -169,10 +169,15 @@ export default function ProductCard({
               )}
             </div>
           )}
-          {hidePrices && (
-            <span className="text-sm font-medium text-emerald-300">
-              {t("common.contact_us")}
-            </span>
+          {hidePrices && !isLoggedIn && (
+            <Link
+              href="/auth/login"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
+            >
+              <LogIn size={13} />
+              {t("product.login_to_see_price")}
+            </Link>
           )}
 
           {/* Add to cart */}
@@ -209,9 +214,10 @@ export default function ProductCard({
               )}
             </div>
           )}
-          {hidePrices && (
-            <span className="text-xs font-medium text-emerald-300 mt-0.5 block">
-              {t("common.contact_us")}
+          {hidePrices && !isLoggedIn && (
+            <span className="text-xs font-medium text-emerald-300 mt-0.5 block flex items-center gap-1">
+              <LogIn size={11} />
+              {t("product.login_to_see_price")}
             </span>
           )}
         </div>
