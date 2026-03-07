@@ -190,6 +190,19 @@ export default async function RootLayout({
         <Providers>{children}</Providers>
         {/* Popup Script */}
         <Script src="/popup.js" strategy="afterInteractive" />
+        {/* Google tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17997343256"
+          strategy="afterInteractive"
+        />
+        <Script id="google-gtag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17997343256');
+          `}
+        </Script>
         {/* Vercel Speed Insights */}
         <SpeedInsightsWrapper />
       </body>
