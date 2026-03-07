@@ -169,6 +169,10 @@ const Footer = () => {
                 {t("footer.support.privacy")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
               </Link>
+              <Link href="/terms" className="group relative block w-fit hover:text-emerald-900">
+                {t("footer.support.terms")}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
+              </Link>
             </div>
           </div>
           <div className="space-y-3 text-xs">

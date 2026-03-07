@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import SiteNavbar from "@/components/layout/SiteNavbar";
@@ -6,7 +6,7 @@ import HomeFooter from "@/components/home/HomeFooter";
 import { useI18n } from "@/contexts/I18nContext";
 
 export default function PrivacyPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [content, setContent] = useState("");
 
   useEffect(() => {
@@ -15,18 +15,21 @@ export default function PrivacyPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!active || !data) return;
-        if (typeof data.privacy_content === "string") {
-          setContent(data.privacy_content);
-        }
+        const localeKey = `privacy_content_${locale}`;
+        const text =
+          (typeof data[localeKey] === "string" && data[localeKey].trim()
+            ? data[localeKey]
+            : typeof data.privacy_content_az === "string" && data.privacy_content_az.trim()
+            ? data.privacy_content_az
+            : typeof data.privacy_content === "string"
+            ? data.privacy_content
+            : "") as string;
+        setContent(text);
       })
       .catch(() => {})
-      .finally(() => {
-        if (!active) return;
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+      .finally(() => { if (!active) return; });
+    return () => { active = false; };
+  }, [locale]);
 
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
@@ -48,4 +51,3 @@ export default function PrivacyPage() {
     </div>
   );
 }
-

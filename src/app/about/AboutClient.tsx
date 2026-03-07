@@ -16,12 +16,21 @@ export default function AboutClient() {
     fetch("/api/settings")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && data.about_content) {
-          setAboutContent(data.about_content);
-        }
+        if (!data) return;
+        // Locale-ə uyğun sütunu seç; boşdursa az-a, sonra köhnə sahəyə düş
+        const localeKey = `about_content_${locale}`;
+        const text =
+          (typeof data[localeKey] === "string" && data[localeKey].trim()
+            ? data[localeKey]
+            : typeof data.about_content_az === "string" && data.about_content_az.trim()
+            ? data.about_content_az
+            : typeof data.about_content === "string"
+            ? data.about_content
+            : "") as string;
+        setAboutContent(text);
       })
       .catch(() => {});
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     let active = true;

@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import SiteNavbar from "@/components/layout/SiteNavbar";
@@ -6,7 +6,7 @@ import HomeFooter from "@/components/home/HomeFooter";
 import { useI18n } from "@/contexts/I18nContext";
 
 export default function ShippingPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [content, setContent] = useState("");
 
   useEffect(() => {
@@ -15,18 +15,21 @@ export default function ShippingPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!active || !data) return;
-        if (typeof data.shipping_content === "string") {
-          setContent(data.shipping_content);
-        }
+        const localeKey = `shipping_content_${locale}`;
+        const text =
+          (typeof data[localeKey] === "string" && data[localeKey].trim()
+            ? data[localeKey]
+            : typeof data.shipping_content_az === "string" && data.shipping_content_az.trim()
+            ? data.shipping_content_az
+            : typeof data.shipping_content === "string"
+            ? data.shipping_content
+            : "") as string;
+        setContent(text);
       })
       .catch(() => {})
-      .finally(() => {
-        if (!active) return;
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+      .finally(() => { if (!active) return; });
+    return () => { active = false; };
+  }, [locale]);
 
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
@@ -48,4 +51,3 @@ export default function ShippingPage() {
     </div>
   );
 }
-
