@@ -34,9 +34,10 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    fullName: data.full_name || "AD SOYAD",
-    title: data.title || "Müstəqil Herbalife Tərəfdaşı",
+    fullName:    data.full_name || "AD SOYAD",
+    title:       data.title || "Müstəqil Herbalife Tərəfdaşı",
     description: data.description || "İstifadəçi şirkətin rəsmi saytı deyil, müstəqil tərəfdaşın səhifəsindədir.",
+    updatedAt:   data.updated_at || null,
   }, { status: 200 });
 }
 
@@ -85,9 +86,10 @@ export async function PUT(req: NextRequest) {
     }
 
     return NextResponse.json({
-      fullName: data.full_name,
-      title: data.title,
+      fullName:    data.full_name,
+      title:       data.title,
       description: data.description,
+      updatedAt:   data.updated_at,
     }, { status: 200 });
   } else {
     // Insert new
@@ -113,9 +115,10 @@ export async function PUT(req: NextRequest) {
     }
 
     return NextResponse.json({
-      fullName: data.full_name,
-      title: data.title,
+      fullName:    data.full_name,
+      title:       data.title,
       description: data.description,
+      updatedAt:   data.updated_at,
     }, { status: 201 });
   }
 }

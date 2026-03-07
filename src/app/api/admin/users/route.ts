@@ -1,29 +1,29 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { getSupabaseServerClient, getSupabaseAdminClient } from "@/lib/supabase-server";
 import { verifyAdmin } from "@/lib/auth-utils";
 
 export async function GET() {
   const supabase = await getSupabaseServerClient();
 
-  // Explicit admin check
+  // Admin yoxlaması (istifadəçinin session cookie-si ilə)
   const authCheck = await verifyAdmin(supabase);
   if (authCheck.error) {
     return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
   }
 
-  // Fetch profiles ordered by loyalty points (high to low) or created_at
-  const { data: profiles, error } = await supabase
+  // RLS-i bypass etmək üçün Admin client istifadə edirik
+  const adminClient = getSupabaseAdminClient();
+
+  const { data: profiles, error } = await adminClient
     .from("profiles")
     .select("id, full_name, phone, loyalty_points, avatar_url, program_progress")
     .order("loyalty_points", { ascending: false })
-    .limit(50);
+    .limit(100);
 
   if (error) {
+    console.error("Admin users fetch error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // We might want to fetch order counts too, but let's keep it simple for now.
-  // We can join with orders if needed: .select('*, orders(count)')
-
-  return NextResponse.json(profiles);
+  return NextResponse.json(profiles ?? []);
 }

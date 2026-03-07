@@ -45,6 +45,7 @@ export default function AdminUsers() {
   const { t } = useI18n();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [userOrders, setUserOrders] = useState<UserOrder[]>([]);
@@ -60,12 +61,17 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       const res = await fetch("/api/admin/users");
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
+        setUsers(Array.isArray(data) ? data : []);
+        setFetchError(null);
+      } else {
+        console.error("Error fetching users:", data);
+        setFetchError(data?.error || `Xəta baş verdi (${res.status})`);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
+      setFetchError("Şəbəkə xətası. Server ilə əlaqə qurula bilmədi.");
     } finally {
       setLoading(false);
     }
@@ -171,6 +177,24 @@ export default function AdminUsers() {
                 <tr>
                   <td colSpan={4} className="p-8 text-center text-slate-500">
                     Məlumatlar yüklənir...
+                  </td>
+                </tr>
+              ) : fetchError ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-2 text-red-500">
+                      <AlertCircle size={32} className="opacity-60" />
+                      <p className="font-medium">Məlumatlar yüklənərkən xəta baş verdi</p>
+                      <p className="text-xs text-slate-500 font-mono bg-red-50 px-3 py-1.5 rounded border border-red-100">
+                        {fetchError}
+                      </p>
+                      <button
+                        onClick={() => { setLoading(true); fetchUsers(); }}
+                        className="mt-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-100"
+                      >
+                        Yenidən cəhd et
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (

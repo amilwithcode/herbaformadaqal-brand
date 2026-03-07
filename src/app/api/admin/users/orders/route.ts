@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { getSupabaseServerClient, getSupabaseAdminClient } from "@/lib/supabase-server";
+import { verifyAdmin } from "@/lib/auth-utils";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -11,11 +12,16 @@ export async function GET(req: NextRequest) {
 
   const supabase = await getSupabaseServerClient();
 
-  // We fetch orders and join order_items -> products -> translations
-  // Note: translations join might be tricky if not set up correctly, 
-  // so we'll just get slug and points for now to be safe, or try to get name.
-  
-  const { data: orders, error } = await supabase
+  // Admin yoxlaması
+  const authCheck = await verifyAdmin(supabase);
+  if (authCheck.error) {
+    return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+  }
+
+  // RLS-i bypass etmək üçün Admin client istifadə edirik
+  const adminClient = getSupabaseAdminClient();
+
+  const { data: orders, error } = await adminClient
     .from("orders")
     .select(`
       id,
@@ -54,8 +60,6 @@ export async function GET(req: NextRequest) {
   const formattedOrders = (orders as OrderRow[]).map((order) => ({
     ...order,
     order_items: order.order_items.map((item) => {
-      // Find 'name' in translations if available, fallback to slug.
-      // Prioritize 'az' language.
       const translations = item.product?.translations || [];
       const nameAz = translations.find((t) => t.field === "name" && t.language === "az")?.value;
       const nameAny = translations.find((t) => t.field === "name")?.value;

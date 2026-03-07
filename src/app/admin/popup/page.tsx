@@ -17,6 +17,7 @@ type PopupConfig = {
   fullName: string;
   title: string;
   description: string;
+  updatedAt?: string;
 };
 
 export default function AdminPopupPage() {
@@ -61,14 +62,24 @@ export default function AdminPopupPage() {
         throw new Error(error.error || "Yadda saxlanılmadı");
       }
 
-      setMessage({ type: "success", text: "Popup ayarları uğurla yadda saxlanıldı!" });
-      
-      // Update localStorage so popup.js picks up new config
+      const savedData = await res.json();
+
+      // API-dan qayıdan məlumatı (updatedAt daxil) state-ə yazaq
+      const freshConfig: PopupConfig = {
+        fullName:    savedData.fullName    || config.fullName,
+        title:       savedData.title       || config.title,
+        description: savedData.description || config.description,
+        updatedAt:   savedData.updatedAt   || new Date().toISOString(),
+      };
+      setConfig(freshConfig);
+
+      // popup.js-in localStorage-ını dərhal yenilə
+      // (updatedAt ilə birlikdə - köhnə ziyarətçilərin cache-i invalidate olunur)
       if (typeof window !== "undefined" && window.HerbalifePopup) {
-        window.HerbalifePopup.updateConfig(config);
+        window.HerbalifePopup.updateConfig(freshConfig);
       }
 
-      // Clear message after 3 seconds
+      setMessage({ type: "success", text: "Popup ayarları uğurla yadda saxlanıldı! Ad-soyad dərhal yeniləndi." });
       setTimeout(() => setMessage(null), 3000);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Xəta baş verdi";

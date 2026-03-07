@@ -1,268 +1,250 @@
 /**
  * Herbalife Popup Component
- * Vanilla JavaScript popup with accessibility features
+ * Vanilla JavaScript popup with accessibility features.
+ *
+ * FIX: API-dan config əvvəlcə yüklənir, sonra popup göstərilir.
+ * Beləliklə ad-soyad həmişə güncel olur.
  */
 
 (function () {
   'use strict';
 
-  const POPUP_STORAGE_KEY = 'herbalife_popup_shown';
-  const POPUP_CONFIG_KEY = 'herbalife_popup_config';
+  const POPUP_STORAGE_KEY    = 'herbalife_popup_shown';
+  const POPUP_CONFIG_KEY     = 'herbalife_popup_config';
+  const POPUP_CONFIG_VERSION = 'herbalife_popup_config_ts';
 
   // Default configuration
-  let config = {
-    fullName: 'AD SOYAD',
-    title: 'Müstəqil Herbalife Tərəfdaşı',
+  var config = {
+    fullName:    'AD SOYAD',
+    title:       'Müstəqil Herbalife Tərəfdaşı',
     description: 'İstifadəçi şirkətin rəsmi saytı deyil, müstəqil tərəfdaşın səhifəsindədir.',
+    updatedAt:   null,
   };
 
-  // Load config from localStorage or API
-  function loadConfig() {
+  /* ── localStorage helpers ── */
+  function loadLocalConfig() {
     try {
-      const stored = localStorage.getItem(POPUP_CONFIG_KEY);
+      var stored = localStorage.getItem(POPUP_CONFIG_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        config = { ...config, ...parsed };
+        var parsed = JSON.parse(stored);
+        config = Object.assign({}, config, parsed);
+        return true;
       }
-    } catch (e) {
-      console.warn('Failed to load popup config:', e);
-    }
+    } catch (e) { /* ignore */ }
+    return false;
   }
 
-  // Check if popup should be shown
+  function saveLocalConfig() {
+    try {
+      localStorage.setItem(POPUP_CONFIG_KEY, JSON.stringify(config));
+      if (config.updatedAt) {
+        localStorage.setItem(POPUP_CONFIG_VERSION, config.updatedAt);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  function getLocalVersion() {
+    try { return localStorage.getItem(POPUP_CONFIG_VERSION) || ''; } catch (e) { return ''; }
+  }
+
+  /* ── session check ── */
   function shouldShowPopup() {
-    if (typeof sessionStorage === 'undefined') return true;
-    const shown = sessionStorage.getItem(POPUP_STORAGE_KEY);
-    return !shown;
+    try { return !sessionStorage.getItem(POPUP_STORAGE_KEY); } catch (e) { return true; }
   }
 
-  // Mark popup as shown
   function markPopupShown() {
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem(POPUP_STORAGE_KEY, 'true');
-    }
+    try { sessionStorage.setItem(POPUP_STORAGE_KEY, '1'); } catch (e) { /* ignore */ }
   }
 
-  // Create popup HTML
-  function createPopupHTML() {
-    return `
-      <div class="herbalife-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="herbalife-popup-title">
-        <div class="herbalife-popup-container">
-          <button 
-            class="herbalife-popup-close" 
-            aria-label="Popup-ı bağla"
-            type="button"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-          <div class="herbalife-popup-content">
-            <h2 id="herbalife-popup-title" class="herbalife-popup-title">${escapeHtml(config.title)}</h2>
-            <p class="herbalife-popup-description">${escapeHtml(config.description)}</p>
-            <p class="herbalife-popup-name">
-              <strong>${escapeHtml(config.fullName)}</strong>
-            </p>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  // Escape HTML to prevent XSS
+  /* ── HTML helpers ── */
   function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    var d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
   }
 
-  // Focus trap implementation
-  class FocusTrap {
-    constructor(container) {
-      this.container = container;
-      this.firstFocusable = null;
-      this.lastFocusable = null;
-      this.boundKeyHandler = this.handleKeyDown.bind(this);
-      this.init();
-    }
-
-    init() {
-      const focusableElements = this.container.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      this.firstFocusable = focusableElements[0];
-      this.lastFocusable = focusableElements[focusableElements.length - 1];
-      
-      if (this.firstFocusable) {
-        this.firstFocusable.focus();
-      }
-      
-      this.container.addEventListener('keydown', this.boundKeyHandler);
-    }
-
-    handleKeyDown(e) {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        // Shift + Tab
-        if (document.activeElement === this.firstFocusable) {
-          e.preventDefault();
-          this.lastFocusable?.focus();
-        }
-      } else {
-        // Tab
-        if (document.activeElement === this.lastFocusable) {
-          e.preventDefault();
-          this.firstFocusable?.focus();
-        }
-      }
-    }
-
-    destroy() {
-      this.container.removeEventListener('keydown', this.boundKeyHandler);
-    }
+  function createPopupHTML() {
+    return (
+      '<div class="herbalife-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="herbalife-popup-title">' +
+        '<div class="herbalife-popup-container">' +
+          '<button class="herbalife-popup-close" aria-label="Popup-ı bağla" type="button">' +
+            '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+              '<path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+            '</svg>' +
+          '</button>' +
+          '<div class="herbalife-popup-content">' +
+            '<h2 id="herbalife-popup-title" class="herbalife-popup-title">' + escapeHtml(config.title) + '</h2>' +
+            '<p class="herbalife-popup-description">' + escapeHtml(config.description) + '</p>' +
+            '<p class="herbalife-popup-name"><strong>' + escapeHtml(config.fullName) + '</strong></p>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
   }
 
-  // Popup class
-  class HerbalifePopup {
-    constructor() {
-      this.overlay = null;
-      this.focusTrap = null;
-      this.autoCloseTimer = null;
-      this.boundCloseHandler = this.close.bind(this);
-    }
-
-    init() {
-      if (!shouldShowPopup()) return;
-
-      loadConfig();
-      this.render();
-      this.attachEvents();
-      this.show();
-      markPopupShown();
-
-      // 5 saniyə sonra popup özü avtomatik bağlanır
-      this.autoCloseTimer = setTimeout(() => {
-        this.close();
-      }, 5000);
-    }
-
-    render() {
-      const temp = document.createElement('div');
-      temp.innerHTML = createPopupHTML();
-      this.overlay = temp.firstElementChild;
-      document.body.appendChild(this.overlay);
-
-      // Initialize focus trap
-      this.focusTrap = new FocusTrap(this.overlay);
-    }
-
-    attachEvents() {
-      // Yalnız X düyməsi popup-u bağlayır
-      const closeBtn = this.overlay.querySelector('.herbalife-popup-close');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', this.boundCloseHandler);
-      }
-    }
-
-    show() {
-      if (!this.overlay) return;
-
-      // Prevent body scroll
-      document.body.style.overflow = 'hidden';
-
-      // Trigger animation
-      requestAnimationFrame(() => {
-        this.overlay.classList.add('herbalife-popup-visible');
-      });
-    }
-
-    close() {
-      if (!this.overlay) return;
-
-      // Remove visible class for fade-out animation
-      this.overlay.classList.remove('herbalife-popup-visible');
-
-      // Wait for animation to complete before removing from DOM
-      setTimeout(() => {
-        this.destroy();
-      }, 300);
-    }
-
-    destroy() {
-      // Auto-close timer varsa ləğv et
-      if (this.autoCloseTimer) {
-        clearTimeout(this.autoCloseTimer);
-        this.autoCloseTimer = null;
-      }
-
-      if (this.focusTrap) {
-        this.focusTrap.destroy();
-        this.focusTrap = null;
-      }
-
-      if (this.overlay) {
-        const closeBtn = this.overlay.querySelector('.herbalife-popup-close');
-        if (closeBtn) {
-          closeBtn.removeEventListener('click', this.boundCloseHandler);
-        }
-
-        this.overlay.remove();
-        this.overlay = null;
-      }
-
-      // Restore body scroll
-      document.body.style.overflow = '';
-    }
+  /* ── Focus Trap ── */
+  function FocusTrap(container) {
+    var els = container.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');
+    this.first = els[0];
+    this.last  = els[els.length - 1];
+    if (this.first) this.first.focus();
+    this._handler = this._onKey.bind(this);
+    container.addEventListener('keydown', this._handler);
+    this._container = container;
   }
-
-  // Initialize on DOM ready (dərhal göstər, 5 saniyə sonra avtomatik bağla)
-  function init() {
-    function startPopup() {
-      var popup = new HerbalifePopup();
-      popup.init();
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', startPopup);
+  FocusTrap.prototype._onKey = function (e) {
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey) {
+      if (document.activeElement === this.first) { e.preventDefault(); if (this.last) this.last.focus(); }
     } else {
-      startPopup();
+      if (document.activeElement === this.last)  { e.preventDefault(); if (this.first) this.first.focus(); }
     }
+  };
+  FocusTrap.prototype.destroy = function () {
+    this._container.removeEventListener('keydown', this._handler);
+  };
+
+  /* ── Popup class ── */
+  function HerbalifePopup() {
+    this.overlay       = null;
+    this.focusTrap     = null;
+    this.autoCloseTimer = null;
+    this._closeHandler = this.close.bind(this);
   }
 
-  // Fetch config from API on load (optional, for admin updates)
-  function fetchConfigFromAPI() {
+  HerbalifePopup.prototype.show = function () {
+    if (!shouldShowPopup()) return;
+
+    // Render
+    var temp = document.createElement('div');
+    temp.innerHTML = createPopupHTML();
+    this.overlay = temp.firstElementChild;
+    document.body.appendChild(this.overlay);
+
+    // Focus trap
+    this.focusTrap = new FocusTrap(this.overlay);
+
+    // Close button
+    var closeBtn = this.overlay.querySelector('.herbalife-popup-close');
+    if (closeBtn) closeBtn.addEventListener('click', this._closeHandler);
+
+    // Prevent scroll
+    document.body.style.overflow = 'hidden';
+
+    // Animate in
+    var self = this;
+    requestAnimationFrame(function () {
+      self.overlay.classList.add('herbalife-popup-visible');
+    });
+
+    markPopupShown();
+
+    // Auto-close after 5 seconds
+    var self2 = this;
+    this.autoCloseTimer = setTimeout(function () { self2.close(); }, 5000);
+  };
+
+  HerbalifePopup.prototype.close = function () {
+    if (!this.overlay) return;
+    this.overlay.classList.remove('herbalife-popup-visible');
+    var self = this;
+    setTimeout(function () { self.destroy(); }, 300);
+  };
+
+  HerbalifePopup.prototype.destroy = function () {
+    if (this.autoCloseTimer) { clearTimeout(this.autoCloseTimer); this.autoCloseTimer = null; }
+    if (this.focusTrap)  { this.focusTrap.destroy();  this.focusTrap = null; }
+    if (this.overlay) {
+      var closeBtn = this.overlay.querySelector('.herbalife-popup-close');
+      if (closeBtn) closeBtn.removeEventListener('click', this._closeHandler);
+      this.overlay.remove();
+      this.overlay = null;
+    }
+    document.body.style.overflow = '';
+  };
+
+  /* ──────────────────────────────────────────────────
+   * MAIN ENTRY: Əvvəlcə API-dan config yüklə,
+   * sonra popup-u göstər.
+   * Bu race condition-u tamamilə həll edir.
+   * ────────────────────────────────────────────────── */
+  function start() {
+    if (!shouldShowPopup()) return; // Artıq bu sessiyada göstərilib
+
+    var finished = false;
+
+    function renderPopup() {
+      if (finished) return;
+      finished = true;
+      new HerbalifePopup().show();
+    }
+
+    // 2.5 saniyəlik gözləmə limiti — API gec cavab versə localStorage/default istifadə et
+    var fallbackTimer = setTimeout(function () {
+      loadLocalConfig(); // stale olsa da, heç-olmasa bir şey göstər
+      renderPopup();
+    }, 2500);
+
+    // API-dan ən güncel config-i al
     fetch('/api/admin/popup')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        clearTimeout(fallbackTimer);
+
         if (data && data.fullName) {
-          config = { ...config, ...data };
-          localStorage.setItem(POPUP_CONFIG_KEY, JSON.stringify(config));
+          var localVer = getLocalVersion();
+          var apiVer   = data.updatedAt || '';
+
+          // API daha yeni versiya qaytarırsa (və ya localStorage boşdursa), yenilə
+          if (!localVer || !apiVer || apiVer > localVer) {
+            config = Object.assign({}, config, data);
+            saveLocalConfig();
+          } else {
+            // localStorage versiyası daha güncel (mümkünsüz amma ehtiyatla)
+            loadLocalConfig();
+          }
+        } else {
+          loadLocalConfig();
         }
+
+        renderPopup();
       })
-      .catch(() => {
-        // Silently fail if API is not available
+      .catch(function () {
+        clearTimeout(fallbackTimer);
+        loadLocalConfig();
+        renderPopup();
       });
   }
 
-  // Start initialization
-  init();
-  fetchConfigFromAPI();
+  /* ── DOM hazır olduqda başlat ── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
 
-  // Expose updateConfig for admin panel
+  /* ── Admin panel üçün global API ── */
   if (typeof window !== 'undefined') {
     window.HerbalifePopup = {
-      updateConfig: function(newConfig) {
-        config = { ...config, ...newConfig };
-        localStorage.setItem(POPUP_CONFIG_KEY, JSON.stringify(config));
+      /**
+       * Admin paneldən çağrılır: yeni config-i həm yaddaşa, həm localStorage-a yazır.
+       * @param {object} newConfig - { fullName, title, description, updatedAt }
+       */
+      updateConfig: function (newConfig) {
+        config = Object.assign({}, config, newConfig);
+        saveLocalConfig();
       },
-      getConfig: function() {
-        return { ...config };
+      getConfig: function () {
+        return Object.assign({}, config);
       },
-      reset: function() {
-        sessionStorage.removeItem(POPUP_STORAGE_KEY);
-        localStorage.removeItem(POPUP_CONFIG_KEY);
-      }
+      /**
+       * Popup cache-ni sıfırlayır. Növbəti ziyarətdə popup yenidən görünəcək.
+       */
+      reset: function () {
+        try { sessionStorage.removeItem(POPUP_STORAGE_KEY); } catch (e) {}
+        try { localStorage.removeItem(POPUP_CONFIG_KEY);    } catch (e) {}
+        try { localStorage.removeItem(POPUP_CONFIG_VERSION);} catch (e) {}
+      },
     };
   }
 })();
