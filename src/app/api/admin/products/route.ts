@@ -163,6 +163,8 @@ export async function POST(req: NextRequest) {
     is_active: true,
     weight_goal_tag: "neutral" as const,
     image_url: body.imageUrl || null,
+    usage_count: typeof body.usageCount === "string" ? body.usageCount.trim() : "",
+    badge_color: typeof body.badgeColor === "string" && body.badgeColor.startsWith("#") ? body.badgeColor : "#16a34a",
     category_id:
       Array.isArray(body.categoryIds) && body.categoryIds.length > 0
         ? Number(body.categoryIds[0])
@@ -342,6 +344,8 @@ export async function PUT(req: NextRequest) {
     discount_percent: discountPercent,
     stock: Number(body.stock) || 0,
     points: Number(body.points) || 0,
+    usage_count: typeof body.usageCount === "string" ? body.usageCount.trim() : "",
+    badge_color: typeof body.badgeColor === "string" && body.badgeColor.startsWith("#") ? body.badgeColor : "#16a34a",
     category_id:
       Array.isArray(body.categoryIds) && body.categoryIds.length > 0
         ? Number(body.categoryIds[0])

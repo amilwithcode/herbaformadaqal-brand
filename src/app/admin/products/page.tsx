@@ -41,6 +41,8 @@ type AdminProduct = {
   price: number;
   stock: number;
   points: number;
+  usageCount?: string;
+  badgeColor?: string;
   categoryIds: number[];
   translations: Record<LocaleCode, LocalizedProductTexts>;
   imageUrl?: string | null;
@@ -106,6 +108,15 @@ function ProductRow({
               <Layers size={10} />
               {product.stock} stok
             </span>
+            {product.usageCount && (
+              <span
+                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                style={{ backgroundColor: product.badgeColor || "#16a34a" }}
+                title={`İstifadə sayı: ${product.usageCount}x`}
+              >
+                {product.usageCount}x
+              </span>
+            )}
           </div>
         </div>
 
@@ -341,6 +352,8 @@ export default function AdminProducts() {
   const [activeTransTab, setActiveTransTab] = useState<LocaleCode>("az");
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [usageCount, setUsageCount] = useState("");
+  const [badgeColor, setBadgeColor] = useState("#16a34a");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -365,6 +378,9 @@ export default function AdminProducts() {
     setDescEn(product.translations.en.description || "");
     setDescRu(product.translations.ru.description || "");
     setDescTr(product.translations.tr.description || "");
+
+    setUsageCount(product.usageCount || "");
+    setBadgeColor(product.badgeColor || "#16a34a");
 
     if (product.galleryImages) {
       setExistingGalleryUrls(
@@ -395,6 +411,8 @@ export default function AdminProducts() {
     setDescEn("");
     setDescRu("");
     setDescTr("");
+    setUsageCount("");
+    setBadgeColor("#16a34a");
     setMainImageFile(null);
     setGalleryFiles([]);
     setExistingGalleryUrls([]);
@@ -458,6 +476,8 @@ export default function AdminProducts() {
       discount_percent?: number | string;
       stock?: number | string;
       points?: number | string;
+      usage_count?: string | null;
+      badge_color?: string | null;
       category_id?: number | null;
       categoryIds?: number[]; // From product_categories table
       image_url?: string | null;
@@ -503,6 +523,8 @@ export default function AdminProducts() {
         price: finalPrice,
         stock: Number(p.stock) || 0,
         points: Number(p.points) || 0,
+        usageCount: p.usage_count || "",
+        badgeColor: p.badge_color || "#16a34a",
         categoryIds: Array.isArray(p.categoryIds) && p.categoryIds.length > 0 
           ? p.categoryIds 
           : (p.category_id ? [p.category_id] : []),
@@ -636,6 +658,8 @@ export default function AdminProducts() {
         price: Number(price),
         stock: Number(stock),
         points: Number(points),
+        usageCount,
+        badgeColor,
         categoryIds: selectedCategoryIds,
         translations: {
           az: { title: titleAz, description: descAz },
@@ -938,6 +962,62 @@ export default function AdminProducts() {
                       onChange={(e) => setPoints(e.target.value)}
                       placeholder="0"
                     />
+                  </div>
+                </div>
+
+                {/* Usage badge */}
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-3">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">İstifadə sayı ikonu</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-700">
+                        Say (məs: 1, 2, 3)
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow"
+                        value={usageCount}
+                        onChange={(e) => setUsageCount(e.target.value)}
+                        placeholder="məs: 1"
+                        maxLength={5}
+                      />
+                      <p className="text-[10px] text-slate-400">Məhsul detalında «1x» kimi göstəriləcək.</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-700">
+                        İkon rəngi
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          className="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-white p-1"
+                          value={badgeColor}
+                          onChange={(e) => setBadgeColor(e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-shadow font-mono"
+                          value={badgeColor}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (/^#[0-9a-fA-F]{0,6}$/.test(v)) setBadgeColor(v);
+                          }}
+                          placeholder="#16a34a"
+                          maxLength={7}
+                        />
+                      </div>
+                      {usageCount && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <span className="text-[10px] text-slate-400">Önizləmə:</span>
+                          <span
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white shadow"
+                            style={{ backgroundColor: badgeColor }}
+                          >
+                            {usageCount}x
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

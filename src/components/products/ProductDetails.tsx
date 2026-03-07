@@ -249,9 +249,20 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         {/* Right Column - Product Info */}
         <div className="lg:col-span-5 space-y-6">
           <div>
-            <h1 className="text-xl md:text-2xl font-semibold text-slate-900 leading-snug">
-              {translatedContent.title}
-            </h1>
+            <div className="flex items-start gap-3">
+              <h1 className="flex-1 text-xl md:text-2xl font-semibold text-slate-900 leading-snug">
+                {translatedContent.title}
+              </h1>
+              {product.usage_count && (
+                <span
+                  className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
+                  style={{ backgroundColor: product.badge_color || "#16a34a" }}
+                  title={`İstifadə: ${product.usage_count}x`}
+                >
+                  {product.usage_count}x
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-4 mt-2">
               <div className="flex items-center text-orange-400 text-sm">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -474,9 +485,16 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
              <div className="prose prose-sm prose-slate max-w-none">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">{t("product.about")}</h3>
                 {translatedContent.description ? (
-                  // Admin panelindən gələn HTML-i render edirik ki, bold və ölçü dəyişiklikləri görünsün
+                  // Admin panelindən gələn HTML-i render edirik.
+                  // \n sətir keçidlərini <br> ilə əvəz edirik ki, boşluqlar nəzərə alınsın.
                   <div
-                    dangerouslySetInnerHTML={{ __html: translatedContent.description }}
+                    className="whitespace-pre-line leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html: translatedContent.description
+                        // Artıq <br> teqi varsa, onları saxla; yalnız \n-ləri <br>-ə çevir
+                        .replace(/\r\n/g, "\n")
+                        .replace(/\n/g, "<br />"),
+                    }}
                   />
                 ) : (
                   <p>{t("product.no_description")}</p>

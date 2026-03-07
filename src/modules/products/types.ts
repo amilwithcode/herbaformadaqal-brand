@@ -18,6 +18,8 @@ export type Product = {
   program_id?: number | null;
   image_url: string | null;
   points: number; // Added points field
+  usage_count?: string | null; // e.g. "1", "2" — displayed as "1x", "2x"
+  badge_color?: string | null; // hex color for the usage badge
   translations?: ProductTranslation[];
   product_images?: ProductImage[];
   reviews?: ProductReview[];

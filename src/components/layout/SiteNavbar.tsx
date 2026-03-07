@@ -509,9 +509,16 @@ export default function SiteNavbar({
             <Link
               key={link.href}
               href={link.href}
-              className="text-emerald-900 hover:text-emerald-700 transition-colors"
+              className={`group relative inline-block transition-colors hover:text-emerald-700 ${
+                pathname === link.href ? "text-emerald-700" : "text-emerald-900"
+              }`}
             >
               {link.label}
+              <span
+                className={`absolute -bottom-[13px] left-0 h-0.5 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full ${
+                  pathname === link.href ? "w-full" : "w-0"
+                }`}
+              />
             </Link>
           ))}
         </nav>
