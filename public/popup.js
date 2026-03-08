@@ -134,7 +134,9 @@
     // Animate in
     var self = this;
     requestAnimationFrame(function () {
-      self.overlay.classList.add('herbalife-popup-visible');
+      if (self.overlay) {
+        self.overlay.classList.add('herbalife-popup-visible');
+      }
     });
 
     markPopupShown();

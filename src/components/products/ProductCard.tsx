@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useI18n } from "@/contexts/I18nContext";
@@ -41,6 +42,7 @@ export default function ProductCard({
     has,
   } = useWishlist();
   const { hidePrices, hidePoints, isLoggedIn } = useSiteSettings();
+  const router = useRouter();
 
   const cardRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -170,14 +172,14 @@ export default function ProductCard({
             </div>
           )}
           {hidePrices && !isLoggedIn && (
-            <Link
-              href="/auth/login"
-              onClick={(e) => e.stopPropagation()}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/auth/login"); }}
               className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
             >
               <LogIn size={13} />
               {t("product.login_to_see_price")}
-            </Link>
+            </button>
           )}
 
           {/* Add to cart */}
