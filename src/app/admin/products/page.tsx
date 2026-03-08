@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import type { Category, Product } from "@/modules/products/types";
-import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
   Eye,
   EyeOff,
@@ -607,25 +606,28 @@ export default function AdminProducts() {
     }
 
     setSaving(true);
-    const supabase = getSupabaseBrowserClient();
 
     try {
       let mainImageUrl = null;
       const galleryImageUrls: string[] = [];
 
       const uploadFile = async (file: File) => {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const { data, error } = await supabase.storage
-          .from("products")
-          .upload(fileName, file);
-        if (error) {
-          throw new Error(`Şəkil yüklənməsi xətası: ${error.message}`);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("bucket", "products");
+
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || "Şəkil yüklənməsi xətası");
         }
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("products").getPublicUrl(fileName);
-        return publicUrl;
+
+        const { publicUrl } = await res.json();
+        return publicUrl as string;
       };
 
       if (mainImageFile) {
