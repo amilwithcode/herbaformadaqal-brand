@@ -132,11 +132,40 @@ export async function middleware(request: NextRequest) {
   // 2. Security Headers (XSS, Clickjacking protection)
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co https://*.stripe.com https://va.vercel-scripts.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://*.supabase.co https://images.unsplash.com https://*.stripe.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline'
+      https://*.supabase.co
+      https://*.stripe.com
+      https://va.vercel-scripts.com
+      https://www.googletagmanager.com
+      https://www.google-analytics.com
+      https://www.googleadservices.com
+      https://hcaptcha.com
+      https://*.hcaptcha.com;
+    style-src 'self' 'unsafe-inline'
+      https://fonts.googleapis.com
+      https://hcaptcha.com
+      https://*.hcaptcha.com;
+    img-src 'self' blob: data:
+      https://*.supabase.co
+      https://images.unsplash.com
+      https://*.stripe.com
+      https://www.googletagmanager.com
+      https://www.google-analytics.com
+      https://www.gstatic.com;
     font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://*.supabase.co https://api.stripe.com https://vitals.vercel-insights.com;
+    connect-src 'self'
+      https://*.supabase.co
+      https://api.stripe.com
+      https://vitals.vercel-insights.com
+      https://www.google-analytics.com
+      https://www.googletagmanager.com
+      https://stats.g.doubleclick.net
+      https://hcaptcha.com
+      https://*.hcaptcha.com;
+    frame-src
+      https://*.stripe.com
+      https://hcaptcha.com
+      https://*.hcaptcha.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';

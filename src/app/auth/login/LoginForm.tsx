@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useI18n } from "@/contexts/I18nContext";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
@@ -18,6 +19,10 @@ export default function LoginForm() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const captchaRef = useRef<HCaptcha>(null);
   const { t } = useI18n();
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -25,10 +30,12 @@ export default function LoginForm() {
     setError("");
     setEmailError("");
     setPasswordError("");
+    setCaptchaError("");
 
     const trimmedEmail = email.trim();
     const trimmedPassword = password;
     let hasError = false;
+
     if (!trimmedEmail) {
       setEmailError(t("auth.validation.email_required"));
       hasError = true;
@@ -39,6 +46,7 @@ export default function LoginForm() {
         hasError = true;
       }
     }
+
     if (!trimmedPassword) {
       setPasswordError(t("auth.validation.password_required"));
       hasError = true;
@@ -46,7 +54,16 @@ export default function LoginForm() {
       setPasswordError(t("auth.validation.password_min"));
       hasError = true;
     }
+
+    // CAPTCHA yoxlaması
+    if (!captchaToken) {
+      setCaptchaError("Zəhmət olmasa robot olmadığınızı təsdiqləyin.");
+      hasError = true;
+    }
+
     if (hasError) return;
+
+    setIsSubmitting(true);
 
     // 15 saniyəlik timeout — Supabase cavab verməsə gözləmə
     const TIMEOUT_MS = 15_000;
@@ -57,7 +74,13 @@ export default function LoginForm() {
     let authData, authError;
     try {
       ({ data: authData, error: authError } = await Promise.race([
-        supabase.auth.signInWithPassword({ email: trimmedEmail, password }),
+        supabase.auth.signInWithPassword({
+          email: trimmedEmail,
+          password,
+          options: {
+            captchaToken: captchaToken ?? undefined,
+          },
+        }),
         timeoutPromise,
       ]));
     } catch (err: unknown) {
@@ -67,6 +90,9 @@ export default function LoginForm() {
       } else {
         setError("Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayıb yenidən cəhd edin.");
       }
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken(null);
+      setIsSubmitting(false);
       return;
     }
 
@@ -82,6 +108,9 @@ export default function LoginForm() {
       } else {
         setError(t("auth.error.generic"));
       }
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken(null);
+      setIsSubmitting(false);
       return;
     }
 
@@ -146,6 +175,7 @@ export default function LoginForm() {
               placeholder={t("auth.login.email_placeholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
           {emailError && (
@@ -164,17 +194,44 @@ export default function LoginForm() {
               placeholder={t("auth.login.password_placeholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isSubmitting}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="ml-2 text-emerald-400 hover:text-emerald-600 focus:outline-none"
+              disabled={isSubmitting}
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
           {passwordError && (
             <p className="text-[11px] text-red-500">{passwordError}</p>
+          )}
+        </div>
+
+        {/* hCaptcha Widget */}
+        <div className="flex flex-col items-center gap-1">
+          <HCaptcha
+            ref={captchaRef}
+            sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001"}
+            onVerify={(token) => {
+              setCaptchaToken(token);
+              setCaptchaError("");
+            }}
+            onExpire={() => {
+              setCaptchaToken(null);
+              setCaptchaError("CAPTCHA müddəti bitdi. Zəhmət olmasa yenidən təsdiqləyin.");
+            }}
+            onError={() => {
+              setCaptchaToken(null);
+              setCaptchaError("CAPTCHA yüklənərkən xəta baş verdi. Səhifəni yeniləyin.");
+            }}
+            theme="light"
+            languageOverride="az"
+          />
+          {captchaError && (
+            <p className="text-[11px] text-red-500">{captchaError}</p>
           )}
         </div>
 
@@ -202,10 +259,13 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          className="group flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-900/20 active:scale-[0.98]"
+          disabled={isSubmitting}
+          className="group flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-900/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {t("auth.login.submit")}
-          <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
+          {isSubmitting ? "Giriş edilir..." : t("auth.login.submit")}
+          {!isSubmitting && (
+            <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
+          )}
         </button>
       </form>
 
