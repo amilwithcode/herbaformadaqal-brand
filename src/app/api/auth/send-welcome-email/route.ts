@@ -184,22 +184,35 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) {
-      console.error("Resend email error:", error);
+      // Resend-dən gələn xəta detallarını server loguna yaz
+      console.error("══════════════════════════════════════");
+      console.error("❌ RESEND EMAIL XƏTASI:");
+      console.error("  From  :", fromEmail);
+      console.error("  To    :", email);
+      console.error("  Error :", JSON.stringify(error, null, 2));
+      console.error("══════════════════════════════════════");
+      // Email uğursuz olsa da qeydiyyatı bloklama — 200 qaytar
       return NextResponse.json(
-        { error: "Failed to send email", details: error },
-        { status: 500 }
+        { success: false, warning: "Email göndərilə bilmədi", details: error },
+        { status: 200 }
       );
     }
 
+    console.log("✅ Xoş gəlmisiniz emaili göndərildi:", data?.id, "→", email);
     return NextResponse.json(
       { success: true, messageId: data?.id },
       { status: 200 }
     );
   } catch (err: any) {
-    console.error("Send welcome email error:", err);
+    console.error("══════════════════════════════════════");
+    console.error("❌ SEND-WELCOME-EMAIL GÖZLƏNILMƏZ XƏTA:");
+    console.error("  Message:", err?.message);
+    console.error("  Stack  :", err?.stack);
+    console.error("══════════════════════════════════════");
+    // Gözlənilməz xəta olsa da qeydiyyatı bloklama — 200 qaytar
     return NextResponse.json(
-      { error: err?.message || "Internal server error" },
-      { status: 500 }
+      { success: false, warning: err?.message || "Internal server error" },
+      { status: 200 }
     );
   }
 }
