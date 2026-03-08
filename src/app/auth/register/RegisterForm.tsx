@@ -5,19 +5,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useI18n } from "@/contexts/I18nContext";
+import { useToast, ToastContainer } from "@/components/ui/Toast";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus, User, MapPin } from "lucide-react";
 
 export default function RegisterForm({ siteName }: { siteName?: string }) {
   const supabase = getSupabaseBrowserClient();
   const router = useRouter();
   const { t } = useI18n();
-  
+  const toast = useToast();
+
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [locationError, setLocationError] = useState("");
@@ -29,7 +30,6 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setEmailError("");
     setUsernameError("");
     setLocationError("");
@@ -42,7 +42,6 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
     const trimmedPassword = password;
     let hasError = false;
 
-    // Email validation
     if (!trimmedEmail) {
       setEmailError(t("auth.validation.email_required"));
       hasError = true;
@@ -54,19 +53,16 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
       }
     }
 
-    // Username validation
     if (!trimmedUsername) {
       setUsernameError(t("auth.validation.username_required"));
       hasError = true;
     }
 
-    // Location validation
     if (!trimmedLocation) {
       setLocationError(t("auth.validation.location_required"));
       hasError = true;
     }
 
-    // Password validation
     if (!trimmedPassword) {
       setPasswordError(t("auth.validation.password_required"));
       hasError = true;
@@ -75,7 +71,6 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
       hasError = true;
     }
 
-    // Confirm password validation
     if (!confirmPassword) {
       setConfirmPasswordError(t("auth.validation.password_required"));
       hasError = true;
@@ -88,7 +83,6 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
 
     setIsSubmitting(true);
 
-    // 15 saniyəlik timeout — Supabase cavab verməsə istifadəçi gözləməsin
     const TIMEOUT_MS = 15_000;
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error("__TIMEOUT__")), TIMEOUT_MS)
@@ -114,40 +108,40 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
       ]);
 
       if (authError) {
-        console.error("Supabase signUp error:", authError);
         const msg = (authError.message || "").toLowerCase();
         const isNetworkError =
           authError.name === "AuthRetryableFetchError" ||
-          msg === "" ||
-          msg === "{}" ||
-          msg.includes("fetch") ||
-          msg.includes("networkerror") ||
-          msg.includes("failed to fetch") ||
-          msg.includes("504") ||
+          msg === "" || msg === "{}" ||
+          msg.includes("fetch") || msg.includes("networkerror") ||
+          msg.includes("failed to fetch") || msg.includes("504") ||
           msg.includes("timeout");
 
         if (msg.includes("already registered") || msg.includes("already exists")) {
-          setError(t("auth.error.email_exists") || "Bu email artıq qeydiyyatdan keçib.");
+          toast.error(
+            "Email artıq mövcuddur",
+            "Bu email ilə artıq qeydiyyat var. Daxil olmağa cəhd edin."
+          );
         } else if (msg.includes("password")) {
-          setError(t("auth.error.password_weak") || "Şifrə çox zəifdir.");
+          toast.error("Şifrə çox zəifdir", "Daha güclü şifrə seçin (ən azı 6 simvol).");
         } else if (isNetworkError) {
-          setError(
-            "Serverlə əlaqə qururkən xəta baş verdi. Zəhmət olmasa bir neçə saniyə gözləyib yenidən cəhd edin."
+          toast.error(
+            "Əlaqə xətası",
+            "Serverlə əlaqə qururkən xəta baş verdi. Bir neçə saniyə gözləyib yenidən cəhd edin."
           );
         } else {
-          setError(authError.message || t("auth.error.register_generic"));
+          toast.error("Qeydiyyat uğursuz oldu", authError.message || t("auth.error.register_generic"));
         }
         setIsSubmitting(false);
         return;
       }
 
       if (!authData?.user) {
-        setError(t("auth.error.register_generic"));
+        toast.error("Xəta baş verdi", t("auth.error.register_generic"));
         setIsSubmitting(false);
         return;
       }
 
-      // Xoş gəlmisiniz emailini arxa planda göndər (bloklama)
+      // Xoş gəlmisiniz emailini arxa planda göndər
       const locale =
         typeof window !== "undefined"
           ? window.localStorage.getItem("locale") || "az"
@@ -159,184 +153,202 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
       }).catch(() => {});
 
       if (authData.user.email_confirmed_at) {
-        router.push("/account");
+        toast.success("Qeydiyyat tamamlandı!", "Hesabınıza yönləndirilirsiniz...");
+        setTimeout(() => router.push("/account"), 1200);
       } else {
-        router.push("/auth/login?registered=true");
+        toast.info(
+          "Qeydiyyat uğurlu oldu!",
+          "Email ünvanınıza təsdiq linki göndərildi. Emailinizi yoxlayın."
+        );
+        setTimeout(() => router.push("/auth/login?registered=true"), 2000);
       }
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       if (errMsg === "__TIMEOUT__") {
-        setError(
-          "Sorğu vaxtı bitdi (15 san). Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin."
+        toast.error(
+          "Vaxt bitdi",
+          "Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin."
         );
       } else if (
         errMsg.toLowerCase().includes("fetch") ||
         errMsg.toLowerCase().includes("network") ||
         errMsg === "{}"
       ) {
-        setError(
-          "Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayıb yenidən cəhd edin."
+        toast.error(
+          "Əlaqə xətası",
+          "Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayın."
         );
       } else {
-        setError(t("auth.error.register_generic"));
+        toast.error("Xəta baş verdi", t("auth.error.register_generic"));
       }
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="mt-8 w-full max-w-md rounded-3xl border border-emerald-100 bg-white px-8 py-10 shadow-sm">
-      <div className="flex flex-col items-center text-center">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-700 text-emerald-50">
-          <UserPlus size={24} />
+    <>
+      <ToastContainer toasts={toast.toasts} onClose={toast.close} />
+
+      <div className="mt-8 w-full max-w-md rounded-3xl border border-emerald-100 bg-white px-8 py-10 shadow-sm">
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-700 text-emerald-50">
+            <UserPlus size={24} />
+          </div>
+          <h1 className="text-2xl font-semibold text-emerald-950">
+            {t("auth.register.title")}
+          </h1>
+          <p className="mt-1 text-sm text-emerald-700">
+            {siteName
+              ? `${siteName}-a qoşulun və sağlamlığınızı idarə edin`
+              : t("auth.register.subtitle")}
+          </p>
         </div>
-        <h1 className="text-2xl font-semibold text-emerald-950">
-          {t("auth.register.title")}
-        </h1>
-        <p className="mt-1 text-sm text-emerald-700">
-          {siteName ? `${siteName}-a qoşulun və sağlamlığınızı idarə edin` : t("auth.register.subtitle")}
-        </p>
+
+        <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+          {/* Ad Soyad */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-emerald-900">
+              {t("auth.register.username_label")}
+            </label>
+            <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
+              <User size={16} className="mr-2 text-emerald-500" />
+              <input
+                type="text"
+                className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
+                placeholder={t("auth.register.username_placeholder")}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+            {usernameError && (
+              <p className="text-[11px] text-red-500">{usernameError}</p>
+            )}
+          </div>
+
+          {/* Şəhər */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-emerald-900">
+              {t("auth.register.location_label")}
+            </label>
+            <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
+              <MapPin size={16} className="mr-2 text-emerald-500" />
+              <input
+                type="text"
+                className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
+                placeholder={t("auth.register.location_placeholder")}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+            {locationError && (
+              <p className="text-[11px] text-red-500">{locationError}</p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-emerald-900">
+              {t("auth.register.email_label")}
+            </label>
+            <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
+              <Mail size={16} className="mr-2 text-emerald-500" />
+              <input
+                type="email"
+                className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
+                placeholder={t("auth.register.email_placeholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+            {emailError && (
+              <p className="text-[11px] text-red-500">{emailError}</p>
+            )}
+          </div>
+
+          {/* Şifrə */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-emerald-900">
+              {t("auth.register.password_label")}
+            </label>
+            <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
+              <Lock size={16} className="mr-2 text-emerald-500" />
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
+                placeholder={t("auth.register.password_placeholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isSubmitting}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="ml-2 text-emerald-400 hover:text-emerald-600 focus:outline-none"
+                disabled={isSubmitting}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {passwordError && (
+              <p className="text-[11px] text-red-500">{passwordError}</p>
+            )}
+          </div>
+
+          {/* Şifrə təkrar */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-emerald-900">
+              {t("auth.register.confirm_password_label")}
+            </label>
+            <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
+              <Lock size={16} className="mr-2 text-emerald-500" />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
+                placeholder={t("auth.register.password_placeholder")}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isSubmitting}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="ml-2 text-emerald-400 hover:text-emerald-600 focus:outline-none"
+                disabled={isSubmitting}
+              >
+                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {confirmPasswordError && (
+              <p className="text-[11px] text-red-500">{confirmPasswordError}</p>
+            )}
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="group flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-900/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? t("common.saving") : t("auth.register.submit")}
+            {!isSubmitting && (
+              <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
+            )}
+          </button>
+        </form>
+
+        <div className="mt-8 text-center text-xs text-emerald-600">
+          {t("auth.register.have_account")}{" "}
+          <Link
+            href="/auth/login"
+            className="font-medium text-emerald-700 hover:underline"
+          >
+            {t("auth.register.login_link")}
+          </Link>
+        </div>
       </div>
-      <form className="mt-8 space-y-4" onSubmit={onSubmit}>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-emerald-900">
-            {t("auth.register.username_label")}
-          </label>
-          <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
-            <User size={16} className="mr-2 text-emerald-500" />
-            <input
-              type="text"
-              className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
-              placeholder={t("auth.register.username_placeholder")}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              disabled={isSubmitting}
-            />
-          </div>
-          {usernameError && (
-            <p className="text-[11px] text-red-500">{usernameError}</p>
-          )}
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-emerald-900">
-            {t("auth.register.location_label")}
-          </label>
-          <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
-            <MapPin size={16} className="mr-2 text-emerald-500" />
-            <input
-              type="text"
-              className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
-              placeholder={t("auth.register.location_placeholder")}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              disabled={isSubmitting}
-            />
-          </div>
-          {locationError && (
-            <p className="text-[11px] text-red-500">{locationError}</p>
-          )}
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-emerald-900">
-            {t("auth.register.email_label")}
-          </label>
-          <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
-            <Mail size={16} className="mr-2 text-emerald-500" />
-            <input
-              type="email"
-              className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
-              placeholder={t("auth.register.email_placeholder")}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isSubmitting}
-            />
-          </div>
-          {emailError && (
-            <p className="text-[11px] text-red-500">{emailError}</p>
-          )}
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-emerald-900">
-            {t("auth.register.password_label")}
-          </label>
-          <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
-            <Lock size={16} className="mr-2 text-emerald-500" />
-            <input
-              type={showPassword ? "text" : "password"}
-              className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
-              placeholder={t("auth.register.password_placeholder")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isSubmitting}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="ml-2 text-emerald-400 hover:text-emerald-600 focus:outline-none"
-              disabled={isSubmitting}
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-          {passwordError && (
-            <p className="text-[11px] text-red-500">{passwordError}</p>
-          )}
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-emerald-900">
-            {t("auth.register.confirm_password_label")}
-          </label>
-          <div className="flex items-center rounded-full border border-emerald-100 bg-white px-3 py-2 text-sm text-emerald-900 focus-within:border-emerald-500">
-            <Lock size={16} className="mr-2 text-emerald-500" />
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              className="w-full bg-transparent text-sm text-emerald-900 placeholder:text-emerald-300 outline-none"
-              placeholder={t("auth.register.password_placeholder")}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isSubmitting}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="ml-2 text-emerald-400 hover:text-emerald-600 focus:outline-none"
-              disabled={isSubmitting}
-            >
-              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-          {confirmPasswordError && (
-            <p className="text-[11px] text-red-500">{confirmPasswordError}</p>
-          )}
-        </div>
-
-        {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-center text-xs text-red-600">
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="group flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-900/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? t("common.saving") : t("auth.register.submit")}
-          {!isSubmitting && (
-            <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
-          )}
-        </button>
-      </form>
-
-      <div className="mt-8 text-center text-xs text-emerald-600">
-        {t("auth.register.have_account")}{" "}
-        <Link
-          href="/auth/login"
-          className="font-medium text-emerald-700 hover:underline"
-        >
-          {t("auth.register.login_link")}
-        </Link>
-      </div>
-    </div>
+    </>
   );
 }
