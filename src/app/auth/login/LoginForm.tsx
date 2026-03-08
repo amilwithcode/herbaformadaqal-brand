@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useI18n } from "@/contexts/I18nContext";
 import { useToast, ToastContainer } from "@/components/ui/Toast";
@@ -14,23 +13,19 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
   const toast = useToast();
+  const { t } = useI18n();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [captchaError, setCaptchaError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const captchaRef = useRef<HCaptcha>(null);
-  const { t } = useI18n();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError("");
     setPasswordError("");
-    setCaptchaError("");
 
     const trimmedEmail = email.trim();
     const trimmedPassword = password;
@@ -55,17 +50,10 @@ export default function LoginForm() {
       hasError = true;
     }
 
-    // CAPTCHA yoxlaması
-    if (!captchaToken) {
-      setCaptchaError("Zəhmət olmasa robot olmadığınızı təsdiqləyin.");
-      hasError = true;
-    }
-
     if (hasError) return;
 
     setIsSubmitting(true);
 
-    // 15 saniyəlik timeout
     const TIMEOUT_MS = 15_000;
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error("__TIMEOUT__")), TIMEOUT_MS)
@@ -83,18 +71,10 @@ export default function LoginForm() {
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "";
       if (errMsg === "__TIMEOUT__") {
-        toast.error(
-          "Vaxt bitdi",
-          "Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin."
-        );
+        toast.error("Vaxt bitdi", "Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin.");
       } else {
-        toast.error(
-          "Əlaqə xətası",
-          "Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayın."
-        );
+        toast.error("Əlaqə xətası", "Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayın.");
       }
-      captchaRef.current?.resetCaptcha();
-      setCaptchaToken(null);
       setIsSubmitting(false);
       return;
     }
@@ -110,9 +90,6 @@ export default function LoginForm() {
         toast.error("Əlaqə xətası", "Serverlə əlaqə qururkən xəta baş verdi. Yenidən cəhd edin.");
       } else if (msg.includes("invalid login credentials") || msg.includes("invalid_credentials")) {
         toast.error("Giriş uğursuz oldu", "Email və ya şifrə yanlışdır. Yenidən yoxlayın.");
-      } else if (msg.includes("captcha") || msg.includes("disallowed")) {
-        toast.error("CAPTCHA xətası", "Robot yoxlaması uğursuz oldu. Yenidən təsdiqləyin.");
-        setCaptchaToken(null);
       } else if (msg.includes("email not confirmed")) {
         toast.info("Email təsdiqlənməyib", "Emailinizi yoxlayın və təsdiq linkini klikləyin.");
       } else if (msg.includes("too many requests") || msg.includes("rate limit")) {
@@ -120,8 +97,6 @@ export default function LoginForm() {
       } else {
         toast.error("Xəta baş verdi", authError.message);
       }
-      captchaRef.current?.resetCaptcha();
-      setCaptchaToken(null);
       setIsSubmitting(false);
       return;
     }
@@ -151,7 +126,6 @@ export default function LoginForm() {
 
     toast.success("Giriş uğurlu oldu!", "Hesabınıza yönləndirilirsiniz...");
 
-    // Qısa gecikməylə yönləndir ki toast görünsün
     setTimeout(() => {
       if (isAdmin) {
         window.location.href = "/admin";
@@ -230,35 +204,6 @@ export default function LoginForm() {
             </div>
             {passwordError && (
               <p className="text-[11px] text-red-500">{passwordError}</p>
-            )}
-          </div>
-
-          {/* hCaptcha */}
-          <div className="flex flex-col items-center gap-1">
-            <HCaptcha
-              ref={captchaRef}
-              sitekey={
-                process.env.NODE_ENV === "development"
-                  ? "10000000-ffff-ffff-ffff-000000000001"
-                  : (process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001")
-              }
-              onVerify={(token) => {
-                setCaptchaToken(token);
-                setCaptchaError("");
-              }}
-              onExpire={() => {
-                setCaptchaToken(null);
-                setCaptchaError("CAPTCHA müddəti bitdi. Zəhmət olmasa yenidən təsdiqləyin.");
-              }}
-              onError={() => {
-                setCaptchaToken(null);
-                setCaptchaError("CAPTCHA yüklənərkən xəta baş verdi. Səhifəni yeniləyin.");
-              }}
-              theme="light"
-              languageOverride="az"
-            />
-            {captchaError && (
-              <p className="text-[11px] text-red-500">{captchaError}</p>
             )}
           </div>
 
