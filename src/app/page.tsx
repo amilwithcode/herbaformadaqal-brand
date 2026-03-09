@@ -6,6 +6,7 @@ import BenefitsStrip from "@/components/home/BenefitsStrip";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getHomeProducts, getCategories } from "@/modules/products/queries";
 import { getSiteSettings, getPageSections, getHeroSlides, getMetaTags } from "@/modules/settings/queries";
+import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 
 // Below-the-fold komponentləri lazy load edirik - ilk yüklənməni sürətləndirir
 const CategoriesSection = dynamic(() => import("@/components/home/CategoriesSection"), { ssr: true });
@@ -33,7 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = metaTags?.title || `${brandName} - Sağlam Həyat Üçün Herbalife Məhsulları | Azərbaycan`;
   const description = metaTags?.description || "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda rəsmi distribütor. Pulsuz çatdırılma Bakı daxilində.";
   const keywords = metaTags?.keywords || "herbalife azərbaycan, herbalife bakı, arıqlama məhsulları, çəki itirmə, sağlam qidalanma, vitamin, əlavə, herbalife distribütor, sağlam həyat, herbalife məhsulları";
-  const ogImage = metaTags?.og_image || metaTags?.image || settings?.logo || `${siteUrl}/og-image.jpg`;
+  const rawOgImage = metaTags?.og_image || metaTags?.image || settings?.logo || `${siteUrl}/og-image.jpg`;
+  const ogImage = ensureAbsoluteImageUrl(rawOgImage, siteUrl) || `${siteUrl}/og-image.jpg`;
 
   return {
     title,
@@ -103,15 +105,17 @@ export default async function Home() {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
 
-  // Structured Data (JSON-LD) for SEO
+  // Structured Data (JSON-LD) for SEO – Google üçün absolute URL
+  const logoUrl = ensureAbsoluteImageUrl(settings?.logo, siteUrl) || `${siteUrl}/logo.png`;
+  const defaultImage = ensureAbsoluteImageUrl(settings?.logo, siteUrl) || `${siteUrl}/og-image.jpg`;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "HealthAndBeautyBusiness",
     "name": brandName,
     "description": "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər.",
     "url": siteUrl,
-    "logo": settings?.logo || `${siteUrl}/logo.png`,
-    "image": settings?.logo || `${siteUrl}/og-image.jpg`,
+    "logo": logoUrl,
+    "image": defaultImage,
     "telephone": settings?.footer_phone || "+994 50 123 45 67",
     "address": {
       "@type": "PostalAddress",

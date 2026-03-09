@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import Script from "next/script";
 import SpeedInsightsWrapper from "@/components/common/SpeedInsightsWrapper";
 import "./globals.css";
@@ -51,12 +52,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const keywords =
     meta?.keywords ||
     "herbalife, sağlamlıq, arıqlama, çəki itirmə, qidalanma, vitamin, əlavə, azərbaycan, bakı, sağlam həyat";
-  const ogImage =
+  const rawOgImage =
     meta?.og_image ||
     meta?.image ||
     settings?.logo ||
     `${siteUrl}/og-image.jpg`;
-  const logoUrl = settings?.logo || `${siteUrl}/logo.png`;
+  const ogImage = ensureAbsoluteImageUrl(rawOgImage, siteUrl) || `${siteUrl}/og-image.jpg`;
+  const logoUrl = ensureAbsoluteImageUrl(settings?.logo, siteUrl) || `${siteUrl}/logo.png`;
 
   return {
     title: {

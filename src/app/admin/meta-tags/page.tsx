@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Save, X, Loader2, Globe, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Trash2, Edit2, Save, X, Loader2, Globe, ChevronDown, ChevronUp, Upload } from "lucide-react";
 
 type MetaTag = {
   id: string;
@@ -228,15 +228,15 @@ export default function AdminMetaTagsPage() {
             <Field label="Title" placeholder="Səhifə başlığı" value={form.title} onChange={v => setForm({ ...form, title: v })} />
             <Field label="Description" placeholder="Qısa təsvir" value={form.description} onChange={v => setForm({ ...form, description: v })} textarea />
             <Field label="Keywords" placeholder="açar söz1, açar söz2" value={form.keywords} onChange={v => setForm({ ...form, keywords: v })} />
-            <Field label="Image URL" placeholder="https://..." value={form.image} onChange={v => setForm({ ...form, image: v })} />
+            <ImageUploadField label="Şəkil (SEO)" value={form.image} onChange={v => setForm({ ...form, image: v })} />
           </div>
 
           <div className="border-t border-slate-100 pt-4">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Open Graph (Sosial Media)</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Open Graph (Sosial Media / Google önizləmə)</p>
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="OG Title" placeholder="Paylaşım başlığı" value={form.og_title} onChange={v => setForm({ ...form, og_title: v })} />
               <Field label="OG Description" placeholder="Paylaşım təsviri" value={form.og_description} onChange={v => setForm({ ...form, og_description: v })} />
-              <Field label="OG Image URL" placeholder="https://..." value={form.og_image} onChange={v => setForm({ ...form, og_image: v })} />
+              <ImageUploadField label="OG Şəkil (paylaşım önizləməsi)" value={form.og_image} onChange={v => setForm({ ...form, og_image: v })} />
             </div>
           </div>
 
@@ -320,14 +320,14 @@ export default function AdminMetaTagsPage() {
                         <Field label="Title" value={editForm.title} onChange={v => setEditForm({ ...editForm, title: v })} />
                         <Field label="Description" value={editForm.description} onChange={v => setEditForm({ ...editForm, description: v })} textarea />
                         <Field label="Keywords" value={editForm.keywords} onChange={v => setEditForm({ ...editForm, keywords: v })} />
-                        <Field label="Image URL" value={editForm.image} onChange={v => setEditForm({ ...editForm, image: v })} />
+                        <ImageUploadField label="Şəkil (SEO)" value={editForm.image} onChange={v => setEditForm({ ...editForm, image: v })} disabled={saving} />
                       </div>
                       <div className="border-t border-slate-100 pt-4">
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Open Graph</p>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Open Graph (Sosial Media / Google önizləmə)</p>
                         <div className="grid gap-4 md:grid-cols-2">
                           <Field label="OG Title" value={editForm.og_title} onChange={v => setEditForm({ ...editForm, og_title: v })} />
                           <Field label="OG Description" value={editForm.og_description} onChange={v => setEditForm({ ...editForm, og_description: v })} />
-                          <Field label="OG Image URL" value={editForm.og_image} onChange={v => setEditForm({ ...editForm, og_image: v })} />
+                          <ImageUploadField label="OG Şəkil" value={editForm.og_image} onChange={v => setEditForm({ ...editForm, og_image: v })} disabled={saving} />
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 pt-1">
@@ -362,6 +362,100 @@ export default function AdminMetaTagsPage() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const UPLOAD_BUCKET = "content";
+
+function ImageUploadField({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Zəhmət olmasa şəkil faylı seçin (JPG, PNG, WebP).");
+      return;
+    }
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", UPLOAD_BUCKET);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Yükləmə xətası");
+      onChange(data.publicUrl);
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Yükləmə xətası");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <label className="text-xs font-medium text-slate-500 mb-1 block">{label}</label>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleFile}
+        disabled={disabled}
+      />
+      {value ? (
+        <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
+          <img src={value} alt="" className="h-16 w-16 rounded-lg object-cover border border-slate-200" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-slate-500 truncate mb-1">Yüklənmiş şəkil</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                disabled={disabled || uploading}
+                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+              >
+                {uploading ? "Yüklənir..." : "Dəyiş"}
+              </button>
+              <button
+                type="button"
+                onClick={() => onChange("")}
+                disabled={disabled}
+                className="text-xs font-medium text-red-600 hover:text-red-700"
+              >
+                Sil
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={disabled || uploading}
+          className="flex items-center gap-2 w-full rounded-xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-600 hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors disabled:opacity-60"
+        >
+          <Upload size={18} className="text-slate-400" />
+          {uploading ? "Yüklənir..." : "Komputerdən şəkil yüklə"}
+        </button>
+      )}
+      {uploadError && <p className="text-xs text-red-600 mt-1">{uploadError}</p>}
     </div>
   );
 }
