@@ -38,7 +38,7 @@ const navItems = [
   { href: "/admin/categories", label: "Kateqoriyalar", icon: Layers },
   { href: "/admin/orders", label: "Sifarişlər", icon: ShoppingBag },
   { href: "/admin/contacts", label: "Əlaqə mesajları", icon: MessageSquare },
-  { href: "/admin/social", label: "Sosial media", icon: Share2 },
+  { href: "/admin/social-media", label: "Sosial media", icon: Share2 },
   { href: "/admin/content", label: "Kontent", icon: FileText },
   { href: "/admin/faqs", label: "FAQ Suallar", icon: HelpCircle },
   { href: "/admin/promo-banners", label: "Tanıtım Bannerləri", icon: Megaphone },

@@ -130,12 +130,18 @@ export async function middleware(request: NextRequest) {
 
     // Check role for admin routes
     if (isAdminRoute) {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .maybeSingle();
 
+      if (profileError) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/auth/login";
+        url.searchParams.set("next", path);
+        return NextResponse.redirect(url);
+      }
       if (!profile || profile.role !== "admin") {
         const url = request.nextUrl.clone();
         url.pathname = "/404";

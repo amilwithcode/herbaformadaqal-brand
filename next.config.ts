@@ -4,6 +4,17 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@vercel/speed-insights"],
+  // Statik JS/CSS uzun müddət keşlənir — başqa ölkələrdən təkrar ziyarətdə sürət
+  async headers() {
+    return [
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
@@ -36,6 +47,12 @@ const nextConfig: NextConfig = {
   },
   // Sıxılma aktiv et
   compress: true,
+  // Köhnə sosial URL-i yeni marşruta yönləndir
+  async redirects() {
+    return [
+      { source: "/admin/social", destination: "/admin/social-media", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
