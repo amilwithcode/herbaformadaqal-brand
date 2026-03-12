@@ -17,19 +17,30 @@ export async function GET(
     .eq("slug", slug)
     .maybeSingle();
 
-  // 2. If not found by slug, try by ID
+  // 2. If not found by slug, try by ID (numeric or slug ending with -id)
   if (!data) {
-    // Check if slug looks like a numeric ID or UUID
-    const isNumeric = /^\d+$/.test(slug);
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+    const decoded = decodeURIComponent(slug);
+    const isNumeric = /^\d+$/.test(decoded);
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decoded);
+    const match = decoded.match(/^(.+)-(\d+)$/);
 
     if (isNumeric || isUUID) {
       const { data: dataById } = await supabase
         .from("programs")
         .select("*")
-        .eq("id", slug)
+        .eq("id", decoded)
         .maybeSingle();
-      
+      if (dataById) {
+        data = dataById;
+        error = null;
+      }
+    } else if (match) {
+      const numericId = match[2];
+      const { data: dataById } = await supabase
+        .from("programs")
+        .select("*")
+        .eq("id", numericId)
+        .maybeSingle();
       if (dataById) {
         data = dataById;
         error = null;
