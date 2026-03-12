@@ -7,6 +7,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useI18n } from "@/contexts/I18nContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import { useGlobalToast } from "@/contexts/ToastContext";
 import type { Product, ProductReview } from "@/modules/products/types";
 import type { Product as CartProduct } from "@/types";
 import type { User } from "@supabase/supabase-js";
@@ -21,6 +22,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const { add: addToWishlist, has, remove: removeFromWishlist } = useWishlist();
   const { locale, t } = useI18n();
   const { hidePrices, hidePoints, isLoggedIn } = useSiteSettings();
+  const { showToast } = useGlobalToast();
   const [qty, setQty] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"features" | "reviews">("features");
@@ -161,13 +163,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         const savedReview = await res.json();
         setReviews([savedReview, ...reviews]);
         setNewReview({ rating: 5, comment: "" });
-        alert(t("product.review_success"));
+        showToast(t("product.review_success"), "success");
       } else {
         const err = await res.json();
-        alert(err.error || t("product.review_error"));
+        const errMsg = err?.error || t("product.review_error");
+        showToast(errMsg, "error");
       }
-  } catch {
-      alert(t("product.review_error"));
+    } catch {
+      showToast(t("product.review_error"), "error");
     } finally {
       setSubmittingReview(false);
     }

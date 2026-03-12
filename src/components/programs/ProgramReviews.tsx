@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Star, Send, Trash2, User, ImagePlus, X, ZoomIn } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { useGlobalToast } from "@/contexts/ToastContext";
 
 type Review = {
   id: number;
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export default function ProgramReviews({ programSlug, currentUserId }: Props) {
+  const { showToast } = useGlobalToast();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats>({ total: 0, avgRating: 0 });
   const [loading, setLoading] = useState(true);
@@ -151,7 +153,9 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rating) {
-      setError("Zəhmət olmasa reytinq seçin");
+      const msg = "Zəhmət olmasa reytinq seçin";
+      setError(msg);
+      showToast(msg, "error");
       return;
     }
     setError("");
@@ -177,12 +181,17 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
         throw new Error(data.error || "Xəta baş verdi");
       }
 
-      setSuccess(userReview ? "Rəyiniz yeniləndi!" : "Rəyiniz əlavə edildi!");
+      const successMsg = userReview ? "Rəyiniz yeniləndi!" : "Rəyiniz uğurla əlavə edildi!";
+      setSuccess(successMsg);
+      showToast(successMsg, "success");
       setImageFiles([]);
       setImagePreviews([]);
       await fetchReviews();
+      setTimeout(() => setSuccess(""), 4000);
     } catch (err: any) {
-      setError(err.message || "Xəta baş verdi");
+      const errMsg = err.message || "Xəta baş verdi";
+      setError(errMsg);
+      showToast(errMsg, "error");
     } finally {
       setSubmitting(false);
       setUploadingImages(false);
@@ -206,10 +215,19 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
         setImagePreviews([]);
         setExistingImages([]);
         setSuccess("Rəyiniz silindi");
+        showToast("Rəyiniz silindi", "success");
         await fetchReviews();
+        setTimeout(() => setSuccess(""), 4000);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        const errMsg = data?.error || "Silmə zamanı xəta baş verdi";
+        setError(errMsg);
+        showToast(errMsg, "error");
       }
     } catch {
-      setError("Silmə zamanı xəta baş verdi");
+      const errMsg = "Silmə zamanı xəta baş verdi";
+      setError(errMsg);
+      showToast(errMsg, "error");
     }
   };
 

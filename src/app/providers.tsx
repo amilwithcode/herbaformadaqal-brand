@@ -6,6 +6,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { I18nProvider } from "@/contexts/I18nContext";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { ToastManager } from "@/components/common/Toast";
 
 // Bu widgetlər ilk yüklənmə üçün tələb olunmur - lazy load edirik
@@ -46,16 +47,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <I18nProvider>
       <SiteSettingsProvider>
-        <WishlistProvider showToast={showToast}>
-          <CartProvider showToast={showToast}>
-            {children}
-            <ChatWidget />
-            <FloatingWidgets />
-            <MobileBottomNav />
-            <NeuromarketingPopup />
-            <ToastManager toasts={toasts} onRemove={removeToast} />
-          </CartProvider>
-        </WishlistProvider>
+        <ToastProvider showToast={showToast}>
+          <WishlistProvider showToast={showToast}>
+            <CartProvider showToast={showToast}>
+              {children}
+              <ChatWidget />
+              <FloatingWidgets />
+              <MobileBottomNav />
+              <NeuromarketingPopup />
+              <ToastManager toasts={toasts} onRemove={removeToast} />
+            </CartProvider>
+          </WishlistProvider>
+        </ToastProvider>
       </SiteSettingsProvider>
     </I18nProvider>
   );

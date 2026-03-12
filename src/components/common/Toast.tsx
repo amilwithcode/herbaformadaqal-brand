@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, X } from "lucide-react";
+import { CheckCircle2, XCircle, Info, X } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
 type ToastProps = {
@@ -41,6 +41,8 @@ export function Toast({ message, type = "success", duration = 3000, onClose }: T
       className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-xl border px-4 py-3 shadow-lg max-w-[90vw] sm:max-w-md animate-in slide-in-from-bottom-5 fade-in duration-300 ${bgColor}`}
     >
       {type === "success" && <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />}
+      {type === "error" && <XCircle size={20} className="text-red-600 shrink-0" />}
+      {type === "info" && <Info size={20} className="text-blue-600 shrink-0" />}
       <span className="text-sm font-medium flex-1">{displayMessage}</span>
       <button
         onClick={() => {
