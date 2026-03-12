@@ -53,7 +53,7 @@ const PLATFORM_LABELS = {
   facebook: "Facebook",
 };
 
-export default function AdminSocialPage() {
+export default function AdminSocialMediaPage() {
   const [tab, setTab] = useState<"profiles" | "create" | "pending" | "history">("profiles");
   const [profiles, setProfiles] = useState<SocialProfile[]>([]);
   const [videos, setVideos] = useState<VideoPost[]>([]);
@@ -344,7 +344,7 @@ export default function AdminSocialPage() {
                 disabled={savingProfile || !profileName.trim()}
                 className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
               >
-                {savingProfile ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                {savingProfile ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
                 Profil əlavə et
               </button>
             </div>
