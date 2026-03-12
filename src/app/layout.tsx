@@ -160,15 +160,12 @@ export default async function RootLayout({
   return (
     <html lang="az">
       <head>
-        {/* DNS Prefetch & Preconnect */}
-        <link
-          rel="preconnect"
-          href="https://lhsmlimcxnuzlnpdbnbq.supabase.co"
-        />
-        <link
-          rel="dns-prefetch"
-          href="https://lhsmlimcxnuzlnpdbnbq.supabase.co"
-        />
+        {/* DNS Preconnect — başqa ölkələrdən sürətli yüklənmə üçün */}
+        <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
+        <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
+        <link rel="preconnect" href="https://vitals.vercel-insights.com" />
+        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         {/* Popup CSS */}
         <link rel="stylesheet" href="/popup.css" />
 

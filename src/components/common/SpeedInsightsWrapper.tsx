@@ -8,21 +8,17 @@ const SpeedInsightsInner = dynamic(
   { ssr: false }
 );
 
+const isProd = process.env.NODE_ENV === "production";
+
 export default function SpeedInsightsWrapper() {
-  const [canLoad, setCanLoad] = useState(false);
+  // Production-da dərhal yüklə — bütün ölkələrdən (o cümlədən uzaq regionlardan) Web Vitals məlumatı toplansın
+  const [canLoad, setCanLoad] = useState(isProd);
 
   useEffect(() => {
-    // Yalnız Vercel deployment-da və ad blocker yoxdursa yüklə
-    if (!process.env.NEXT_PUBLIC_VERCEL_ENV) return;
-
-    // Script-in əlçatanlığını yoxla — bloklanıbsa sessiz keç
-    fetch("/_vercel/speed-insights/script.js", { method: "HEAD" })
-      .then((res) => {
-        if (res.ok) setCanLoad(true);
-      })
-      .catch(() => {
-        // Ad blocker tərəfindən bloklandı — xəta göstərmə
-      });
+    if (!isProd) return;
+    // Artıq true ola bilər; HEAD yalnız əlavə yoxlama üçün (bloklanıbsa script özü uğursuz olar)
+    const t = window.setTimeout(() => setCanLoad(true), 100);
+    return () => clearTimeout(t);
   }, []);
 
   if (!canLoad) return null;
