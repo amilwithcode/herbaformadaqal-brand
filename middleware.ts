@@ -105,12 +105,27 @@ export async function middleware(request: NextRequest) {
       error,
     } = await supabase.auth.getUser();
 
-    // If not authenticated
+    // If not authenticated (incl. invalid/expired refresh token)
     if (error || !user) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
       url.searchParams.set("next", path);
-      return NextResponse.redirect(url);
+      const redirectResponse = NextResponse.redirect(url);
+      // Invalid refresh token – sessiya cookie-lərini təmizlə ki, brauzer təkrar cəhd etməsin
+      try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+        const projectRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+        if (projectRef) {
+          const baseName = `sb-${projectRef}-auth-token`;
+          redirectResponse.cookies.set(baseName, "", { maxAge: 0, path: "/" });
+          for (let i = 0; i <= 9; i++) {
+            redirectResponse.cookies.set(`${baseName}.${i}`, "", { maxAge: 0, path: "/" });
+          }
+        }
+      } catch {
+        // ignore
+      }
+      return redirectResponse;
     }
 
     // Check role for admin routes

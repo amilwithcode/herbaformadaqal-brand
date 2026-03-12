@@ -24,6 +24,7 @@ import {
   Megaphone,
   Mail,
   Bell,
+  Share2,
 } from "lucide-react";
 
 type Props = {
@@ -37,6 +38,7 @@ const navItems = [
   { href: "/admin/categories", label: "Kateqoriyalar", icon: Layers },
   { href: "/admin/orders", label: "Sifarişlər", icon: ShoppingBag },
   { href: "/admin/contacts", label: "Əlaqə mesajları", icon: MessageSquare },
+  { href: "/admin/social", label: "Sosial media", icon: Share2 },
   { href: "/admin/content", label: "Kontent", icon: FileText },
   { href: "/admin/faqs", label: "FAQ Suallar", icon: HelpCircle },
   { href: "/admin/promo-banners", label: "Tanıtım Bannerləri", icon: Megaphone },
@@ -167,7 +169,7 @@ export function AdminShell({ children }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] relative">
+    <div className="min-h-screen bg-[#f5f5f7] relative" data-admin-panel>
       {/* Mobile Header */}
       <div className="flex items-center justify-between p-4 bg-white shadow-sm md:hidden">
         <div className="flex items-center gap-2">
