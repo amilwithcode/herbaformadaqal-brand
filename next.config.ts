@@ -47,6 +47,12 @@ const nextConfig: NextConfig = {
   },
   // Sıxılma aktiv et
   compress: true,
+  // Köhnə sosial URL-i yeni marşruta yönləndir
+  async redirects() {
+    return [
+      { source: "/admin/social", destination: "/admin/social-media", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
