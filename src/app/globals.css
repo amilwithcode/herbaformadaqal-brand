@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-noto-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Admin panel: input/textarea mətnini oxunaqlı (qara) et */
+[data-admin-panel] input,
+[data-admin-panel] textarea,
+[data-admin-panel] select {
+  color: #0f172a;
+}
+[data-admin-panel] input::placeholder,
+[data-admin-panel] textarea::placeholder {
+  color: #94a3b8;
+}
