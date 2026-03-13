@@ -1,185 +1,160 @@
-# 🌿 Herbalife ECommerce Platform
+# Herbalife brend e-ticarət platforması
 
-Tam funksional admin panelli, çoxdilli Herbalife brendli e-ticarət platforması.
+Next.js və Supabase əsasında qurulmuş, çoxdilli (AZ, EN, TR, RU) Herbalife brendli e-ticarət saytı. Admin panel, məhsul/kateqoriya idarəetməsi, səbət, sifariş, proqramlar, blog və SEO dəstəyi daxildir.
 
-## 📋 Layihə Haqqında
+---
 
-Bu layihə **Next.js 16** və **Supabase** əsasında qurulmuş müasir e-ticarət platformasıdır. İstifadəçilər məhsulları araşdıra, səbətə əlavə edə, sifariş verə bilər. Admin panel vasitəsilə sayt tam idarə olunur.
+## Xüsusiyyətlər
 
-### Əsas Xüsusiyyətlər
+### İstifadəçi tərəfi
+- **Çoxdillilik** — Azərbaycan, İngilis, Türk, Rus; URL əsaslı dil (`/az/`, `/en/`, `/tr/`, `/ru/`) və dil dəyişdirici
+- **Ana səhifə** — Hero slaydlar (dilə görə), tövsiyə olunan məhsullar, kateqoriyalar, proqramlar, blog, FAQ, çəki kalkulyatoru
+- **Məhsullar** — Kateqoriyalar, filtrləmə, axtarış, məhsul səhifəsi, məhsul tərcümələri
+- **Kateqoriyalar** — Dilə uyğun kateqoriya adları (translations cədvəli)
+- **Proqramlar** — Sağlamlıq proqramları, rəylər
+- **Səbət və istək siyahısı** — Context əsaslı səbət və wishlist
+- **Hesab** — Qeydiyyat, giriş, profil, sifariş tarixi (Supabase Auth)
+- **Blog** — Məqalələr, kateqoriya
+- **Kontakt, FAQ, çatdırılma, qaytarma, məxfilik, şərtlər** — Statik/idinə idarə olunan səhifələr
+- **SEO** — Meta taglər, Open Graph, alternates (hər dil üçün canonical)
 
-- 🛍️ **Məhsullar** — Kateqoriyalar, filtrləmə, axtarış, məhsul detalları
-- 🛒 **Səbət & Sifariş** — Səbət, istək siyahısı, ödəniş prosesi
-- 👤 **İstifadəçi Hesabı** — Qeydiyyat, giriş, profil, sifariş tarixi
-- 📝 **Blog** — Məqalələr və kontent idarəetməsi
-- 🏋️ **Proqramlar** — Sağlamlıq və qidalanma proqramları
-- ⚖️ **Çəki Kalkulyatoru** — AI dəstəkli çəki hədəfi hesablaması
-- 💬 **Canlı Söhbət** — AI chatbot dəstəyi
-- 📢 **Promo Bannerlər & Kampaniyalar** — Aksiya və endirimlər
-- ❓ **FAQ** — Tez-tez verilən suallar
-- 📧 **E-poçt Şablonları** — Özelləşdirilə bilən e-poçt bildirişləri
-- 🔒 **Təhlükəsizlik** — CSP, Rate Limiting, HSTS, XSS qoruması
+### Admin panel
+- Məhsul, kateqoriya, sifariş, istifadəçi idarəetməsi
+- Sayt parametrləri (loqo, ad, rəng, sosial linklər)
+- Hero slaydlar (locale dəstəyi)
+- Blog, FAQ, promo bannerlər, kampaniyalar
+- Meta tag idarəetməsi
+- E-poçt şablonları, əlaqə mesajları
+- Səhifə kontenti (page_sections)
 
-### Admin Panel
+### Təhlükəsizlik
+- Supabase RLS (sətir səviyyəli icazələr)
+- Middleware: auth, locale yönləndirmə, rate limit, CSP başlıqları
+- Admin və hesab marşrutlarının qorunması
 
-- Məhsul, kateqoriya idarəetməsi
-- Sifariş idarəetməsi
-- İstifadəçi idarəetməsi
-- Sayt parametrləri (logo, ad, rəng)
-- Hero slaydlar
-- Blog və FAQ idarəetməsi
-- Promo banner & kampaniyalar
-- Meta tag idarəetməsi (SEO)
-- E-poçt şablonları
-- Əlaqə mesajları
-- Səhifə kontenti idarəetməsi
+---
 
-## 🛠️ Texnologiyalar
+## Texnologiyalar
 
-### Frontend
+| Tərəf | Texnologiya |
+|--------|-------------|
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4 |
+| **Backend / DB** | Supabase (PostgreSQL, Auth, Storage) |
+| **E-poçt** | Resend |
+| **Captcha** | hCaptcha |
+| **Analitika** | Vercel Speed Insights |
 
-| Texnologiya | Versiya | Təsvir |
-|---|---|---|
-| Next.js | 16.1.6 | React full-stack framework |
-| React | 19.2.3 | UI kitabxanası |
-| TypeScript | 5.x | Tip təhlükəsizliyi |
-| Tailwind CSS | 4.x | Utility-first CSS framework |
-| Framer Motion | 12.x | Animasiya kitabxanası |
-| Lucide React | — | İkon kitabxanası |
+Əlavə olaraq layihədə **backend/** (Express.js) qovluğu var — ödəniş, e-poçt və s. üçün ayrıca xidmətlər istəsəniz istifadə oluna bilər.
 
-### Backend
+---
 
-| Texnologiya | Təsvir |
-|---|---|
-| Supabase | PostgreSQL verilənlər bazası, autentifikasiya, saxlama |
-| Express.js | Əlavə backend xidmətləri (ödəniş, e-poçt) |
-| Nodemailer | E-poçt göndərmə xidməti |
-
-### DevOps
-
-| Texnologiya | Təsvir |
-|---|---|
-| Docker | Konteynerləşdirmə |
-| Docker Compose | Multi-konteyner idarəetmə |
-| Node.js 20 Alpine | Runtime |
-
-## 🚀 Quraşdırma
-
-### Tələblər
-
-- Node.js 20+
-- npm və ya yarn
-- Supabase hesabı
-- Git
-
-### 1. Reponu klonlayın
-
-```bash
-git clone <repo-url>
-cd herbalife_brand
-```
-
-### 2. Asılılıqları yükləyin
-
-```bash
-# Frontend
-npm install
-
-# Backend
-cd backend
-npm install
-cd ..
-```
-
-### 3. Mühit dəyişənlərini konfiqurasiya edin
-
-Layihə kökündə `.env.local` faylı yaradın:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
-
-### 4. Verilənlər bazasını qurun
-
-Supabase SQL Editor-da `src/db/complete_database_setup.sql` faylını icra edin.
-
-### 5. Development serverini başladın
-
-```bash
-npm run dev
-```
-
-Brauzerinizi açın: [http://localhost:3000](http://localhost:3000)
-
-## 🐳 Docker ilə İşə Salma
-
-```bash
-# Build və işə salma
-docker-compose up --build
-
-# Arxa planda işə salma
-docker-compose up -d --build
-```
-
-## 📁 Layihə Strukturu
+## Layihə quruluşu
 
 ```
 herbalife_brand/
-├── public/                    # Statik fayllar (robots.txt, ikonlar)
 ├── src/
-│   ├── app/                   # Next.js App Router səhifələri
-│   │   ├── admin/             # Admin panel səhifələri
-│   │   ├── api/               # API route-ları
-│   │   ├── auth/              # Autentifikasiya səhifələri
-│   │   ├── products/          # Məhsul səhifələri
-│   │   ├── blog/              # Blog səhifələri
-│   │   ├── programs/          # Proqram səhifələri
-│   │   ├── cart/              # Səbət səhifəsi
-│   │   └── ...                # Digər səhifələr
-│   ├── components/            # React komponentləri
-│   │   ├── home/              # Ana səhifə komponentləri
-│   │   ├── layout/            # Layout komponentləri (Navbar, AdminShell)
-│   │   ├── products/          # Məhsul komponentləri
-│   │   ├── programs/          # Proqram komponentləri
-│   │   └── ui/                # Ümumi UI komponentləri
-│   ├── contexts/              # React Context-lər (Cart, Wishlist, I18n)
-│   ├── db/                    # SQL migrasiyaları və setup
-│   ├── lib/                   # Yardımçı kitabxanalar (Supabase client)
-│   ├── modules/               # Modul əsaslı sorğular
-│   └── types/                 # TypeScript tip tərifləri
-├── backend/                   # Express.js backend
-│   ├── controllers/           # İdarəedicilər
-│   ├── models/                # Verilənlər bazası modelləri
-│   ├── routes/                # API marşrutları
-│   ├── services/              # Biznes məntiq xidmətləri
-│   └── middleware/            # Middleware-lər
-├── supabase/                  # Supabase konfiqurasiyası
-├── middleware.ts              # Next.js middleware (auth, CSP, rate limit)
-├── Dockerfile                 # Docker build faylı
-├── docker-compose.yml         # Docker Compose konfiqurasiyası
-└── package.json               # Layihə asılılıqları
+│   ├── app/
+│   │   ├── [locale]/           # Dil əsaslı marşrutlar (az, en, tr, ru)
+│   │   │   ├── page.tsx        # Ana səhifə
+│   │   │   ├── products/       # Məhsullar siyahısı və [slug]
+│   │   │   ├── categories/     # Kateqoriya səhifəsi
+│   │   │   ├── programs/       # Proqramlar
+│   │   │   ├── blog/           # Blog
+│   │   │   ├── contact/        # Əlaqə
+│   │   │   └── ...             # terms, privacy, faq, shipping, returns
+│   │   ├── admin/              # Admin panel
+│   │   ├── api/                # Next.js API routes
+│   │   ├── auth/               # Login, register, forgot, update-password
+│   │   ├── cart/               # Səbət
+│   │   ├── wishlist/           # İstək siyahısı
+│   │   └── account/            # İstifadəçi hesabı
+│   ├── components/            # UI komponentləri (home, layout, products, programs, …)
+│   ├── contexts/               # Cart, Wishlist, I18n, Toast, SiteSettings
+│   ├── lib/                    # Supabase client, i18n, localized-path, mask-name
+│   ├── modules/                # products, programs, i18n (messages), settings
+│   └── db/                     # SQL migrasiyaları (complete_database_setup.sql və s.)
+├── backend/                    # Express.js (opsional)
+├── middleware.ts               # Locale, auth, rate limit
+├── package.json
+└── README.md
 ```
 
-## 📜 Skriptlər
+---
+
+## Quraşdırma
+
+### Tələblər
+- **Node.js** 20+
+- **npm** (və ya yarn)
+- **Supabase** hesabı
+
+### Addımlar
+
+1. **Reponu klonlayın**
+   ```bash
+   git clone <repo-url>
+   cd herbalife_brand
+   ```
+
+2. **Asılılıqları quraşdırın**
+   ```bash
+   npm install
+   ```
+
+3. **Mühit dəyişənlərini təyin edin**  
+   Layihə kökündə `.env.local` yaradın:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   ```
+   (E-poçt/Resend və s. üçün əlavə dəyişənlər tələb olunursa, uyğun sənədlərə baxın.)
+
+4. **Verilənlər bazasını yaradın**  
+   Supabase SQL Editor-da `src/db/complete_database_setup.sql` skriptini işə salın.  
+   Əlavə migrasiyalar (məs. hero_slides üçün locale, kateqoriya tərcümələri) üçün `src/db/migrations/` altındakı faylları da tətbiq edin.
+
+5. **Development serverini işə salın**
+   ```bash
+   npm run dev
+   ```
+   Brauzerdə: [http://localhost:3000](http://localhost:3000)  
+   Kök URL dilə uyğun yönləndirilir (məs. `/az/`, `/en/`).
+
+---
+
+## Əmrlər
 
 | Əmr | Təsvir |
-|---|---|
-| `npm run dev` | Development server (hot-reload) |
+|-----|--------|
+| `npm run dev` | Development server (hot reload) |
 | `npm run build` | Production build |
 | `npm run start` | Production server |
-| `npm run lint` | ESLint ilə kod yoxlaması |
+| `npm run lint`   | ESLint yoxlaması |
 
-## 🔐 Təhlükəsizlik
+---
 
-- **Content Security Policy (CSP)** — XSS hücumlarından qorunma
-- **Rate Limiting** — DDoS hücumlarının qarşısının alınması (100 sorğu/dəqiqə)
-- **HSTS** — HTTPS məcburiyyəti
-- **X-Frame-Options** — Clickjacking qoruması
-- **Supabase RLS** — Sətir səviyyəli təhlükəsizlik
-- **Middleware Auth** — Admin və hesab marşrutlarının qorunması
+## Çoxdillilik (i18n)
 
-## 📄 Lisenziya
+- **Dəstəklənən dillər:** `az`, `en`, `tr`, `ru` (konfiq: `src/modules/i18n/config.ts`).
+- **Mesajlar:** `src/modules/i18n/messages/` — `az.json`, `en.json`, `tr.json`, `ru.json`.
+- **URL:** Bütün əsas səhifələr `[locale]` altındadır; linklər üçün `LocalizedLink` və `getLocalizedPath` istifadə olunur.
+- **Kontekst:** `useI18n()` → `t(key)`, `locale`, `setLocale`; dil dəyişəndə URL və məzmun yenilənir.
 
-Bu layihə özəl istifadə üçün nəzərdə tutulub. Bütün hüquqlar qorunur.
+---
+
+## Docker (opsional)
+
+Layihədə `Dockerfile` və `docker-compose.yml` varsa:
+
+```bash
+docker-compose up --build
+# və ya arxa planda:
+docker-compose up -d --build
+```
+
+---
+
+## Lisenziya
+
+Layihə özəl istifadə üçün nəzərdə tutulub. Bütün hüquqlar qorunur.
