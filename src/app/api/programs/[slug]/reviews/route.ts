@@ -105,7 +105,7 @@ async function fetchReviews(supabase: SupabaseClient, programId: number) {
   const total = enrichedReviews.length;
   const avgRating =
     total > 0
-      ? enrichedReviews.reduce((sum: number, r: { rating?: number }) => sum + (r.rating || 0), 0) / total
+      ? enrichedReviews.reduce((sum, r) => sum + (Number((r as { rating?: number }).rating) || 0), 0) / total
       : 0;
 
   return NextResponse.json({
