@@ -6,6 +6,7 @@ import type { Category, Product } from "@/modules/products/types";
 import ProductsFilters from "./ProductsFilters";
 import ProductsList from "./ProductsList";
 import { useI18n } from "@/contexts/I18nContext";
+import { getLocalizedPath } from "@/lib/localized-path";
 
 type ProductsClientProps = {
   products: Product[];
@@ -42,8 +43,9 @@ export default function ProductsClient({
     } else {
       params.delete("search");
     }
-    router.push(`/products?${params.toString()}`, { scroll: false });
-  }, [router, searchParams]);
+    const path = getLocalizedPath(`/products?${params.toString()}`, locale);
+    router.push(path, { scroll: false });
+  }, [router, searchParams, locale]);
 
   // Global search event listener (SiteNavbar-dan gələn axtarış)
   useEffect(() => {
@@ -142,10 +144,7 @@ export default function ProductsClient({
       const name =
         titleTrans?.value ||
         anyTitle?.value ||
-        p.slug
-          .split("-")
-          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-          .join(" ");
+        t("home.product_fallback");
 
       return {
         id: p.id,
@@ -158,14 +157,14 @@ export default function ProductsClient({
         reviewCount: p.review_count || 0,
       };
     });
-  }, [products, categoryId, search, sort, locale]);
+  }, [products, categoryId, search, sort, locale, t]);
 
   return (
     <div className="space-y-6">
       {search && (
         <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2">
           <p className="text-sm text-emerald-900">
-            <span className="font-medium">{filteredProducts.length}</span> məhsul tapıldı: &quot;{search}&quot;
+            {t("home.featured.products_found", { count: filteredProducts.length, query: search })}
           </p>
         </div>
       )}
@@ -183,7 +182,7 @@ export default function ProductsClient({
       {filteredProducts.length === 0 && search ? (
         <div className="rounded-2xl border border-emerald-100 bg-white p-8 text-center">
           <p className="text-emerald-700">
-            &quot;{search}&quot; üçün məhsul tapılmadı.
+            {t("home.featured.no_products_for", { query: search })}
           </p>
         </div>
       ) : (
