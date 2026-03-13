@@ -191,7 +191,7 @@ export default async function RootLayout({
         <Script src="/popup.js" strategy="afterInteractive" />
         {/* Google tag (gtag.js) */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17997343256"
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18011122927"
           strategy="afterInteractive"
         />
         <Script id="google-gtag" strategy="afterInteractive">
@@ -199,7 +199,7 @@ export default async function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'AW-17997343256');
+            gtag('config', 'AW-18011122927');
           `}
         </Script>
         {/* Vercel Speed Insights */}
