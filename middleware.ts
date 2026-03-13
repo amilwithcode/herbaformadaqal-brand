@@ -181,6 +181,8 @@ export async function middleware(request: NextRequest) {
       https://www.googletagmanager.com
       https://www.google-analytics.com
       https://www.googleadservices.com
+      https://googleads.g.doubleclick.net
+      https://*.doubleclick.net
       https://hcaptcha.com
       https://*.hcaptcha.com;
     style-src 'self' 'unsafe-inline'
@@ -193,7 +195,9 @@ export async function middleware(request: NextRequest) {
       https://*.stripe.com
       https://www.googletagmanager.com
       https://www.google-analytics.com
-      https://www.gstatic.com;
+      https://www.gstatic.com
+      https://googleads.g.doubleclick.net
+      https://*.doubleclick.net;
     font-src 'self' https://fonts.gstatic.com;
     connect-src 'self'
       https://*.supabase.co
@@ -202,6 +206,9 @@ export async function middleware(request: NextRequest) {
       https://www.google-analytics.com
       https://www.googletagmanager.com
       https://stats.g.doubleclick.net
+      https://www.google.com
+      https://googleads.g.doubleclick.net
+      https://*.doubleclick.net
       https://hcaptcha.com
       https://*.hcaptcha.com;
     frame-src
