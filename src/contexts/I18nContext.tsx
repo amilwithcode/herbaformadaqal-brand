@@ -17,11 +17,16 @@ const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 function getInitialLocale(): Locale {
   if (typeof window !== "undefined") {
     try {
+      const pathname = window.location.pathname || "";
+      const pathMatch = pathname.match(/^\/(az|en|tr|ru)(?:\/|$)/i);
+      const fromPath = pathMatch?.[1]?.toLowerCase();
+      if (fromPath && locales.includes(fromPath as Locale)) {
+        return fromPath as Locale;
+      }
       const saved = window.localStorage.getItem("locale");
       if (saved && locales.includes(saved as Locale)) {
         return saved as Locale;
       }
-      // Google Ads: middleware ?hl=en|tr|ru ilə cookie qoyur; ilk açılışda dil uyğun olsun
       const match = document.cookie.match(/\blocale=([^;]+)/);
       const fromCookie = match?.[1]?.toLowerCase();
       if (fromCookie && locales.includes(fromCookie as Locale)) {
@@ -32,21 +37,22 @@ function getInitialLocale(): Locale {
   return defaultLocale;
 }
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+type I18nProviderProps = {
+  children: React.ReactNode;
+  initialLocale?: Locale;
+};
+
+export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
+  const [locale, setLocaleState] = useState<Locale>(
+    () => initialLocale ?? getInitialLocale()
+  );
   const [messages, setMessages] = useState<Messages>({});
   const [isReady, setIsReady] = useState(false);
 
-  // İlk render zamanı localStorage-dən locale-i oxu
-  useEffect(() => {
-    const savedLocale = getInitialLocale();
-    setLocaleState(savedLocale);
-  }, []);
-
   useEffect(() => {
     let active = true;
-    setIsReady(false);
-    getMessages(locale)
+    const currentLocale = locale;
+    getMessages(currentLocale)
       .then((loaded) => {
         if (!active) return;
         setMessages(loaded);
@@ -96,7 +102,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       <div className="fixed inset-0 z-50 flex min-h-screen w-full flex-col items-center justify-center gap-6 bg-white">
         <LeafLoader />
         <p className="animate-pulse text-sm font-medium text-emerald-600">
-          Yüklənir...
+          {messages["common.loading"] || "..."}
         </p>
       </div>
     );

@@ -8,6 +8,7 @@ import { I18nProvider } from "@/contexts/I18nContext";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { ToastManager } from "@/components/common/Toast";
+import type { Locale } from "@/modules/i18n/config";
 
 // Bu widgetlər ilk yüklənmə üçün tələb olunmur - lazy load edirik
 const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget"), {
@@ -32,7 +33,12 @@ type Toast = {
   type?: "success" | "error" | "info";
 };
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+type ProvidersProps = {
+  children: React.ReactNode;
+  initialLocale?: Locale;
+};
+
+export default function Providers({ children, initialLocale }: ProvidersProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "success") => {
@@ -45,7 +51,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <I18nProvider>
+    <I18nProvider initialLocale={initialLocale}>
       <SiteSettingsProvider>
         <ToastProvider showToast={showToast}>
           <WishlistProvider showToast={showToast}>

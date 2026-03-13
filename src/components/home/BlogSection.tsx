@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
@@ -47,13 +47,13 @@ function getCategoryColor(category: string) {
 }
 
 export default function BlogSection() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/content/posts")
+    fetch(`/api/content/posts?locale=${locale}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (!active) return;
@@ -70,7 +70,7 @@ export default function BlogSection() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [locale]);
 
   if (loading) {
     return (
@@ -142,13 +142,13 @@ export default function BlogSection() {
             </p>
 
             {/* Read More */}
-            <Link
+            <LocalizedLink
               href={`/blog/${post.slug || post.id}`}
               className="inline-flex items-center gap-1.5 rounded-full border border-emerald-600 px-4 py-1.5 text-xs font-semibold text-emerald-700 transition-all hover:bg-emerald-600 hover:text-white self-start"
             >
               {t("blog.read_more")}
               <ArrowRight size={14} />
-            </Link>
+            </LocalizedLink>
           </article>
         ))}
       </div>
@@ -156,13 +156,13 @@ export default function BlogSection() {
       {/* Show More Button */}
       {posts.length > 8 && (
         <div className="flex justify-start">
-          <Link
+          <LocalizedLink
             href="/blog"
             className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-emerald-700"
           >
             <BookOpen size={16} />
             {t("blog.view_all")}
-          </Link>
+          </LocalizedLink>
         </div>
       )}
     </section>

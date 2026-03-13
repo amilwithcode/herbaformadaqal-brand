@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { maskUserName } from "@/lib/mask-name";
 
 export async function POST(
   req: NextRequest,
@@ -55,5 +56,17 @@ export async function POST(
     );
   }
 
-  return NextResponse.json(data, { status: 201 });
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const fullName = (profile as { full_name?: string | null } | null)?.full_name;
+  const userDisplayNameMasked = maskUserName(fullName ?? "İstifadəçi");
+
+  return NextResponse.json(
+    { ...data, user_display_name_masked: userDisplayNameMasked },
+    { status: 201 }
+  );
 }

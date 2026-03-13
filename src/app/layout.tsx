@@ -93,10 +93,11 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: siteUrl,
       languages: {
-        "x-default": siteUrl,
-        en: `${siteUrl}?hl=en`,
-        tr: `${siteUrl}?hl=tr`,
-        ru: `${siteUrl}?hl=ru`,
+        "x-default": `${siteUrl}/az`,
+        az: `${siteUrl}/az`,
+        en: `${siteUrl}/en`,
+        tr: `${siteUrl}/tr`,
+        ru: `${siteUrl}/ru`,
       },
     },
     openGraph: {
@@ -190,11 +191,12 @@ export default async function RootLayout({
   return (
     <html lang={requestLocale}>
       <head>
-        {/* Google Ads: çoxdilli açılış səhifəsi (dəstəklənən dillər) */}
+        {/* Google Ads: dil URL-də göstərilir (policy uyğunluğu) */}
         <link rel="alternate" hrefLang="x-default" href={siteUrl} />
-        <link rel="alternate" hrefLang="en" href={`${siteUrl}?hl=en`} />
-        <link rel="alternate" hrefLang="tr" href={`${siteUrl}?hl=tr`} />
-        <link rel="alternate" hrefLang="ru" href={`${siteUrl}?hl=ru`} />
+        <link rel="alternate" hrefLang="az" href={`${siteUrl}/az`} />
+        <link rel="alternate" hrefLang="en" href={`${siteUrl}/en`} />
+        <link rel="alternate" hrefLang="tr" href={`${siteUrl}/tr`} />
+        <link rel="alternate" hrefLang="ru" href={`${siteUrl}/ru`} />
         {/* DNS Preconnect — başqa ölkələrdən sürətli yüklənmə üçün */}
         <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
         <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
@@ -221,7 +223,7 @@ export default async function RootLayout({
       <body
         className={`${notoSans.variable} antialiased bg-slate-950 text-slate-100 font-sans`}
       >
-        <Providers>{children}</Providers>
+        <Providers initialLocale={requestLocale}>{children}</Providers>
         {/* Popup Script */}
         <Script src="/popup.js" strategy="afterInteractive" />
         {/* Google tag (gtag.js) */}

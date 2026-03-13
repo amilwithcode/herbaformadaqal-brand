@@ -51,7 +51,7 @@ export default function ProductsFilters(props: ProductsFiltersProps) {
         <button
           onClick={() => onViewChange(viewMode === "grid" ? "list" : "grid")}
           className="hidden h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-100 hover:text-emerald-700 active:scale-95 md:flex"
-          title={viewMode === "grid" ? "List View" : "Grid View"}
+          title={viewMode === "grid" ? t("products.filters.view_list") : t("products.filters.view_grid")}
         >
           {viewMode === "grid" ? <List size={20} /> : <LayoutGrid size={20} />}
         </button>

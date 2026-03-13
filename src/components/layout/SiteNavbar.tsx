@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -67,7 +67,9 @@ export default function SiteNavbar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const tagline = t("nav.tagline");
+  const safeTagline = tagline === "nav.tagline" ? { az: "Herbalife ilə həyatını dəyiş", en: "Change your life with Herbalife", tr: "Herbalife ile hayatını değiştir", ru: "Измените жизнь с Herbalife" }[locale] ?? "Herbalife ilə həyatını dəyiş" : tagline;
   const { items: cartItems } = useCart();
   const { items: wishlistItems } = useWishlist();
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
@@ -313,13 +315,13 @@ export default function SiteNavbar({
             { href: "/programs", label: t("nav.programs") },
             { href: "/contact", label: t("nav.contact") },
           ].map((link) => (
-            <Link
+            <LocalizedLink
               key={link.href}
               href={link.href}
               className="text-white hover:text-emerald-200 transition-colors"
             >
               {link.label}
-            </Link>
+            </LocalizedLink>
           ))}
         </nav>
         
@@ -346,7 +348,7 @@ export default function SiteNavbar({
       </div>
       <div className="flex items-center justify-between gap-2 sm:gap-4 md:gap-6 border-b border-emerald-100 bg-white px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
         {/* Left: Logo and Tagline */}
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+        <LocalizedLink href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-80 transition-opacity">
           {siteSettings.brandLogo &&
           (siteSettings.brandLogo.startsWith("http") ||
             siteSettings.brandLogo.startsWith("/") ||
@@ -368,10 +370,10 @@ export default function SiteNavbar({
               {siteSettings.brandName}
             </div>
             <div className="hidden sm:block text-[10px] text-slate-600">
-              Herbalife ilə həyatını dəyiş
+              {safeTagline}
             </div>
           </div>
-        </Link>
+        </LocalizedLink>
 
         {/* Center: Search Bar */}
         <div className="flex-1 max-w-md mx-1 sm:mx-2 md:mx-4">
@@ -405,7 +407,7 @@ export default function SiteNavbar({
 
         {/* Right: Cart, Wishlist, User */}
         <div className="flex items-center gap-1 sm:gap-2 text-xs text-emerald-900">
-          <Link
+          <LocalizedLink
             href="/wishlist"
             className="relative flex h-9 w-9 items-center justify-center border border-emerald-200 bg-white text-emerald-900 transition-colors hover:bg-emerald-600 hover:text-white"
           >
@@ -415,8 +417,8 @@ export default function SiteNavbar({
                 {wishlistCount}
               </span>
             )}
-          </Link>
-          <Link
+          </LocalizedLink>
+          <LocalizedLink
             href="/cart"
             className="relative flex h-10 w-10 items-center justify-center border border-emerald-200 bg-white text-emerald-900 transition-colors hover:bg-emerald-600 hover:text-white"
           >
@@ -426,7 +428,7 @@ export default function SiteNavbar({
                 {cartCount}
               </span>
             )}
-          </Link>
+          </LocalizedLink>
           {navUser ? (
             <div className="relative hidden md:flex">
               <button
@@ -442,23 +444,23 @@ export default function SiteNavbar({
               {userMenuOpen && (
                 <div className="absolute right-0 top-11 z-20 w-40 rounded-2xl border border-emerald-100 bg-white py-1 text-[11px] shadow-lg">
                   {navUser.role === 'admin' && (
-                    <Link
+                    <LocalizedLink
                       href="/admin"
                       className="flex w-full items-center justify-between px-3 py-2 text-emerald-900 hover:bg-emerald-50 border-b border-emerald-50"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       <span className="font-semibold text-emerald-700">{t("nav.admin_panel")}</span>
                       <LayoutDashboard size={12} />
-                    </Link>
+                    </LocalizedLink>
                   )}
-                  <Link
+                  <LocalizedLink
                     href={navUser.role === 'admin' ? '/admin' : '/account'}
                     className="flex w-full items-center justify-between px-3 py-2 text-emerald-900 hover:bg-emerald-50"
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <span>{navUser.role === 'admin' ? t("nav.admin_panel") : t("nav.go_to_profile")}</span>
                     <ExternalLink size={12} />
-                  </Link>
+                  </LocalizedLink>
                   <button
                     type="button"
                     className="flex w-full items-center justify-between px-3 py-2 text-red-600 hover:bg-red-50"
@@ -480,13 +482,13 @@ export default function SiteNavbar({
               )}
             </div>
           ) : (
-            <Link
+            <LocalizedLink
               href="/auth/login"
               className="hidden h-9 items-center justify-center rounded-full border border-emerald-200 bg-white px-3 text-[11px] font-medium text-emerald-900 hover:bg-emerald-50 md:flex"
             >
               <span><User size={16} /></span>
               <span className="ml-1">{t("nav.login")}</span>
-            </Link>
+            </LocalizedLink>
           )}
           <button
             className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50 md:hidden"
@@ -506,7 +508,7 @@ export default function SiteNavbar({
             { href: "/about", label: t("nav.about") },
             { href: "/contact", label: t("nav.contact") },
           ].map((link) => (
-            <Link
+            <LocalizedLink
               key={link.href}
               href={link.href}
               className={`group relative inline-block transition-colors hover:text-emerald-700 ${
@@ -519,7 +521,7 @@ export default function SiteNavbar({
                   pathname === link.href ? "w-full" : "w-0"
                 }`}
               />
-            </Link>
+            </LocalizedLink>
           ))}
         </nav>
       </div>
@@ -579,7 +581,7 @@ export default function SiteNavbar({
                   { href: "/about", label: t("nav.about"), icon: Info },
                   { href: "/contact", label: t("nav.contact"), icon: Phone },
                 ].map((link) => (
-                  <Link
+                  <LocalizedLink
                     key={link.href}
                     href={link.href}
                     onClick={() => setMenuOpen(false)}
@@ -592,7 +594,7 @@ export default function SiteNavbar({
                       {link.label}
                     </div>
                     <ChevronRight size={16} className="text-emerald-300 group-hover:text-emerald-500 transition-colors" />
-                  </Link>
+                  </LocalizedLink>
                 ))}
               </nav>
             </div>
@@ -601,7 +603,7 @@ export default function SiteNavbar({
             <div className="border-t border-emerald-100 bg-emerald-50/30 p-6 space-y-3">
               {navUser ? (
                 <>
-                  <Link
+                  <LocalizedLink
                     href={navUser.role === 'admin' ? '/admin' : '/account'}
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm border border-emerald-100"
@@ -620,9 +622,9 @@ export default function SiteNavbar({
                       </div>
                     </div>
                     <ChevronRight size={16} className="text-emerald-300" />
-                  </Link>
+                  </LocalizedLink>
                   {navUser.role === 'admin' && (
-                    <Link
+                    <LocalizedLink
                       href="/admin"
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center justify-between rounded-xl bg-emerald-100 p-3 shadow-sm border border-emerald-200"
@@ -641,27 +643,27 @@ export default function SiteNavbar({
                         </div>
                       </div>
                       <ChevronRight size={16} className="text-emerald-400" />
-                    </Link>
+                    </LocalizedLink>
                   )}
                 </>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
-                  <Link
+                  <LocalizedLink
                     href="/auth/login"
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white py-3 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
                   >
                     <LogIn size={16} />
                     {t("nav.login")}
-                  </Link>
-                  <Link
+                  </LocalizedLink>
+                  <LocalizedLink
                     href="/auth/register"
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3 text-sm font-medium text-white transition-colors hover:bg-emerald-800"
                   >
                     <UserPlus size={16} />
                     {t("nav.register")}
-                  </Link>
+                  </LocalizedLink>
                 </div>
               )}
             </div>

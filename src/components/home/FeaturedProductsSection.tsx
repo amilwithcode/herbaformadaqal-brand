@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useI18n } from "@/contexts/I18nContext";
 import ProductCard from "@/components/products/ProductCard";
 
@@ -69,21 +69,21 @@ export default function FeaturedProductsSection({
           </h2>
           {searchQuery && (
             <p className="text-xs sm:text-sm text-emerald-700 mt-1">
-              {filteredProducts.length} məhsul tapıldı: &quot;{searchQuery}&quot;
+              {t("home.featured.products_found", { count: filteredProducts.length, query: searchQuery })}
             </p>
           )}
         </div>
-        <Link
+        <LocalizedLink
           href="/products"
           className="text-xs sm:text-sm md:text-base font-medium text-emerald-700 hover:text-emerald-900 whitespace-nowrap"
         >
           {t("home.featured.view_all")} →
-        </Link>
-      </div>
+</LocalizedLink>
+        </div>
       {filteredProducts.length === 0 && searchQuery ? (
         <div className="rounded-2xl border border-emerald-100 bg-white p-8 text-center">
           <p className="text-emerald-700">
-            &quot;{searchQuery}&quot; üçün məhsul tapılmadı.
+            {t("home.featured.no_products_for", { query: searchQuery })}
           </p>
         </div>
       ) : (

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Star, Send, Trash2, User, ImagePlus, X, ZoomIn } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useGlobalToast } from "@/contexts/ToastContext";
+import { useI18n } from "@/contexts/I18nContext";
 
 type Review = {
   id: number;
@@ -29,6 +30,7 @@ type Props = {
 };
 
 export default function ProgramReviews({ programSlug, currentUserId }: Props) {
+  const { t } = useI18n();
   const { showToast } = useGlobalToast();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats>({ total: 0, avgRating: 0 });
@@ -181,7 +183,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
         throw new Error(data.error || "Xəta baş verdi");
       }
 
-      const successMsg = userReview ? "Rəyiniz yeniləndi!" : "Rəyiniz uğurla əlavə edildi!";
+      const successMsg = userReview ? t("programs.reviews.toast_updated") : t("programs.reviews.toast_created");
       setSuccess(successMsg);
       showToast(successMsg, "success");
       setImageFiles([]);
@@ -199,7 +201,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
   };
 
   const handleDelete = async (reviewId: number) => {
-    if (!confirm("Rəyinizi silmək istədiyinizə əminsiniz?")) return;
+    if (!confirm(t("programs.reviews.confirm_delete"))) return;
 
     try {
       const res = await fetch(`/api/programs/${programSlug}/reviews`, {
@@ -214,18 +216,18 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
         setImageFiles([]);
         setImagePreviews([]);
         setExistingImages([]);
-        setSuccess("Rəyiniz silindi");
-        showToast("Rəyiniz silindi", "success");
+        setSuccess(t("programs.reviews.toast_deleted"));
+        showToast(t("programs.reviews.toast_deleted"), "success");
         await fetchReviews();
         setTimeout(() => setSuccess(""), 4000);
       } else {
         const data = await res.json().catch(() => ({}));
-        const errMsg = data?.error || "Silmə zamanı xəta baş verdi";
+        const errMsg = data?.error || t("programs.reviews.error_delete");
         setError(errMsg);
         showToast(errMsg, "error");
       }
     } catch {
-      const errMsg = "Silmə zamanı xəta baş verdi";
+      const errMsg = t("programs.reviews.error_delete");
       setError(errMsg);
       showToast(errMsg, "error");
     }
@@ -283,10 +285,10 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-semibold text-emerald-950">
-              Rəylər
+              {t("programs.reviews.title")}
             </h2>
             <p className="text-xs text-emerald-700 mt-1">
-              Bu proqramdan istifadə edən istifadəçilərin rəyləri
+              {t("programs.reviews.subtitle")}
             </p>
           </div>
           {stats.total > 0 && (
@@ -302,7 +304,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
               <div className="space-y-1">
                 {renderStars(Math.round(stats.avgRating), false, "sm")}
                 <p className="text-[11px] text-emerald-600">
-                  {stats.total} rəy
+                  {t("programs.reviews.review_count", { count: stats.total })}
                 </p>
               </div>
             </div>
@@ -317,7 +319,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
           >
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-emerald-900">
-                {userReview ? "Rəyinizi yeniləyin" : "Rəy yazın"}
+                {userReview ? t("programs.reviews.update_review") : t("programs.reviews.write_review")}
               </h3>
               {userReview && (
                 <button
@@ -326,27 +328,27 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                   className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-colors"
                 >
                   <Trash2 size={13} />
-                  Sil
+                  {t("programs.reviews.delete")}
                 </button>
               )}
             </div>
 
             <div className="space-y-1">
               <label className="text-xs font-medium text-emerald-800">
-                Reytinq
+                {t("programs.reviews.rating")}
               </label>
               {renderStars(rating, true, "lg")}
             </div>
 
             <div className="space-y-1">
               <label className="text-xs font-medium text-emerald-800">
-                Şərhiniz (istəyə bağlı)
+                {t("programs.reviews.comment_optional")}
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={3}
-                placeholder="Bu proqram haqqında fikirlərinizi yazın..."
+                placeholder={t("programs.reviews.placeholder")}
                 className="w-full rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none resize-none transition-all"
               />
             </div>
@@ -354,7 +356,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
             {/* Image Upload Section */}
             <div className="space-y-2">
               <label className="text-xs font-medium text-emerald-800">
-                Şəkillər (maks. 5)
+                {t("programs.reviews.images_label")}
               </label>
 
               {/* Existing + New Images Preview Grid */}
@@ -367,7 +369,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                   >
                     <img
                       src={url}
-                      alt={`Rəy şəkli ${idx + 1}`}
+                      alt={`${t("programs.reviews.review_image_alt")} ${idx + 1}`}
                       className="h-full w-full object-cover"
                     />
                     <button
@@ -388,7 +390,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                   >
                     <img
                       src={url}
-                      alt={`Yeni şəkil ${idx + 1}`}
+                      alt={t("programs.reviews.new_image_alt", { index: idx + 1 })}
                       className="h-full w-full object-cover"
                     />
                     <div className="absolute inset-0 bg-emerald-500/10" />
@@ -400,7 +402,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                       <X size={12} />
                     </button>
                     <span className="absolute bottom-1 left-1 text-[9px] font-medium text-white bg-emerald-600 px-1.5 py-0.5 rounded">
-                      Yeni
+                      {t("programs.reviews.new_badge")}
                     </span>
                   </div>
                 ))}
@@ -413,7 +415,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                     className="flex h-20 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed border-emerald-300 bg-white text-emerald-500 hover:border-emerald-400 hover:bg-emerald-50 transition-all"
                   >
                     <ImagePlus size={20} />
-                    <span className="text-[9px] font-medium mt-1">Əlavə et</span>
+                    <span className="text-[9px] font-medium mt-1">{t("programs.reviews.add_image")}</span>
                   </button>
                 )}
               </div>
@@ -427,7 +429,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                 onChange={handleFileSelect}
               />
               <p className="text-[10px] text-emerald-600">
-                PNG, JPG, WEBP (maks. 5 şəkil, hər biri 5MB-a qədər)
+                {t("programs.reviews.images_hint")}
               </p>
             </div>
 
@@ -446,16 +448,16 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
               {uploadingImages ? (
                 <>
                   <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Şəkillər yüklənir...
+                  {t("programs.reviews.uploading_images")}
                 </>
               ) : (
                 <>
                   <Send size={14} />
                   {submitting
-                    ? "Göndərilir..."
+                    ? t("programs.reviews.submitting")
                     : userReview
-                    ? "Rəyi yenilə"
-                    : "Rəy göndər"}
+                    ? t("programs.reviews.update")
+                    : t("programs.reviews.submit")}
                 </>
               )}
             </button>
@@ -463,12 +465,12 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
         ) : (
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 text-center">
             <p className="text-sm text-emerald-700">
-              Rəy yazmaq üçün hesabınıza{" "}
+              {t("programs.reviews.login_to_review")}{" "}
               <a
                 href="/auth/login"
                 className="font-semibold text-emerald-600 hover:underline"
               >
-                daxil olun
+                {t("programs.reviews.login_link")}
               </a>
               .
             </p>
@@ -477,11 +479,11 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
 
         {/* Reviews List */}
         {loading ? (
-          <p className="text-xs text-emerald-600">Rəylər yüklənir...</p>
+          <p className="text-xs text-emerald-600">{t("programs.reviews.loading")}</p>
         ) : reviews.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-emerald-200 py-10 text-center">
             <p className="text-sm text-emerald-600">
-              Hələ rəy yoxdur. İlk rəyi siz yazın!
+              {t("programs.reviews.no_reviews")}
             </p>
           </div>
         ) : (
@@ -520,7 +522,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                         type="button"
                         onClick={() => handleDelete(review.id)}
                         className="ml-2 text-red-400 hover:text-red-600 transition-colors"
-                        title="Rəyi sil"
+                        title={t("programs.reviews.delete_review_title")}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -546,7 +548,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
                       >
                         <img
                           src={url}
-                          alt={`${review.user_name} rəy şəkli ${idx + 1}`}
+                          alt={t("programs.reviews.review_image_by", { name: review.user_name, index: idx + 1 })}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -580,7 +582,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
           </button>
           <img
             src={lightboxUrl}
-            alt="Böyüdülmüş rəy şəkli"
+            alt={t("programs.reviews.zoom_image_alt")}
             className="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />

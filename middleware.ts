@@ -39,6 +39,48 @@ function checkRateLimit(ip: string) {
   return false;
 }
 
+const LOCALES = ["az", "en", "tr", "ru"] as const;
+const DEFAULT_LOCALE = "az";
+/** Dəstəklənməyən brauzer dilləri üçün açılış dili (istifadəçi tələbi) */
+const FALLBACK_LOCALE_UNSUPPORTED = "en";
+
+/**
+ * Accept-Language header-indən ilk dəstəklənən dili tapır.
+ * Məs: "en-US,en;q=0.9,az;q=0.8" -> "en", "az-AZ,tr;q=0.9" -> "az"
+ */
+function getLocaleFromAcceptLanguage(acceptLanguage: string | null): string {
+  if (!acceptLanguage || !acceptLanguage.trim()) return FALLBACK_LOCALE_UNSUPPORTED;
+  const parts = acceptLanguage.split(",").map((p) => p.trim().split(";")[0]?.toLowerCase() || "");
+  for (const part of parts) {
+    const lang = part.split("-")[0] || part;
+    if (lang === "en") return "en";
+    if (lang === "az") return "az";
+    if (lang === "tr") return "tr";
+    if (lang === "ru") return "ru";
+  }
+  return FALLBACK_LOCALE_UNSUPPORTED;
+}
+
+/**
+ * @param forRoot true = domain/localhost açılışında birbaşa brauzer dilinə yönləndir (cookie gözardı)
+ */
+function getPreferredLocale(request: NextRequest, forRoot = false): string {
+  const hl = request.nextUrl.searchParams.get("hl");
+  if (hl && LOCALES.includes(hl as (typeof LOCALES)[number])) return hl;
+
+  if (forRoot) {
+    const acceptLanguage = request.headers.get("accept-language");
+    return getLocaleFromAcceptLanguage(acceptLanguage);
+  }
+
+  const cookieLocale = request.cookies.get("locale")?.value?.toLowerCase();
+  if (cookieLocale && LOCALES.includes(cookieLocale as (typeof LOCALES)[number])) {
+    return cookieLocale;
+  }
+  const acceptLanguage = request.headers.get("accept-language");
+  return getLocaleFromAcceptLanguage(acceptLanguage);
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
@@ -47,6 +89,37 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = path.replace(/^\/blogs/, "/blog");
     return NextResponse.redirect(url, { status: 301 });
+  }
+
+  // 0b. Dil prefiksi: bütün ictimai URL-lər /az/, /en/, /tr/, /ru/ altında olsun (Google Ads dil təyini üçün)
+  const isApi = path.startsWith("/api");
+  const isAdmin = path.startsWith("/admin");
+  const isAuth = path.startsWith("/auth");
+  const isAccount = path.startsWith("/account");
+  const isNext = path.startsWith("/_next") || path.startsWith("/favicon");
+  const isStatic = path.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/);
+  const firstSegment = path.slice(1).split("/")[0] || "";
+  const hasLocalePrefix = LOCALES.includes(firstSegment as (typeof LOCALES)[number]);
+
+  if (!isApi && !isAdmin && !isAuth && !isAccount && !isNext && !isStatic) {
+    if (path === "/" || path === "") {
+      const locale = getPreferredLocale(request, true);
+      const url = request.nextUrl.clone();
+      url.pathname = `/${locale}`;
+      const res = NextResponse.redirect(url, 307);
+      res.cookies.set("locale", locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+      res.headers.set("x-locale", locale);
+      return res;
+    }
+    if (!hasLocalePrefix) {
+      const locale = getPreferredLocale(request);
+      const url = request.nextUrl.clone();
+      url.pathname = `/${locale}${path}`;
+      const res = NextResponse.redirect(url, 307);
+      res.cookies.set("locale", locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+      res.headers.set("x-locale", locale);
+      return res;
+    }
   }
 
   // 1. DDoS / Rate Limiting Protection
@@ -63,17 +136,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Google Ads: ?hl=en|tr|ru ilə gələn açılış səhifəsi dəstəklənən dil kimi qeyd olunsun (policy uyğunluğu)
-  const GOOGLE_ADS_LOCALES = ["en", "tr", "ru"] as const;
+  // URL-də dil prefiksi varsa (/en/, /az/ ...) x-locale və cookie tətbiq et
+  const localeFromPath = hasLocalePrefix ? firstSegment : null;
   const hl = request.nextUrl.searchParams.get("hl");
-  const localeForAds =
-    hl && GOOGLE_ADS_LOCALES.includes(hl as (typeof GOOGLE_ADS_LOCALES)[number])
-      ? hl
-      : null;
+  const localeFromQuery =
+    hl && LOCALES.includes(hl as (typeof LOCALES)[number]) ? hl : null;
+  const effectiveLocale = localeFromPath || localeFromQuery;
 
   const requestHeaders = new Headers(request.headers);
-  if (localeForAds) {
-    requestHeaders.set("x-locale", localeForAds);
+  if (effectiveLocale) {
+    requestHeaders.set("x-locale", effectiveLocale);
   }
 
   let response = NextResponse.next({
@@ -82,10 +154,10 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  if (localeForAds) {
-    response.cookies.set("locale", localeForAds, {
+  if (effectiveLocale) {
+    response.cookies.set("locale", effectiveLocale, {
       path: "/",
-      maxAge: 60 * 60 * 24 * 365, // 1 il
+      maxAge: 60 * 60 * 24 * 365,
       sameSite: "lax",
     });
   }
@@ -237,6 +309,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     /*
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
@@ -244,6 +317,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (svg, etc)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
-}
+};

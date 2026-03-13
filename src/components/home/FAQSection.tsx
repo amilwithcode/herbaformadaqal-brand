@@ -11,14 +11,14 @@ type FAQItem = {
 };
 
 export default function FAQSection() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/content/faqs")
+    fetch(`/api/content/faqs?locale=${locale}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (!active) return;
@@ -35,7 +35,7 @@ export default function FAQSection() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [locale]);
 
   const toggle = useCallback((id: number) => {
     setOpenId((prev) => (prev === id ? null : id));

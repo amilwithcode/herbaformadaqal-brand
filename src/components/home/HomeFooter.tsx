@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useI18n } from "@/contexts/I18nContext";
 import { Phone, Mail, MapPin } from "lucide-react";
 
@@ -92,7 +92,7 @@ const Footer = () => {
                 <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-slate-100 bg-white">
                   <img
                     src={brandLogo}
-                    alt={brandName || "Logo"}
+                    alt={brandName || t("common.logo_alt")}
                     className="h-full w-full object-contain"
                   />
                 </div>
@@ -130,22 +130,22 @@ const Footer = () => {
               {t("footer.quick_links.title")}
             </div>
             <div className="space-y-1 text-emerald-700">
-              <Link href="/products" className="group relative block w-fit hover:text-emerald-900">
+              <LocalizedLink href="/products" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.quick_links.products")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
-              <Link href="/programs" className="group relative block w-fit hover:text-emerald-900">
+              </LocalizedLink>
+              <LocalizedLink href="/programs" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.quick_links.programs")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
-              <Link href="/about" className="group relative block w-fit hover:text-emerald-900">
+              </LocalizedLink>
+              <LocalizedLink href="/about" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.quick_links.about")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
-              <Link href="/contact" className="group relative block w-fit hover:text-emerald-900">
+              </LocalizedLink>
+              <LocalizedLink href="/contact" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.quick_links.contact")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
+              </LocalizedLink>
             </div>
           </div>
           <div className="space-y-3 text-xs">
@@ -153,26 +153,26 @@ const Footer = () => {
               {t("footer.support.title")}
             </div>
             <div className="space-y-1 text-emerald-700">
-              <Link href="/faq" className="group relative block w-fit hover:text-emerald-900">
+              <LocalizedLink href="/faq" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.support.faq")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
-              <Link href="/shipping" className="group relative block w-fit hover:text-emerald-900">
+              </LocalizedLink>
+              <LocalizedLink href="/shipping" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.support.shipping")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
-              <Link href="/returns" className="group relative block w-fit hover:text-emerald-900">
+              </LocalizedLink>
+              <LocalizedLink href="/returns" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.support.returns")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
-              <Link href="/privacy" className="group relative block w-fit hover:text-emerald-900">
+              </LocalizedLink>
+              <LocalizedLink href="/privacy" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.support.privacy")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
-              <Link href="/terms" className="group relative block w-fit hover:text-emerald-900">
+              </LocalizedLink>
+              <LocalizedLink href="/terms" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.support.terms")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
-              </Link>
+              </LocalizedLink>
             </div>
           </div>
           <div className="space-y-3 text-xs">

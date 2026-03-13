@@ -52,6 +52,8 @@ export type ProductReview = {
   comment: string;
   created_at: string;
   updated_at: string;
+  /** Müştəri adının şifrələnmiş forması (məs: "İ***i") */
+  user_display_name_masked?: string;
 };
 
 export type ProductVariant = {

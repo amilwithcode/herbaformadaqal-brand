@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { maskUserName } from "@/lib/mask-name";
 import type { Category, Product, ProductVariant } from "./types";
 
 export async function getHomeProducts() {
@@ -68,10 +69,27 @@ export async function getProductBySlug(slug: string) {
       .eq("product_id", product.id),
   ]);
 
-  const reviews = reviewsResult.data || [];
-  const reviewCount = reviews.length;
-  const ratingSum = reviews.reduce((acc, r) => acc + r.rating, 0);
+  const rawReviews = (reviewsResult.data || []) as { user_id?: string; [key: string]: unknown }[];
+  const reviewCount = rawReviews.length;
+  const ratingSum = rawReviews.reduce((acc, r) => acc + (r.rating as number), 0);
   const ratingAverage = reviewCount > 0 ? ratingSum / reviewCount : 0;
+
+  // Rəy sahiblərinin profillərini götürüb adları şifrələnmiş formada əlavə et
+  const userIds = [...new Set(rawReviews.map((r) => r.user_id).filter(Boolean))] as string[];
+  const profiles: Record<string, { full_name?: string | null }> = {};
+  if (userIds.length > 0) {
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", userIds);
+    (profilesData || []).forEach((p: { id: string; full_name?: string | null }) => {
+      profiles[p.id] = { full_name: p.full_name };
+    });
+  }
+  const reviews = rawReviews.map((r) => ({
+    ...r,
+    user_display_name_masked: maskUserName(profiles[r.user_id!]?.full_name ?? "İstifadəçi"),
+  }));
 
   // Aktiv kampaniyaları filtrlə
   const now = new Date();
@@ -120,14 +138,34 @@ export async function getProductVariants(productId: number) {
   return (data || []) as ProductVariant[];
 }
 
-export async function getCategories() {
+const CATEGORY_LOCALES = ["az", "en", "tr", "ru"] as const;
+
+export async function getCategories(locale?: string) {
   const supabase = await getSupabaseServerClient();
   const { data } = await supabase.from("categories").select("*").order("id");
-  
-  // Ensure every category has a slug and name (fallback if missing in DB)
-  return (data || []).map((cat: any) => {
+  const rows = data || [];
+
+  const safeLocale = locale && (CATEGORY_LOCALES as readonly string[]).includes(locale) ? locale : "az";
+
+  let nameByCategoryId: Map<number, string> = new Map();
+  if (rows.length > 0 && safeLocale !== "az") {
+    const ids = rows.map((r: any) => r.id);
+    const { data: translations } = await supabase
+      .from("translations")
+      .select("entity_id, value")
+      .eq("entity_table", "categories")
+      .eq("field", "name")
+      .eq("language", safeLocale)
+      .in("entity_id", ids);
+    if (translations) {
+      translations.forEach((t: any) => nameByCategoryId.set(Number(t.entity_id), t.value));
+    }
+  }
+
+  return rows.map((cat: any) => {
     const slug = cat.slug || (cat.name ? cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : `category-${cat.id}`);
-    const name = cat.name || slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
+    const baseName = cat.name || slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
+    const name = (safeLocale !== "az" && nameByCategoryId.get(cat.id)) || baseName;
     return {
       ...cat,
       slug,
@@ -136,44 +174,42 @@ export async function getCategories() {
   }) as Category[];
 }
 
-export async function getCategoryBySlug(slug: string) {
+export async function getCategoryBySlug(slug: string, locale?: string) {
   const supabase = await getSupabaseServerClient();
-  
-  // Decode URL-encoded slug (Next.js should do this automatically, but handle it anyway)
   const decodedSlug = decodeURIComponent(slug);
-  
-  // Try direct lookup first
+
   const { data } = await supabase
     .from("categories")
     .select("*")
     .eq("slug", decodedSlug)
     .maybeSingle();
-    
-  if (data) {
-    // Ensure name exists (fallback to slug if name is missing)
-    return {
-      ...data,
-      name: data.name || data.slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
-    } as Category;
+
+  let category = data;
+  if (!category) {
+    const { data: allCategories } = await supabase.from("categories").select("*");
+    category = (allCategories || []).find((c: any) => {
+      const dbSlug = c.slug || (c.name ? c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '');
+      return dbSlug === decodedSlug || dbSlug === slug || decodeURIComponent(dbSlug) === decodedSlug;
+    }) || null;
+  }
+  if (!category) return null;
+
+  const baseName = category.name || (category.slug || "").split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
+  let name = baseName;
+  const safeLocale = locale && (CATEGORY_LOCALES as readonly string[]).includes(locale) ? locale : "az";
+  if (safeLocale !== "az") {
+    const { data: tr } = await supabase
+      .from("translations")
+      .select("value")
+      .eq("entity_table", "categories")
+      .eq("entity_id", category.id)
+      .eq("field", "name")
+      .eq("language", safeLocale)
+      .maybeSingle();
+    if (tr?.value) name = tr.value;
   }
 
-  // Fallback: Fetch all and find match (handles cases where DB slug is missing or different format)
-  const { data: allCategories } = await supabase.from("categories").select("*");
-  const match = (allCategories || []).find((c: any) => {
-    const dbSlug = c.slug || (c.name ? c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : '');
-    // Compare both decoded and original slug
-    return dbSlug === decodedSlug || dbSlug === slug || decodeURIComponent(dbSlug) === decodedSlug;
-  });
-  
-  if (match) {
-    // Ensure name exists
-    return {
-      ...match,
-      name: match.name || match.slug.split("-").map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
-    } as Category;
-  }
-  
-  return null;
+  return { ...category, name } as Category;
 }
 
 export async function getCategoryById(id: number) {

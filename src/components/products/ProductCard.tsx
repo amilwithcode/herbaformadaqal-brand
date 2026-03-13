@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -229,12 +229,12 @@ export default function ProductCard({
 
   if (slug) {
     return (
-      <Link
+      <LocalizedLink
         href={`/products/${slug}`}
         className="group block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-xl"
       >
         {CardContent}
-      </Link>
+      </LocalizedLink>
     );
   }
 

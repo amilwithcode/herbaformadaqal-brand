@@ -10,14 +10,29 @@ export async function getSiteSettings() {
   return data;
 }
 
-export async function getHeroSlides() {
+const HERO_LOCALES = ["az", "en", "tr", "ru"] as const;
+
+export async function getHeroSlides(locale?: string) {
   const supabase = await getSupabaseServerClient();
-  const { data } = await supabase
+  const safeLocale = locale && (HERO_LOCALES as readonly string[]).includes(locale) ? locale : "az";
+  const { data, error } = await supabase
     .from("hero_slides")
     .select("*")
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
-  return data || [];
+
+  if (error) return [];
+  const rows = data || [];
+  if (rows.length === 0) return [];
+
+  const hasLocale = rows[0] && "locale" in rows[0];
+  if (hasLocale) {
+    const byLocale = rows.filter((r: { locale?: string }) => r.locale === safeLocale);
+    if (byLocale.length > 0) return byLocale;
+    const azRows = rows.filter((r: { locale?: string }) => r.locale === "az");
+    return azRows.length > 0 ? azRows : rows;
+  }
+  return rows;
 }
 
 export async function getPageSections(pageSlug: string) {

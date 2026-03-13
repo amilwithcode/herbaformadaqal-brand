@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useI18n } from "@/contexts/I18nContext";
@@ -12,6 +12,7 @@ import type { Product, ProductReview } from "@/modules/products/types";
 import type { Product as CartProduct } from "@/types";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { maskUserName } from "@/lib/mask-name";
 
 type ProductDetailsProps = {
   product: Product;
@@ -186,9 +187,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     <div className="mx-auto max-w-7xl px-4 py-6 md:py-10">
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-500 mb-6 flex items-center gap-2">
-        <Link href="/" className="hover:text-emerald-600 transition-colors">{t("nav.home")}</Link>
+        <LocalizedLink href="/" className="hover:text-emerald-600 transition-colors">{t("nav.home")}</LocalizedLink>
         <span>/</span>
-        <Link href="/products" className="hover:text-emerald-600 transition-colors">{t("nav.products")}</Link>
+        <LocalizedLink href="/products" className="hover:text-emerald-600 transition-colors">{t("nav.products")}</LocalizedLink>
         <span>/</span>
         <span className="font-medium text-slate-900 truncate max-w-[200px]">{translatedContent.title}</span>
       </nav>
@@ -211,7 +212,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               >
                 <Image
                   src={img}
-                  alt={`View ${idx + 1}`}
+                  alt={t("product.image_view", { index: idx + 1 })}
                   fill
                   className="object-contain p-1"
                 />
@@ -260,7 +261,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 <span
                   className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
                   style={{ backgroundColor: product.badge_color || "#16a34a" }}
-                  title={`İstifadə: ${product.usage_count}x`}
+                  title={t("product.usage_count_title", { count: product.usage_count })}
                 >
                   {product.usage_count}x
                 </span>
@@ -281,19 +282,19 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
             {hidePrices ? (
               <div className="flex items-center gap-3">
-                <Link
+                <LocalizedLink
                   href="/auth/login"
                   className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-emerald-800 transition-colors"
                 >
                   <span>🔒</span>
                   {t("product.login_to_see_price")}
-                </Link>
-                <Link
+                </LocalizedLink>
+                <LocalizedLink
                   href="/auth/register"
                   className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition-colors"
                 >
                   {t("nav.register")}
-                </Link>
+                </LocalizedLink>
               </div>
             ) : (
               <div className="space-y-3">
@@ -561,7 +562,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                  </form>
                ) : (
                  <div className="bg-amber-50 text-amber-800 p-4 rounded-lg text-sm">
-                   {t("product.login_to_review")} <Link href="/auth/login" className="underline font-semibold">{t("product.login_link")}</Link>.
+                   {t("product.login_to_review")} <LocalizedLink href="/auth/login" className="underline font-semibold">{t("product.login_link")}</LocalizedLink>.
                  </div>
                )}
 
@@ -578,7 +579,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                               {review.user_id ? "U" : "A"}
                            </div>
                            <div>
-                             <div className="text-sm font-medium text-slate-900">{t("product.user_label")}</div>
+                             <div className="text-sm font-medium text-slate-900">
+                              {review.user_display_name_masked ?? maskUserName(t("product.user_label"))}
+                            </div>
                              <div className="text-[10px] text-slate-400">{new Date(review.created_at).toLocaleDateString()}</div>
                            </div>
                          </div>

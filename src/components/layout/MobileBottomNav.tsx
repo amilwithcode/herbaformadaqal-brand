@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/contexts/I18nContext";
+import { getPathWithoutLocale } from "@/lib/localized-path";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { Home, ShoppingBag, Layers, Info, Phone } from "lucide-react";
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const pathWithoutLocale = getPathWithoutLocale(pathname);
   const { t } = useI18n();
 
   const navItems = [
@@ -18,10 +20,8 @@ export default function MobileBottomNav() {
   ];
 
   const isActive = (href: string) => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(href);
+    if (href === "/") return pathWithoutLocale === "/" || pathWithoutLocale === "";
+    return pathWithoutLocale.startsWith(href);
   };
 
   return (
@@ -30,7 +30,7 @@ export default function MobileBottomNav() {
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
-            <Link
+            <LocalizedLink
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center justify-center gap-0 sm:gap-0.5 md:gap-1 px-0.5 sm:px-1 md:px-2 py-0.5 sm:py-1 md:py-1.5 rounded-full transition-all ${
@@ -55,7 +55,7 @@ export default function MobileBottomNav() {
               >
                 {item.label}
               </span>
-            </Link>
+            </LocalizedLink>
           );
         })}
       </div>

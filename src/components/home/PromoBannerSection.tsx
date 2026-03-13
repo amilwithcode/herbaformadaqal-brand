@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 
 type PromoBanner = {
   id: number;
@@ -98,7 +98,7 @@ export default function PromoBannerSection() {
               {/* CTA Button */}
               {banner.button_text && (
                 <div className="pt-2">
-                  <Link
+                  <LocalizedLink
                     href={banner.button_link || "/products"}
                     className="group/btn inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-wider transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-0.5 active:scale-100"
                     style={{ color: banner.bg_color }}
@@ -117,7 +117,7 @@ export default function PromoBannerSection() {
                         d="M13 7l5 5m0 0l-5 5m5-5H6"
                       />
                     </svg>
-                  </Link>
+                  </LocalizedLink>
                 </div>
               )}
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useI18n } from "@/contexts/I18nContext";
 import CountUp from "@/components/ui/CountUp";
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -17,6 +17,7 @@ export type HeroSlide = {
   image_position?: string;
   is_active: boolean;
   sort_order: number;
+  locale?: string;
 };
 
 // Default slide data when no slides from DB
@@ -42,8 +43,8 @@ export default function HeroSection({
   sectionData?: any;
   slides?: HeroSlide[];
 }) {
-  const { t } = useI18n();
-  const name = brandName || "Sağlam Bazar";
+  const { t, locale } = useI18n();
+  const name = brandName || t("hero.brand_fallback");
   const parts = name.split(" ");
   const firstLine = parts.length > 1 ? parts.slice(0, -1).join(" ") : name;
   const secondLine = parts.length > 1 ? parts[parts.length - 1] : "";
@@ -86,12 +87,20 @@ export default function HeroSection({
 
   const activeSlide = slides[current];
 
-  // Dynamic content: use slide data or fallback to sectionData/defaults
-  const title = activeSlide.title || sectionData?.title || t("hero.title");
-  const subtitle =
-    activeSlide.subtitle || sectionData?.subtitle || t("hero.subtitle");
-  const buttonText =
-    activeSlide.button_text || sectionData?.buttonText || t("hero.cta_secondary");
+  // Slaydın dili cari dilə uyğun deyilsə mətni tərcümə ilə göstər (dilə görə dəyişsin)
+  const slideLocale = activeSlide.locale;
+  const slideMatchesLocale = slideLocale && slideLocale === locale;
+  const useTranslatedContent = !slideMatchesLocale;
+
+  const title = useTranslatedContent
+    ? t("hero.title")
+    : (activeSlide.title || sectionData?.title || t("hero.title"));
+  const subtitle = useTranslatedContent
+    ? t("hero.subtitle")
+    : (activeSlide.subtitle || sectionData?.subtitle || t("hero.subtitle"));
+  const buttonText = useTranslatedContent
+    ? t("hero.cta_secondary")
+    : (activeSlide.button_text || sectionData?.buttonText || t("hero.cta_secondary"));
   const buttonLink = activeSlide.button_link || "/products";
   const bgImage = activeSlide.image_url;
 
@@ -113,7 +122,7 @@ export default function HeroSection({
               <div className="absolute inset-0">
                 <Image
                   src={slide.image_url}
-                  alt={slide.title || "Hero"}
+                  alt={slide.title || t("common.hero_alt")}
                   fill
                   className="object-cover object-center"
                   style={{
@@ -154,7 +163,7 @@ export default function HeroSection({
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 pt-2">
-                  <Link
+                  <LocalizedLink
                     href={buttonLink}
                     className={`inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold shadow-lg transition-colors ${
                       bgImage
@@ -163,7 +172,7 @@ export default function HeroSection({
                     }`}
                   >
                     {buttonText}
-                  </Link>
+                  </LocalizedLink>
                 </div>
               </div>
             </div>

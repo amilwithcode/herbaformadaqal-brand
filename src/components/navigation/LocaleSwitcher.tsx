@@ -1,20 +1,28 @@
 "use client";
 
 import { useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useI18n } from "@/contexts/I18nContext";
+import { getPathWithoutLocale, getLocalizedPath } from "@/lib/localized-path";
 import type { Locale } from "@/modules/i18n/config";
 
 const locales: Locale[] = ["az", "ru", "en", "tr"];
 
 export function LocaleSwitcher() {
   const { locale, setLocale } = useI18n();
+  const pathname = usePathname();
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const onChange = (next: string) => {
     if (next === locale) return;
     if (!locales.includes(next as Locale)) return;
+    const nextLocale = next as Locale;
+    setLocale(nextLocale);
     startTransition(() => {
-      setLocale(next as Locale);
+      const pathWithoutLocale = getPathWithoutLocale(pathname);
+      const newPath = getLocalizedPath(pathWithoutLocale, nextLocale);
+      router.push(newPath);
     });
   };
 

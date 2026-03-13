@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import Image from "next/image";
 import { useI18n } from "@/contexts/I18nContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -68,13 +68,13 @@ export default function ProgramsSection() {
             {t("home.programs.subtitle")}
           </p>
         </div>
-        <Link
+        <LocalizedLink
           href="/programs"
           className="inline-flex items-center gap-2 rounded-full border border-emerald-400/60 bg-white px-4 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
         >
           {t("home.programs.view_all")}
           <span>→</span>
-        </Link>
+        </LocalizedLink>
       </div>
       {loading && (
         <p className="text-xs text-emerald-700">{t("programs.loading")}</p>
@@ -99,7 +99,7 @@ function ProgramCardItem({ program, hidePrices, t }: { program: ProgramCard; hid
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Link
+    <LocalizedLink
       href={`/programs/${program.slug}`}
       className="group block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-xl"
     >
@@ -189,6 +189,6 @@ function ProgramCardItem({ program, hidePrices, t }: { program: ProgramCard; hid
           </div>
         </div>
       </div>
-    </Link>
+    </LocalizedLink>
   );
 }

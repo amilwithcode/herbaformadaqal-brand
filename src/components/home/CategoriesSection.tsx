@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useI18n } from "@/contexts/I18nContext";
 import type { Category } from "@/modules/products/types";
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import Image from "next/image";
 import { ArrowRight, ImageOff } from "lucide-react";
 
@@ -37,7 +37,7 @@ function CategoryCard({ category, t }: { category: Category; t: (key: string) =>
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Link
+    <LocalizedLink
       href={`/categories/${category.slug}`}
       className="group block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-xl"
     >
@@ -95,6 +95,6 @@ function CategoryCard({ category, t }: { category: Category; t: (key: string) =>
           </div>
         </div>
       </div>
-    </Link>
+    </LocalizedLink>
   );
 }
