@@ -21,6 +21,12 @@ function getInitialLocale(): Locale {
       if (saved && locales.includes(saved as Locale)) {
         return saved as Locale;
       }
+      // Google Ads: middleware ?hl=en|tr|ru ilə cookie qoyur; ilk açılışda dil uyğun olsun
+      const match = document.cookie.match(/\blocale=([^;]+)/);
+      const fromCookie = match?.[1]?.toLowerCase();
+      if (fromCookie && locales.includes(fromCookie as Locale)) {
+        return fromCookie as Locale;
+      }
     } catch {}
   }
   return defaultLocale;

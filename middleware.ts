@@ -63,11 +63,32 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Google Ads: ?hl=en|tr|ru ilə gələn açılış səhifəsi dəstəklənən dil kimi qeyd olunsun (policy uyğunluğu)
+  const GOOGLE_ADS_LOCALES = ["en", "tr", "ru"] as const;
+  const hl = request.nextUrl.searchParams.get("hl");
+  const localeForAds =
+    hl && GOOGLE_ADS_LOCALES.includes(hl as (typeof GOOGLE_ADS_LOCALES)[number])
+      ? hl
+      : null;
+
+  const requestHeaders = new Headers(request.headers);
+  if (localeForAds) {
+    requestHeaders.set("x-locale", localeForAds);
+  }
+
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   });
+
+  if (localeForAds) {
+    response.cookies.set("locale", localeForAds, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365, // 1 il
+      sameSite: "lax",
+    });
+  }
 
   // Define protected paths (path already defined above)
   const isAdminRoute = path.startsWith("/admin") && path !== "/admin/login";

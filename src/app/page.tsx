@@ -6,6 +6,7 @@ import BenefitsStrip from "@/components/home/BenefitsStrip";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getHomeProducts, getCategories } from "@/modules/products/queries";
 import { getSiteSettings, getPageSections, getHeroSlides, getMetaTags } from "@/modules/settings/queries";
+import { getRequestLocale, OG_LOCALE_MAP } from "@/lib/request-locale";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 
 // Below-the-fold komponentləri lazy load edirik - ilk yüklənməni sürətləndirir
@@ -23,9 +24,10 @@ const HomeFooter = dynamic(() => import("@/components/home/HomeFooter"), { ssr: 
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [settings, metaTags] = await Promise.all([
+  const [settings, metaTags, requestLocale] = await Promise.all([
     getSiteSettings(),
     getMetaTags("home"),
+    getRequestLocale(),
   ]);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
@@ -54,7 +56,7 @@ export async function generateMetadata(): Promise<Metadata> {
           alt: title,
         },
       ],
-      locale: "az_AZ",
+      locale: OG_LOCALE_MAP[requestLocale],
       type: "website",
     },
     twitter: {

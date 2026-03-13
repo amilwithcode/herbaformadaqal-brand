@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
+import { getRequestLocale, OG_LOCALE_MAP } from "@/lib/request-locale";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import Script from "next/script";
@@ -37,7 +38,10 @@ async function getSiteData() {
 
 /* ─── Next.js Metadata ─── */
 export async function generateMetadata(): Promise<Metadata> {
-  const { settings, meta } = await getSiteData();
+  const [{ settings, meta }, requestLocale] = await Promise.all([
+    getSiteData(),
+    getRequestLocale(),
+  ]);
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
 
@@ -71,10 +75,18 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: settings?.public_site_name || "Herbalife Distribütor",
     publisher: settings?.public_site_name || "Herbalife Distribütor",
     metadataBase: new URL(siteUrl),
-    alternates: { canonical: siteUrl },
+    alternates: {
+      canonical: siteUrl,
+      languages: {
+        "x-default": siteUrl,
+        en: `${siteUrl}?hl=en`,
+        tr: `${siteUrl}?hl=tr`,
+        ru: `${siteUrl}?hl=ru`,
+      },
+    },
     openGraph: {
       type: "website",
-      locale: "az_AZ",
+      locale: OG_LOCALE_MAP[requestLocale] || "az_AZ",
       url: siteUrl,
       siteName: settings?.public_site_name || "Herbalife",
       title: meta?.og_title || title,
@@ -118,7 +130,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const { settings } = await getSiteData();
+  const [{ settings }, requestLocale] = await Promise.all([
+    getSiteData(),
+    getRequestLocale(),
+  ]);
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
@@ -158,8 +173,13 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang="az">
+    <html lang={requestLocale}>
       <head>
+        {/* Google Ads: çoxdilli açılış səhifəsi (dəstəklənən dillər) */}
+        <link rel="alternate" hrefLang="x-default" href={siteUrl} />
+        <link rel="alternate" hrefLang="en" href={`${siteUrl}?hl=en`} />
+        <link rel="alternate" hrefLang="tr" href={`${siteUrl}?hl=tr`} />
+        <link rel="alternate" hrefLang="ru" href={`${siteUrl}?hl=ru`} />
         {/* DNS Preconnect — başqa ölkələrdən sürətli yüklənmə üçün */}
         <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
         <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
