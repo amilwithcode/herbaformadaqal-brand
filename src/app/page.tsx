@@ -5,9 +5,24 @@ import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
 import BenefitsStrip from "@/components/home/BenefitsStrip";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getHomeProducts, getCategories } from "@/modules/products/queries";
+import { cookies, headers } from "next/headers";
 import { getSiteSettings, getPageSections, getHeroSlides, getMetaTags } from "@/modules/settings/queries";
-import { getRequestLocale, OG_LOCALE_MAP } from "@/lib/request-locale";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
+
+const OG_LOCALE_MAP: Record<string, string> = {
+  az: "az_AZ",
+  en: "en_US",
+  tr: "tr_TR",
+  ru: "ru_RU",
+};
+
+async function getRequestLocale(): Promise<"az" | "en" | "tr" | "ru"> {
+  const h = await headers();
+  const c = await cookies();
+  const locale = h.get("x-locale") || c.get("locale")?.value;
+  if (locale === "en" || locale === "tr" || locale === "ru") return locale;
+  return "az";
+}
 
 // Below-the-fold komponentləri lazy load edirik - ilk yüklənməni sürətləndirir
 const CategoriesSection = dynamic(() => import("@/components/home/CategoriesSection"), { ssr: true });

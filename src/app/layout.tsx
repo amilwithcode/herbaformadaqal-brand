@@ -1,12 +1,27 @@
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
-import { getRequestLocale, OG_LOCALE_MAP } from "@/lib/request-locale";
+import { cookies, headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import Script from "next/script";
 import SpeedInsightsWrapper from "@/components/common/SpeedInsightsWrapper";
 import "./globals.css";
 import Providers from "./providers";
+
+const OG_LOCALE_MAP: Record<string, string> = {
+  az: "az_AZ",
+  en: "en_US",
+  tr: "tr_TR",
+  ru: "ru_RU",
+};
+
+async function getRequestLocale(): Promise<"az" | "en" | "tr" | "ru"> {
+  const h = await headers();
+  const c = await cookies();
+  const locale = h.get("x-locale") || c.get("locale")?.value;
+  if (locale === "en" || locale === "tr" || locale === "ru") return locale;
+  return "az";
+}
 
 const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
