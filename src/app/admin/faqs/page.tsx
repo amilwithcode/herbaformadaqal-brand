@@ -16,12 +16,22 @@ import {
   GripVertical,
 } from "lucide-react";
 
+const LOCALES = [
+  { code: "az", label: "Azərbaycan" },
+  { code: "en", label: "English" },
+  { code: "tr", label: "Türkçe" },
+  { code: "ru", label: "Русский" },
+] as const;
+
+type FAQTranslation = { question: string; answer: string };
+
 type FAQ = {
   id: number;
   question: string;
   answer: string;
   sort_order: number;
   is_active: boolean;
+  translations?: Record<string, FAQTranslation>;
 };
 
 export default function AdminFaqsPage() {
@@ -32,8 +42,12 @@ export default function AdminFaqsPage() {
   // Form state
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [formTranslations, setFormTranslations] = useState<Record<string, FAQTranslation>>({
+    az: { question: "", answer: "" },
+    en: { question: "", answer: "" },
+    tr: { question: "", answer: "" },
+    ru: { question: "", answer: "" },
+  });
 
   const fetchFaqs = async () => {
     setLoading(true);
@@ -54,50 +68,54 @@ export default function AdminFaqsPage() {
   }, []);
 
   const resetForm = () => {
-    setQuestion("");
-    setAnswer("");
+    setFormTranslations({
+      az: { question: "", answer: "" },
+      en: { question: "", answer: "" },
+      tr: { question: "", answer: "" },
+      ru: { question: "", answer: "" },
+    });
     setEditingId(null);
     setShowForm(false);
   };
 
   const handleSave = async () => {
-    if (!question.trim()) return;
+    const az = formTranslations.az || { question: "", answer: "" };
+    if (!(az.question || "").trim()) {
+      alert("Azərbaycan dilində sual mütləqdir.");
+      return;
+    }
     setSaving(true);
     try {
       if (editingId) {
-        // Update
         const res = await fetch("/api/admin/faqs", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: editingId,
-            question: question.trim(),
-            answer: answer.trim(),
+            translations: formTranslations,
           }),
         });
         if (res.ok) {
           const updated = await res.json();
           setFaqs((prev) =>
-            prev.map((f) => (f.id === editingId ? updated : f))
+            prev.map((f) => (f.id === editingId ? { ...f, ...updated, translations: formTranslations } : f))
           );
           resetForm();
         }
       } else {
-        // Create
         const maxOrder = faqs.length > 0 ? Math.max(...faqs.map((f) => f.sort_order)) : 0;
         const res = await fetch("/api/admin/faqs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            question: question.trim(),
-            answer: answer.trim(),
+            translations: formTranslations,
             sort_order: maxOrder + 1,
             is_active: true,
           }),
         });
         if (res.ok) {
           const created = await res.json();
-          setFaqs((prev) => [...prev, created]);
+          setFaqs((prev) => [...prev, { ...created, translations: formTranslations }]);
           resetForm();
         }
       }
@@ -109,8 +127,13 @@ export default function AdminFaqsPage() {
 
   const handleEdit = (faq: FAQ) => {
     setEditingId(faq.id);
-    setQuestion(faq.question);
-    setAnswer(faq.answer);
+    const tr = faq.translations || {};
+    setFormTranslations({
+      az: tr.az ?? { question: faq.question, answer: faq.answer },
+      en: tr.en ?? { question: "", answer: "" },
+      tr: tr.tr ?? { question: "", answer: "" },
+      ru: tr.ru ?? { question: "", answer: "" },
+    });
     setShowForm(true);
   };
 
@@ -227,31 +250,43 @@ export default function AdminFaqsPage() {
           <h3 className="text-lg font-semibold text-slate-800">
             {editingId ? "Sualı Redaktə Et" : "Yeni Sual Əlavə Et"}
           </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Sual
-              </label>
-              <input
-                type="text"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                placeholder="Məs: Herbalife məhsulları nə üçün istifadə olunur?"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Cavab
-              </label>
-              <textarea
-                rows={4}
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none"
-                placeholder="Sualın ətraflı cavabını yazın..."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-              />
-            </div>
+          <p className="text-xs text-slate-500">Hər dil üçün sual və cavab daxil edin. Azərbaycan mütləqdir.</p>
+          <div className="space-y-6">
+            {LOCALES.map(({ code, label }) => (
+              <div key={code} className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+                <h4 className="text-sm font-semibold text-slate-700">{label}</h4>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Sual</label>
+                  <input
+                    type="text"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    placeholder={code === "az" ? "Məs: Herbalife məhsulları nə üçün istifadə olunur?" : "Question..."}
+                    value={formTranslations[code]?.question ?? ""}
+                    onChange={(e) =>
+                      setFormTranslations((prev) => ({
+                        ...prev,
+                        [code]: { ...(prev[code] ?? { question: "", answer: "" }), question: e.target.value },
+                      }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Cavab</label>
+                  <textarea
+                    rows={3}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none"
+                    placeholder="Cavab..."
+                    value={formTranslations[code]?.answer ?? ""}
+                    onChange={(e) =>
+                      setFormTranslations((prev) => ({
+                        ...prev,
+                        [code]: { ...(prev[code] ?? { question: "", answer: "" }), answer: e.target.value },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            ))}
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button
@@ -265,7 +300,7 @@ export default function AdminFaqsPage() {
             <button
               type="button"
               onClick={handleSave}
-              disabled={saving || !question.trim()}
+              disabled={saving || !(formTranslations.az?.question ?? "").trim()}
               className="flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition-colors"
             >
               {saving ? (
@@ -334,11 +369,11 @@ export default function AdminFaqsPage() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-slate-900 text-sm">
-                    {faq.question}
+                    {faq.translations?.az?.question ?? faq.question}
                   </h4>
-                  {faq.answer && (
+                  {(faq.translations?.az?.answer ?? faq.answer) && (
                     <p className="mt-1 text-xs text-slate-500 line-clamp-2">
-                      {faq.answer}
+                      {faq.translations?.az?.answer ?? faq.answer}
                     </p>
                   )}
                 </div>

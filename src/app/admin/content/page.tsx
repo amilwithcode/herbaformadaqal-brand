@@ -7,6 +7,7 @@ import {
   FileText,
   Plus,
   Trash2,
+  Edit3,
   Link as LinkIcon,
   Image as ImageIcon,
   MoreVertical,
@@ -31,6 +32,15 @@ type AdminAd = {
   isActive: boolean;
 };
 
+const POST_LOCALES = [
+  { code: "az", label: "Azərbaycan" },
+  { code: "en", label: "English" },
+  { code: "tr", label: "Türkçe" },
+  { code: "ru", label: "Русский" },
+] as const;
+
+type PostTranslation = { title: string; excerpt: string; body: string; category: string };
+
 type AdminPost = {
   id: string;
   title: string;
@@ -39,6 +49,7 @@ type AdminPost = {
   category: string;
   imageUrl: string;
   isPinned: boolean;
+  translations?: Record<string, PostTranslation>;
 };
 
 type AdminProgram = {
@@ -61,12 +72,15 @@ export default function AdminContentPage() {
   const [uploadingAdImage, setUploadingAdImage] = useState(false);
   const [adLinkUrl, setAdLinkUrl] = useState("");
 
-  const [postTitle, setPostTitle] = useState("");
-  const [postExcerpt, setPostExcerpt] = useState("");
-  const [postBody, setPostBody] = useState("");
-  const [postCategory, setPostCategory] = useState("");
+  const [postTranslations, setPostTranslations] = useState<Record<string, PostTranslation>>({
+    az: { title: "", excerpt: "", body: "", category: "" },
+    en: { title: "", excerpt: "", body: "", category: "" },
+    tr: { title: "", excerpt: "", body: "", category: "" },
+    ru: { title: "", excerpt: "", body: "", category: "" },
+  });
   const [postImageUrl, setPostImageUrl] = useState("");
   const [uploadingPostImage, setUploadingPostImage] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
   
   const [programTitle, setProgramTitle] = useState("");
   const [programDesc, setProgramDesc] = useState("");
@@ -127,7 +141,8 @@ export default function AdminContentPage() {
           image_url?: string;
           is_pinned?: boolean;
         };
-        const mappedPosts: AdminPost[] = (Array.isArray(postsData) ? (postsData as PostAPI[]) : []).map(
+        type PostAPIWithTranslations = PostAPI & { translations?: Record<string, PostTranslation> };
+        const mappedPosts: AdminPost[] = (Array.isArray(postsData) ? (postsData as PostAPIWithTranslations[]) : []).map(
           (p) => ({
             id: String(p.id),
             title: p.title || "",
@@ -136,6 +151,7 @@ export default function AdminContentPage() {
             category: p.category || "",
             imageUrl: p.image_url || "",
             isPinned: Boolean(p.is_pinned),
+            translations: p.translations,
           })
         );
         setPosts(mappedPosts);
@@ -260,18 +276,18 @@ export default function AdminContentPage() {
   };
 
   const addPost = async () => {
-    const trimmedTitle = postTitle.trim();
-    if (!trimmedTitle) return;
+    const az = postTranslations.az || { title: "", excerpt: "", body: "", category: "" };
+    if (!(az.title || "").trim()) {
+      alert("Azərbaycan dilində başlıq mütləqdir.");
+      return;
+    }
     setSavingPost(true);
     try {
       const res = await fetch("/api/admin/content/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: trimmedTitle,
-          excerpt: postExcerpt.trim(),
-          body: postBody.trim(),
-          category: postCategory.trim(),
+          translations: postTranslations,
           imageUrl: postImageUrl.trim(),
           isPinned: false,
         }),
@@ -286,12 +302,15 @@ export default function AdminContentPage() {
           category: row.category || "",
           imageUrl: row.image_url || "",
           isPinned: Boolean(row.is_pinned),
+          translations: postTranslations,
         };
         setPosts((prev) => [post, ...prev]);
-        setPostTitle("");
-        setPostExcerpt("");
-        setPostBody("");
-        setPostCategory("");
+        setPostTranslations({
+          az: { title: "", excerpt: "", body: "", category: "" },
+          en: { title: "", excerpt: "", body: "", category: "" },
+          tr: { title: "", excerpt: "", body: "", category: "" },
+          ru: { title: "", excerpt: "", body: "", category: "" },
+        });
         setPostImageUrl("");
       } else {
         const errorData = await res.json().catch(() => ({ error: "Naməlum xəta" }));
@@ -304,6 +323,76 @@ export default function AdminContentPage() {
     } finally {
       setSavingPost(false);
     }
+  };
+
+  const startEditPost = (post: AdminPost) => {
+    setEditingPostId(post.id);
+    const tr = post.translations || {};
+    setPostTranslations({
+      az: tr.az ?? { title: post.title, excerpt: post.excerpt, body: post.body, category: post.category },
+      en: tr.en ?? { title: "", excerpt: "", body: "", category: "" },
+      tr: tr.tr ?? { title: "", excerpt: "", body: "", category: "" },
+      ru: tr.ru ?? { title: "", excerpt: "", body: "", category: "" },
+    });
+    setPostImageUrl(post.imageUrl || "");
+  };
+
+  const saveEditPost = async () => {
+    if (!editingPostId) return;
+    const az = postTranslations.az || { title: "", excerpt: "", body: "", category: "" };
+    if (!(az.title || "").trim()) {
+      alert("Azərbaycan dilində başlıq mütləqdir.");
+      return;
+    }
+    setSavingPost(true);
+    try {
+      const res = await fetch("/api/admin/content/posts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingPostId,
+          translations: postTranslations,
+          imageUrl: postImageUrl.trim(),
+        }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === editingPostId
+              ? { ...p, ...updated, translations: postTranslations }
+              : p
+          )
+        );
+        setEditingPostId(null);
+        setPostTranslations({
+          az: { title: "", excerpt: "", body: "", category: "" },
+          en: { title: "", excerpt: "", body: "", category: "" },
+          tr: { title: "", excerpt: "", body: "", category: "" },
+          ru: { title: "", excerpt: "", body: "", category: "" },
+        });
+        setPostImageUrl("");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Yadda saxlanılmadı");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Xəta baş verdi");
+    } finally {
+      setSavingPost(false);
+    }
+  };
+
+  const cancelEditPost = () => {
+    setEditingPostId(null);
+    setPostTranslations({
+      az: { title: "", excerpt: "", body: "", category: "" },
+      en: { title: "", excerpt: "", body: "", category: "" },
+      tr: { title: "", excerpt: "", body: "", category: "" },
+      ru: { title: "", excerpt: "", body: "", category: "" },
+    });
+    setPostImageUrl("");
   };
 
   const togglePin = async (id: string) => {
@@ -660,106 +749,119 @@ export default function AdminContentPage() {
               </span>
             </div>
 
-            {/* Add Post Form */}
+            {/* Add / Edit Post Form */}
             <div className="mb-6 space-y-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-              <h3 className="text-sm font-medium text-slate-900">Yeni Post</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq</label>
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                      placeholder="Post başlığı..."
-                      value={postTitle}
-                      onChange={(e) => setPostTitle(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Kateqoriya</label>
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                      placeholder="Məs: Sağlam həyat tərzi, Sağlam qidalanma..."
-                      value={postCategory}
-                      onChange={(e) => setPostCategory(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Qısa Mətn (Anons)</label>
-                    <textarea
-                      rows={3}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none"
-                      placeholder="Post haqqında qısa məlumat..."
-                      value={postExcerpt}
-                      onChange={(e) => setPostExcerpt(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Ətraflı Mətn</label>
-                    <textarea
-                      rows={6}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none"
-                      placeholder="Postun ətraflı mətni..."
-                      value={postBody}
-                      onChange={(e) => setPostBody(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Şəkil</label>
-                    <div className="flex items-center gap-3">
-                      <label className="cursor-pointer flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 transition-colors">
-                        {uploadingPostImage ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <ImageIcon size={14} />
-                        )}
-                        {uploadingPostImage ? "Yüklənir..." : "Şəkil yüklə"}
+              <h3 className="text-sm font-medium text-slate-900">
+                {editingPostId ? "Postu redaktə et (dillərə görə)" : "Yeni Post"}
+              </h3>
+              <p className="text-xs text-slate-500">Hər dil üçün başlıq, anons, mətn və kateqoriya daxil edin. Azərbaycan mütləqdir.</p>
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                {POST_LOCALES.map(({ code, label }) => (
+                  <div key={code} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
+                    <h4 className="text-xs font-semibold text-slate-700">{label}</h4>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Başlıq</label>
                         <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          disabled={uploadingPostImage}
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) uploadPostImage(f);
-                          }}
+                          className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-sm"
+                          placeholder="Başlıq..."
+                          value={postTranslations[code]?.title ?? ""}
+                          onChange={(e) =>
+                            setPostTranslations((prev) => ({
+                              ...prev,
+                              [code]: { ...(prev[code] ?? { title: "", excerpt: "", body: "", category: "" }), title: e.target.value },
+                            }))
+                          }
                         />
-                      </label>
-                      {postImageUrl && (
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={postImageUrl}
-                            alt="post"
-                            className="h-10 w-10 rounded-lg object-cover border border-slate-200"
-                          />
-                          <button
-                            type="button"
-                            className="text-xs text-red-500 hover:underline"
-                            onClick={() => setPostImageUrl("")}
-                          >
-                            Sil
-                          </button>
-                        </div>
-                      )}
+                      </div>
+                      <div>
+                        <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Kateqoriya</label>
+                        <input
+                          className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-sm"
+                          placeholder="Kateqoriya..."
+                          value={postTranslations[code]?.category ?? ""}
+                          onChange={(e) =>
+                            setPostTranslations((prev) => ({
+                              ...prev,
+                              [code]: { ...(prev[code] ?? { title: "", excerpt: "", body: "", category: "" }), category: e.target.value },
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Qısa mətn (anons)</label>
+                      <textarea
+                        rows={2}
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-sm resize-none"
+                        placeholder="Anons..."
+                        value={postTranslations[code]?.excerpt ?? ""}
+                        onChange={(e) =>
+                          setPostTranslations((prev) => ({
+                            ...prev,
+                            [code]: { ...(prev[code] ?? { title: "", excerpt: "", body: "", category: "" }), excerpt: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Ətraflı mətn</label>
+                      <textarea
+                        rows={3}
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-sm resize-none"
+                        placeholder="Mətn..."
+                        value={postTranslations[code]?.body ?? ""}
+                        onChange={(e) =>
+                          setPostTranslations((prev) => ({
+                            ...prev,
+                            [code]: { ...(prev[code] ?? { title: "", excerpt: "", body: "", category: "" }), body: e.target.value },
+                          }))
+                        }
+                      />
                     </div>
                   </div>
+                ))}
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-500">Şəkil</label>
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 transition-colors">
+                    {uploadingPostImage ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14} />}
+                    {uploadingPostImage ? "Yüklənir..." : "Şəkil yüklə"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingPostImage}
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPostImage(f); }}
+                    />
+                  </label>
+                  {postImageUrl && (
+                    <div className="flex items-center gap-2">
+                      <img src={postImageUrl} alt="post" className="h-10 w-10 rounded-lg object-cover border border-slate-200" />
+                      <button type="button" className="text-xs text-red-500 hover:underline" onClick={() => setPostImageUrl("")}>Sil</button>
+                    </div>
+                  )}
                 </div>
               </div>
-              
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end gap-2 pt-2">
+                {editingPostId && (
+                  <button
+                    type="button"
+                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                    onClick={cancelEditPost}
+                  >
+                    Ləğv et
+                  </button>
+                )}
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-emerald-700 disabled:opacity-70"
-                  onClick={addPost}
-                  disabled={savingPost || !postTitle}
+                  className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-70"
+                  onClick={editingPostId ? saveEditPost : addPost}
+                  disabled={savingPost || !(postTranslations.az?.title ?? "").trim()}
                 >
-                  {savingPost ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Plus size={14} />
-                  )}
-                  {savingPost ? "Əlavə edilir..." : "Post Əlavə Et"}
+                  {savingPost ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                  {savingPost ? "Saxlanılır..." : editingPostId ? "Yadda saxla" : "Post Əlavə Et"}
                 </button>
               </div>
             </div>
@@ -794,13 +896,13 @@ export default function AdminContentPage() {
                           </span>
                         )}
                         <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-slate-900 line-clamp-1">{post.title}</h4>
+                          <h4 className="font-medium text-slate-900 line-clamp-1">{post.translations?.az?.title ?? post.title}</h4>
                           {post.isPinned && (
                             <Pin size={12} className="text-amber-500 fill-amber-500" />
                           )}
                         </div>
                         <p className="text-xs text-slate-500 line-clamp-2">
-                          {post.excerpt || "Mətn yoxdur"}
+                          {post.translations?.az?.excerpt ?? post.excerpt || "Mətn yoxdur"}
                         </p>
                         {post.imageUrl && (
                           <img src={post.imageUrl} alt="" className="mt-1 h-12 w-16 rounded-md object-cover border border-slate-100" />
@@ -808,6 +910,14 @@ export default function AdminContentPage() {
                       </div>
                       
                       <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          title="Dillərə görə redaktə et"
+                          className="rounded-full p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                          onClick={() => startEditPost(post)}
+                        >
+                          <Edit3 size={14} />
+                        </button>
                         <button
                           type="button"
                           title={post.isPinned ? "Sabitliyi ləğv et" : "Sabitlə"}

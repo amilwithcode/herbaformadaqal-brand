@@ -3,13 +3,27 @@ import { useEffect, useState, useRef } from "react";
 import type { Category, Product } from "@/modules/products/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
+const LOCALES = [
+  { code: "az", label: "Azərbaycan" },
+  { code: "en", label: "English" },
+  { code: "tr", label: "Türkçe" },
+  { code: "ru", label: "Русский" },
+] as const;
+
+type CategoryWithTranslations = Category & {
+  translations?: { az: string; en: string; tr: string; ru: string };
+};
+
 export default function AdminCategories() {
-  const [items, setItems] = useState<Category[]>([]);
+  const [items, setItems] = useState<CategoryWithTranslations[]>([]);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [namesByLang, setNamesByLang] = useState<Record<string, string>>({ az: "", en: "", tr: "", ru: "" });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editNames, setEditNames] = useState<Record<string, string>>({ az: "", en: "", tr: "", ru: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [primaryColor, setPrimaryColor] = useState("#10b981");
@@ -28,7 +42,7 @@ export default function AdminCategories() {
       ),
     ])
       .then(([cats, prods, settings]) => {
-        setItems((cats || []) as Category[]);
+        setItems((cats || []) as CategoryWithTranslations[]);
         setProducts((prods || []) as Product[]);
         if (settings && typeof settings.primary_color === "string") {
           const raw = settings.primary_color as string;
@@ -79,13 +93,19 @@ export default function AdminCategories() {
         }
       }
 
-      const res = await fetch("/api/admin/categories", {
+      const translations: Record<string, string> = {};
+        LOCALES.forEach(({ code }) => {
+          const v = code === "az" ? trimmed : (namesByLang[code] ?? "").trim();
+          if (v) translations[code] = v;
+        });
+        const res = await fetch("/api/admin/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           name: trimmed, 
-          slug: slug.trim() || null, // Əgər boşdursa, null göndər ki, API avtomatik yaratsın
-          icon: iconUrl 
+          slug: slug.trim() || null,
+          icon: iconUrl,
+          translations: namesByLang,
         }),
       });
 
@@ -98,9 +118,10 @@ export default function AdminCategories() {
 
       const created = await res.json();
       if (created) {
-        setItems((prev) => [...prev, created as Category]);
+        setItems((prev) => [...prev, { ...(created as Category), translations: { az: trimmed, ...namesByLang } }]);
         setName("");
         setSlug("");
+        setNamesByLang({ az: "", en: "", tr: "", ru: "" });
         setIconFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
@@ -139,6 +160,57 @@ export default function AdminCategories() {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const startEdit = (cat: CategoryWithTranslations) => {
+    const tr = cat.translations || {};
+    setEditingId(cat.id);
+    setEditNames({
+      az: tr.az ?? cat.name ?? "",
+      en: tr.en ?? "",
+      tr: tr.tr ?? "",
+      ru: tr.ru ?? "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (editingId == null) return;
+    const az = (editNames.az ?? "").trim();
+    if (!az) {
+      alert("Azərbaycan dilində ad mütləqdir.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingId,
+          name: az,
+          translations: { en: editNames.en ?? "", tr: editNames.tr ?? "", ru: editNames.ru ?? "" },
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Yadda saxlanılmadı");
+        return;
+      }
+      const updated = await res.json();
+      setItems((prev) =>
+        prev.map((c) =>
+          c.id === editingId
+            ? { ...c, name: updated.name ?? az, translations: { az, en: editNames.en ?? "", tr: editNames.tr ?? "", ru: editNames.ru ?? "" } }
+            : c
+        )
+      );
+      setEditingId(null);
+    } catch (e) {
+      console.error(e);
+      alert("Xəta baş verdi");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="space-y-1">
@@ -162,7 +234,7 @@ export default function AdminCategories() {
             </h2>
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700">Ad</label>
+                <label className="text-xs font-medium text-slate-700">Ad (Azərbaycan) *</label>
                 <input
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   value={name}
@@ -170,6 +242,17 @@ export default function AdminCategories() {
                   placeholder="Məs: Arıqlama"
                 />
               </div>
+              {LOCALES.filter((l) => l.code !== "az").map(({ code, label }) => (
+                <div key={code} className="space-y-1">
+                  <label className="text-xs font-medium text-slate-700">Ad ({label})</label>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    value={namesByLang[code] ?? ""}
+                    onChange={(e) => setNamesByLang((p) => ({ ...p, [code]: e.target.value }))}
+                    placeholder={`Kateqoriya adı – ${label}`}
+                  />
+                </div>
+              ))}
 
               <div className="space-y-1">
                 <label className="text-xs font-medium text-slate-700">
@@ -268,6 +351,13 @@ export default function AdminCategories() {
 
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => startEdit(i)}
+                        className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                        title="Dillərə görə redaktə et"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button
                         onClick={() => remove(i.id)}
                         className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                         title="Sil"
@@ -280,6 +370,39 @@ export default function AdminCategories() {
                       </button>
                     </div>
                   </div>
+                  {editingId === i.id && (
+                    <div className="border-t border-slate-100 bg-slate-50/50 px-4 py-4 space-y-3">
+                      <p className="text-xs font-medium text-slate-600">Adı dillərə görə redaktə et</p>
+                      {LOCALES.map(({ code, label }) => (
+                        <div key={code} className="flex gap-2 items-center">
+                          <label className="w-24 text-xs text-slate-600 shrink-0">{label}</label>
+                          <input
+                            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                            value={editNames[code] ?? ""}
+                            onChange={(e) => setEditNames((p) => ({ ...p, [code]: e.target.value }))}
+                            placeholder={`Ad (${label})`}
+                          />
+                        </div>
+                      ))}
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                        >
+                          Ləğv et
+                        </button>
+                        <button
+                          type="button"
+                          onClick={saveEdit}
+                          disabled={saving}
+                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {saving ? "Saxlanılır..." : "Yadda saxla"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
