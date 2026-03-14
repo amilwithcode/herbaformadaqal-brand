@@ -191,6 +191,11 @@ export default async function RootLayout({
   return (
     <html lang={requestLocale}>
       <head>
+        {/* Google Search Console — mağazanın sahibliyinin təsdiqi */}
+        <meta
+          name="google-site-verification"
+          content="dxY_YPSfH_pm788aIryoCAjNlbxzyTqmJn5xgvOK3Qs"
+        />
         {/* Google Ads: dil URL-də göstərilir (policy uyğunluğu) */}
         <link rel="alternate" hrefLang="x-default" href={siteUrl} />
         <link rel="alternate" hrefLang="az" href={`${siteUrl}/az`} />
