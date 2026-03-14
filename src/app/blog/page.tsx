@@ -54,12 +54,12 @@ export default function BlogListPage() {
   };
 
   useEffect(() => {
-    fetch("/api/content/posts")
+    fetch(`/api/content/posts?locale=${locale}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setPosts(Array.isArray(data) ? data : []))
       .catch(() => setPosts([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [locale]);
 
   const categories = Array.from(new Set(posts.map((p) => p.category).filter(Boolean)));
 

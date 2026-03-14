@@ -29,7 +29,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
     let active = true;
     setLoading(true);
 
-    fetch(`/api/content/posts/${slug}`)
+    fetch(`/api/content/posts/${slug}?locale=${locale}`)
       .then((res) => {
         if (!res.ok) throw new Error("Not found");
         return res.json();
@@ -50,7 +50,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [slug, locale]);
 
   const localeMap: Record<string, string> = {
     az: "az-AZ",

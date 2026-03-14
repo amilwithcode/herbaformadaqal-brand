@@ -902,7 +902,7 @@ export default function AdminContentPage() {
                           )}
                         </div>
                         <p className="text-xs text-slate-500 line-clamp-2">
-                          {post.translations?.az?.excerpt ?? post.excerpt || "Mətn yoxdur"}
+                          {(post.translations?.az?.excerpt ?? post.excerpt) || "Mətn yoxdur"}
                         </p>
                         {post.imageUrl && (
                           <img src={post.imageUrl} alt="" className="mt-1 h-12 w-16 rounded-md object-cover border border-slate-100" />
