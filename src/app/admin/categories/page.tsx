@@ -118,7 +118,18 @@ export default function AdminCategories() {
 
       const created = await res.json();
       if (created) {
-        setItems((prev) => [...prev, { ...(created as Category), translations: { az: trimmed, ...namesByLang } }]);
+        setItems((prev) => [
+          ...prev,
+          {
+            ...(created as Category),
+            translations: {
+              az: trimmed,
+              en: namesByLang.en ?? "",
+              tr: namesByLang.tr ?? "",
+              ru: namesByLang.ru ?? "",
+            },
+          },
+        ]);
         setName("");
         setSlug("");
         setNamesByLang({ az: "", en: "", tr: "", ru: "" });
@@ -161,7 +172,7 @@ export default function AdminCategories() {
   };
 
   const startEdit = (cat: CategoryWithTranslations) => {
-    const tr = cat.translations || {};
+    const tr: { az?: string; en?: string; tr?: string; ru?: string } = cat.translations ?? {};
     setEditingId(cat.id);
     setEditNames({
       az: tr.az ?? cat.name ?? "",
