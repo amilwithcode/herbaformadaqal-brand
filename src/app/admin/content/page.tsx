@@ -127,9 +127,18 @@ export default function AdminContentPage() {
   const [savingAd, setSavingAd] = useState(false);
   const [savingPost, setSavingPost] = useState(false);
   const [savingProgram, setSavingProgram] = useState(false);
+  const [contentTab, setContentTab] = useState<"ads" | "posts" | "programs">("ads");
 
-  // Removed dynamic primary color to enforce consistent admin theme
-  // const [primaryColor, setPrimaryColor] = useState("#4f46e5");
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20";
+  const labelClass = "mb-1.5 block text-xs font-medium text-slate-600";
+  const cardClass = "rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow hover:shadow-md";
+  const btnPrimary =
+    "inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow disabled:opacity-60";
+  const btnSecondary =
+    "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50";
+  const btnIcon =
+    "rounded-lg p-2 transition-colors";
 
   useEffect(() => {
     let active = true;
@@ -784,94 +793,126 @@ export default function AdminContentPage() {
     }
   };
 
+  const tabs = [
+    { id: "ads" as const, label: "Reklam bannerləri", icon: Megaphone, count: ads.length },
+    { id: "posts" as const, label: "Blog postları", icon: FileText, count: posts.length },
+    { id: "programs" as const, label: "Proqramlar", icon: ClipboardList, count: programs.length },
+  ];
+
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-emerald-600">
-            <LayoutGrid size={14} />
-            KONTENT İDARƏETMƏSİ
-          </p>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-            Reklam və Postlar
-          </h1>
-          <p className="text-sm text-slate-500 max-w-2xl">
-            Saytın ön səhifəsində görünəcək reklam bannerləri və blog postlarını idarə edin.
-          </p>
-        </div>
-        {loading && (
-          <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-slate-500 shadow-sm border border-slate-100">
-            <Loader2 size={16} className="animate-spin text-emerald-500" />
-            Məlumatlar yüklənir...
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-emerald-600">
+              <LayoutGrid size={16} className="opacity-80" />
+              Kontent idarəetməsi
+            </p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Reklam, blog və proqramlar
+            </h1>
+            <p className="mt-2 max-w-xl text-sm text-slate-500">
+              Saytın ön səhifəsində görünəcək reklam bannerləri, blog yazıları və proqramları idarə edin.
+            </p>
           </div>
-        )}
+          {loading && (
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-600 shadow-sm">
+              <Loader2 size={18} className="animate-spin text-emerald-500" />
+              Yüklənir...
+            </div>
+          )}
+        </div>
+        {/* Tabs */}
+        <div className="mt-6 flex gap-1 rounded-xl bg-slate-100/80 p-1.5 backdrop-blur sm:inline-flex">
+          {tabs.map(({ id, label, icon: Icon, count }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setContentTab(id)}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                contentTab === id
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              }`}
+            >
+              <Icon size={18} className="opacity-80" />
+              {label}
+              <span className={`rounded-full px-2 py-0.5 text-xs ${contentTab === id ? "bg-emerald-100 text-emerald-700" : "bg-slate-200/80 text-slate-600"}`}>
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Ads Section */}
-        <section className="flex flex-col gap-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <Megaphone size={20} className="text-emerald-500" />
-                Reklam Bannerləri
-              </h2>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                <CheckCircle2 size={12} />
-                {ads.filter((a) => a.isActive).length} Aktiv
-              </span>
+      {/* Ads Section */}
+      {contentTab === "ads" && (
+        <section className="space-y-6">
+          <div className={cardClass + " p-6"}>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                  <Megaphone size={22} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Reklam bannerləri</h2>
+                  <p className="text-xs text-slate-500">{ads.filter((a) => a.isActive).length} aktiv · {ads.length} cəmi</p>
+                </div>
+              </div>
             </div>
 
             {/* Add / Edit Ad Form */}
-            <div className="mb-6 space-y-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-              <h3 className="text-sm font-medium text-slate-900">
-                {editingAdId ? "Reklamı redaktə et (dillərə görə)" : "Yeni Reklam"}
-              </h3>
-              <p className="text-xs text-slate-500">Hər dil üçün başlıq daxil edin. Azərbaycan mütləqdir.</p>
-              <div className="space-y-3">
+            <div className="mb-8 space-y-5 rounded-2xl bg-slate-50/80 p-5 ring-1 ring-slate-200/60">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">
+                  {editingAdId ? "Reklamı redaktə et" : "Yeni reklam"}
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-500">Hər dil üçün başlıq və şrift parametrləri. Azərbaycan mütləqdir.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {POST_LOCALES.map(({ code, label }) => (
-                  <div key={code}>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq ({label})</label>
+                  <div key={code} className="min-w-[200px] flex-1">
+                    <label className={labelClass}>Başlıq — {label}</label>
                     <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className={inputClass}
                       placeholder={`Başlıq (${label})...`}
                       value={adTranslations[code] ?? ""}
                       onChange={(e) => setAdTranslations((prev) => ({ ...prev, [code]: e.target.value }))}
                     />
                   </div>
                 ))}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq şrift ölçüsü (məs: 18px, 1.25rem)</label>
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                      placeholder="18px"
-                      value={adTitleFontSize}
-                      onChange={(e) => setAdTitleFontSize(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq şrift qalınlığı (məs: 400, 600, 700)</label>
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                      placeholder="600"
-                      value={adTitleFontWeight}
-                      onChange={(e) => setAdTitleFontWeight(e.target.value)}
-                    />
-                  </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelClass}>Şrift ölçüsü (məs: 18px)</label>
+                  <input
+                    className={inputClass}
+                    placeholder="18px"
+                    value={adTitleFontSize}
+                    onChange={(e) => setAdTitleFontSize(e.target.value)}
+                  />
                 </div>
-                
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Şəkil</label>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        id="ad-image-upload"
-                        onChange={async (e) => {
+                <div>
+                  <label className={labelClass}>Şrift qalınlığı (400, 600, 700)</label>
+                  <input
+                    className={inputClass}
+                    placeholder="600"
+                    value={adTitleFontWeight}
+                    onChange={(e) => setAdTitleFontWeight(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelClass}>Şəkil</label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="ad-image-upload"
+                      onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) {
                             setAdImageUrl("");
@@ -908,62 +949,51 @@ export default function AdminContentPage() {
                           }
                         }}
                       />
-                      <label 
-                        htmlFor="ad-image-upload"
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-xs text-slate-600 hover:border-emerald-400 hover:bg-emerald-50/30 transition-colors"
-                      >
+                    <label
+                      htmlFor="ad-image-upload"
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50/30"
+                    >
                         {uploadingAdImage ? (
                           <Loader2 size={14} className="animate-spin text-emerald-500" />
                         ) : (
                           <ImageIcon size={14} className="text-slate-400" />
                         )}
-                        <span className="truncate">{adImageUrl ? "Şəkil seçildi" : "Şəkil yüklə"}</span>
-                      </label>
-                    </div>
-                    {adImageUrl && (
-                      <a href={adImageUrl} target="_blank" rel="noreferrer" className="mt-1 block truncate text-[10px] text-blue-500 hover:underline">
-                        Bax: {adImageUrl.split('/').pop()}
-                      </a>
-                    )}
+                      <span className="truncate">{adImageUrl ? "Şəkil seçildi" : "Şəkil yüklə"}</span>
+                    </label>
                   </div>
-                  
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Link URL</label>
-                    <div className="relative">
-                      <LinkIcon size={14} className="absolute left-3 top-2.5 text-slate-400" />
-                      <input
-                        className="w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                        placeholder="https://..."
-                        value={adLinkUrl}
-                        onChange={(e) => setAdLinkUrl(e.target.value)}
-                      />
-                    </div>
+                  {adImageUrl && (
+                    <a href={adImageUrl} target="_blank" rel="noreferrer" className="mt-1.5 block truncate text-xs text-emerald-600 hover:underline">
+                      Bax: {adImageUrl.split("/").pop()}
+                    </a>
+                  )}
+                </div>
+                <div>
+                  <label className={labelClass}>Link URL</label>
+                  <div className="relative">
+                    <LinkIcon size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      className={inputClass + " pl-10"}
+                      placeholder="https://..."
+                      value={adLinkUrl}
+                      onChange={(e) => setAdLinkUrl(e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
-              
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-wrap justify-end gap-2 pt-2">
                 {editingAdId && (
-                  <button
-                    type="button"
-                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
-                    onClick={resetAdForm}
-                  >
+                  <button type="button" className={btnSecondary} onClick={resetAdForm}>
                     Ləğv et
                   </button>
                 )}
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-emerald-700 disabled:opacity-70"
+                  className={btnPrimary}
                   onClick={editingAdId ? saveEditAd : addAd}
                   disabled={savingAd || !(adTranslations.az ?? "").trim()}
                 >
-                  {savingAd ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Plus size={14} />
-                  )}
-                  {savingAd ? "Saxlanılır..." : editingAdId ? "Yadda saxla" : "Reklam Əlavə Et"}
+                  {savingAd ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                  {savingAd ? "Saxlanılır..." : editingAdId ? "Yadda saxla" : "Reklam əlavə et"}
                 </button>
               </div>
             </div>
@@ -971,78 +1001,57 @@ export default function AdminContentPage() {
             {/* Ads List */}
             <div className="space-y-3">
               {ads.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                    <Megaphone size={24} className="text-slate-400" />
+                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-16 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+                    <Megaphone size={28} className="text-slate-400" />
                   </div>
-                  <h3 className="text-sm font-medium text-slate-900">Reklam yoxdur</h3>
-                  <p className="text-xs text-slate-500 max-w-[200px]">
-                    Hələ heç bir reklam banneri əlavə edilməyib.
+                  <h3 className="text-base font-medium text-slate-800">Reklam yoxdur</h3>
+                  <p className="mt-1 max-w-xs text-sm text-slate-500">
+                    İlk reklam bannerini yuxarıdakı formadan əlavə edin.
                   </p>
                 </div>
               ) : (
                 ads.map((ad) => (
                   <div
                     key={ad.id}
-                    className={`group relative flex flex-col gap-3 rounded-xl border p-4 transition-all hover:shadow-md ${
-                      ad.isActive 
-                        ? "border-slate-200 bg-white" 
-                        : "border-slate-100 bg-slate-50/50 opacity-75"
+                    className={`group flex items-center gap-4 rounded-xl border p-4 transition-all ${
+                      ad.isActive ? "border-slate-200 bg-white shadow-sm hover:shadow" : "border-slate-100 bg-slate-50/70 opacity-80"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
-                          {ad.imageUrl ? (
-                            <img src={ad.imageUrl} alt={ad.title} className="h-full w-full object-cover" />
-                          ) : (
-                            <ImageIcon size={18} className="text-slate-400" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-slate-900 line-clamp-1">{ad.title}</h4>
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
-                            {ad.linkUrl ? (
-                              <a href={ad.linkUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-emerald-600">
-                                <ExternalLink size={10} />
-                                Link
-                              </a>
-                            ) : (
-                              <span className="text-slate-400">Link yoxdur</span>
-                            )}
-                          </div>
-                        </div>
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200/50">
+                      {ad.imageUrl ? (
+                        <img src={ad.imageUrl} alt={ad.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon size={22} className="text-slate-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-slate-900 line-clamp-1">{ad.title}</h4>
+                      <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                        {ad.linkUrl ? (
+                          <a href={ad.linkUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
+                            <ExternalLink size={12} /> Link
+                          </a>
+                        ) : (
+                          <span className="text-slate-400">Link yoxdur</span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                         <button
-                          type="button"
-                          title={ad.isActive ? "Deaktiv et" : "Aktiv et"}
-                          className={`rounded-full p-1.5 transition-colors ${
-                            ad.isActive 
-                              ? "bg-emerald-100 text-emerald-600 hover:bg-emerald-200" 
-                              : "bg-slate-200 text-slate-500 hover:bg-slate-300"
-                          }`}
-                          onClick={() => toggleAd(ad.id)}
-                        >
-                          {ad.isActive ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                        </button>
-                        <button
-                          type="button"
-                          title="Redaktə et"
-                          className="rounded-full p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
-                          onClick={() => startEditAd(ad)}
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          title="Sil"
-                          className="rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                          onClick={() => removeAd(ad.id)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        title={ad.isActive ? "Deaktiv et" : "Aktiv et"}
+                        className={`${btnIcon} ${ad.isActive ? "bg-emerald-100 text-emerald-600 hover:bg-emerald-200" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                        onClick={() => toggleAd(ad.id)}
+                      >
+                        {ad.isActive ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+                      </button>
+                      <button type="button" title="Redaktə et" className={`${btnIcon} text-slate-500 hover:bg-blue-50 hover:text-blue-600`} onClick={() => startEditAd(ad)}>
+                        <Edit3 size={18} />
+                      </button>
+                      <button type="button" title="Sil" className={`${btnIcon} text-slate-500 hover:bg-red-50 hover:text-red-500`} onClick={() => removeAd(ad.id)}>
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </div>
                 ))
@@ -1050,27 +1059,28 @@ export default function AdminContentPage() {
             </div>
           </div>
         </section>
+      )}
 
-        {/* Posts Section */}
-        <section className="flex flex-col gap-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <FileText size={20} className="text-emerald-500" />
-                Blog Postları
-              </h2>
-              <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-                <Pin size={12} />
-                {posts.filter((p) => p.isPinned).length} Sabit
-              </span>
+      {contentTab === "posts" && (
+        <section className="space-y-6">
+          <div className={cardClass + " p-6"}>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Blog postları</h2>
+                  <p className="text-xs text-slate-500">{posts.filter((p) => p.isPinned).length} sabit · {posts.length} cəmi</p>
+                </div>
+              </div>
             </div>
 
-            {/* Add / Edit Post Form */}
-            <div className="mb-6 space-y-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-              <h3 className="text-sm font-medium text-slate-900">
-                {editingPostId ? "Postu redaktə et (dillərə görə)" : "Yeni Post"}
-              </h3>
-              <p className="text-xs text-slate-500">Hər dil üçün başlıq, anons, mətn və kateqoriya daxil edin. Azərbaycan mütləqdir.</p>
+            <div className="mb-8 space-y-5 rounded-2xl bg-slate-50/80 p-5 ring-1 ring-slate-200/60">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">{editingPostId ? "Postu redaktə et" : "Yeni post"}</h3>
+                <p className="mt-0.5 text-xs text-slate-500">Hər dil üçün başlıq, anons, mətn və kateqoriya. Azərbaycan mütləqdir.</p>
+              </div>
               <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                 {POST_LOCALES.map(({ code, label }) => (
                   <div key={code} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
@@ -1211,76 +1221,29 @@ export default function AdminContentPage() {
             {/* Posts List */}
             <div className="space-y-3">
               {posts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                    <FileText size={24} className="text-slate-400" />
+                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-16 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+                    <FileText size={28} className="text-slate-400" />
                   </div>
-                  <h3 className="text-sm font-medium text-slate-900">Post yoxdur</h3>
-                  <p className="text-xs text-slate-500 max-w-[200px]">
-                    Hələ heç bir blog postu əlavə edilməyib.
-                  </p>
+                  <h3 className="text-base font-medium text-slate-800">Post yoxdur</h3>
+                  <p className="mt-1 max-w-xs text-sm text-slate-500">İlk blog postunu yuxarıdakı formadan əlavə edin.</p>
                 </div>
               ) : (
                 posts.map((post) => (
-                  <div
-                    key={post.id}
-                    className={`group relative flex flex-col gap-3 rounded-xl border p-4 transition-all hover:shadow-md ${
-                      post.isPinned 
-                        ? "border-amber-200 bg-amber-50/30" 
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        {post.category && (
-                          <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                            {post.category}
-                          </span>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-slate-900 line-clamp-1">{post.translations?.az?.title ?? post.title}</h4>
-                          {post.isPinned && (
-                            <Pin size={12} className="text-amber-500 fill-amber-500" />
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-500 line-clamp-2">
-                          {(post.translations?.az?.excerpt ?? post.excerpt) || "Mətn yoxdur"}
-                        </p>
-                        {post.imageUrl && (
-                          <img src={post.imageUrl} alt="" className="mt-1 h-12 w-16 rounded-md object-cover border border-slate-100" />
-                        )}
+                  <div key={post.id} className={`group flex items-start gap-4 rounded-xl border p-4 transition-all ${post.isPinned ? "border-amber-200/80 bg-amber-50/40 shadow-sm" : "border-slate-200 bg-white shadow-sm hover:shadow"}`}>
+                    <div className="min-w-0 flex-1">
+                      {post.category && <span className="inline-block rounded-lg bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">{post.category}</span>}
+                      <div className="mt-2 flex items-center gap-2">
+                        <h4 className="font-medium text-slate-900 line-clamp-1">{post.translations?.az?.title ?? post.title}</h4>
+                        {post.isPinned && <Pin size={14} className="shrink-0 text-amber-500 fill-amber-500" />}
                       </div>
-                      
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          title="Dillərə görə redaktə et"
-                          className="rounded-full p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
-                          onClick={() => startEditPost(post)}
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          title={post.isPinned ? "Sabitliyi ləğv et" : "Sabitlə"}
-                          className={`rounded-full p-1.5 transition-colors ${
-                            post.isPinned 
-                              ? "bg-amber-100 text-amber-600 hover:bg-amber-200" 
-                              : "bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-amber-500"
-                          }`}
-                          onClick={() => togglePin(post.id)}
-                        >
-                          <Pin size={14} className={post.isPinned ? "fill-current" : ""} />
-                        </button>
-                        <button
-                          type="button"
-                          title="Sil"
-                          className="rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                          onClick={() => removePost(post.id)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                      <p className="mt-1 text-sm text-slate-500 line-clamp-2">{(post.translations?.az?.excerpt ?? post.excerpt) || "Mətn yoxdur"}</p>
+                      {post.imageUrl && <img src={post.imageUrl} alt="" className="mt-2 h-14 w-20 rounded-lg object-cover ring-1 ring-slate-200/50" />}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button type="button" title="Redaktə et" className={`${btnIcon} text-slate-500 hover:bg-blue-50 hover:text-blue-600`} onClick={() => startEditPost(post)}><Edit3 size={18} /></button>
+                      <button type="button" title={post.isPinned ? "Sabitliyi ləğv et" : "Sabitlə"} className={`${btnIcon} ${post.isPinned ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500 hover:text-amber-500"}`} onClick={() => togglePin(post.id)}><Pin size={18} className={post.isPinned ? "fill-current" : ""} /></button>
+                      <button type="button" title="Sil" className={`${btnIcon} text-slate-500 hover:bg-red-50 hover:text-red-500`} onClick={() => removePost(post.id)}><Trash2 size={18} /></button>
                     </div>
                   </div>
                 ))
@@ -1288,30 +1251,32 @@ export default function AdminContentPage() {
             </div>
           </div>
         </section>
-        {/* Programs Section */}
-        <section className="flex flex-col gap-6 lg:col-span-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <ClipboardList size={20} className="text-emerald-500" />
-                Proqramlar
-              </h2>
-              <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                <CheckCircle2 size={12} />
-                {programs.filter((p) => p.isActive).length} Aktiv
-              </span>
+      )}
+
+      {contentTab === "programs" && (
+        <section className="space-y-6">
+          <div className={cardClass + " p-6"}>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
+                  <ClipboardList size={22} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Proqramlar</h2>
+                  <p className="text-xs text-slate-500">{programs.filter((p) => p.isActive).length} aktiv · {programs.length} cəmi</p>
+                </div>
+              </div>
             </div>
 
-            {/* Add / Edit Program Form */}
-            <div className="mb-6 space-y-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-              <h3 className="text-sm font-medium text-slate-900">
-                {editingProgramId ? "Proqramı redaktə et (dillərə görə)" : "Yeni Proqram"}
-              </h3>
-              <p className="text-xs text-slate-500">Hər dil üçün ad və təsvir daxil edin. Azərbaycan mütləqdir.</p>
-              <div className="space-y-4 max-h-[50vh] overflow-y-auto">
+            <div className="mb-8 space-y-5 rounded-2xl bg-slate-50/80 p-5 ring-1 ring-slate-200/60">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">{editingProgramId ? "Proqramı redaktə et" : "Yeni proqram"}</h3>
+                <p className="mt-0.5 text-xs text-slate-500">Hər dil üçün ad və təsvir. Azərbaycan mütləqdir.</p>
+              </div>
+              <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
                 {POST_LOCALES.map(({ code, label }) => (
-                  <div key={code} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
-                    <h4 className="text-xs font-semibold text-slate-700">{label}</h4>
+                  <div key={code} className="rounded-xl border border-slate-200/80 bg-white p-4 space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600">{label}</h4>
                     <div>
                       <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Ad</label>
                       <input
@@ -1456,41 +1421,30 @@ export default function AdminContentPage() {
               
               <div className="flex justify-end gap-2 pt-2">
                 {editingProgramId && (
-                  <button
-                    type="button"
-                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
-                    onClick={resetProgramForm}
-                  >
+                  <button type="button" className={btnSecondary} onClick={resetProgramForm}>
                     Ləğv et
                   </button>
                 )}
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-emerald-700 disabled:opacity-70"
+                  className={btnPrimary}
                   onClick={editingProgramId ? saveEditProgram : addProgram}
                   disabled={savingProgram || !(programTranslations.az?.title ?? "").trim()}
                 >
-                  {savingProgram ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Plus size={14} />
-                  )}
-                  {savingProgram ? "Saxlanılır..." : editingProgramId ? "Yadda saxla" : "Proqram Əlavə Et"}
+                  {savingProgram ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                  {savingProgram ? "Saxlanılır..." : editingProgramId ? "Yadda saxla" : "Proqram əlavə et"}
                 </button>
               </div>
             </div>
 
-            {/* Programs List */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {programs.length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                    <ClipboardList size={24} className="text-slate-400" />
+                <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-16 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+                    <ClipboardList size={28} className="text-slate-400" />
                   </div>
-                  <h3 className="text-sm font-medium text-slate-900">Proqram yoxdur</h3>
-                  <p className="text-xs text-slate-500 max-w-[200px]">
-                    Hələ heç bir proqram əlavə edilməyib.
-                  </p>
+                  <h3 className="text-base font-medium text-slate-800">Proqram yoxdur</h3>
+                  <p className="mt-1 max-w-xs text-sm text-slate-500">İlk proqramı yuxarıdakı formadan əlavə edin.</p>
                 </div>
               ) : (
                 programs.map((prog) => (
@@ -1564,7 +1518,7 @@ export default function AdminContentPage() {
             </div>
           </div>
         </section>
-      </div>
+      )}
     </div>
   );
 }
