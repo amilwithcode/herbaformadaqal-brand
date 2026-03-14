@@ -87,21 +87,21 @@ export default function HeroSection({
 
   const activeSlide = slides[current];
 
-  // Slaydın dili cari dilə uyğun deyilsə mətni tərcümə ilə göstər (dilə görə dəyişsin)
+  // Hər slaydın öz başlıq/mətn/düyməsi olsun; boşdursa bölmə və ya tərcümə fallback
   const slideLocale = activeSlide.locale;
   const slideMatchesLocale = slideLocale && slideLocale === locale;
   const useTranslatedContent = !slideMatchesLocale;
 
-  const title = useTranslatedContent
-    ? t("hero.title")
-    : (activeSlide.title || sectionData?.title || t("hero.title"));
-  const subtitle = useTranslatedContent
-    ? t("hero.subtitle")
-    : (activeSlide.subtitle || sectionData?.subtitle || t("hero.subtitle"));
-  const buttonText = useTranslatedContent
-    ? t("hero.cta_secondary")
-    : (activeSlide.button_text || sectionData?.buttonText || t("hero.cta_secondary"));
-  const buttonLink = activeSlide.button_link || "/products";
+  const title =
+    (activeSlide.title && activeSlide.title.trim()) ||
+    (useTranslatedContent ? t("hero.title") : (sectionData?.title || t("hero.title")));
+  const subtitle =
+    (activeSlide.subtitle && activeSlide.subtitle.trim()) ||
+    (useTranslatedContent ? t("hero.subtitle") : (sectionData?.subtitle || t("hero.subtitle")));
+  const buttonText =
+    (activeSlide.button_text && activeSlide.button_text.trim()) ||
+    (useTranslatedContent ? t("hero.cta_secondary") : (sectionData?.buttonText || t("hero.cta_secondary")));
+  const buttonLink = (activeSlide.button_link && activeSlide.button_link.trim()) || "/products";
   const bgImage = activeSlide.image_url;
 
   return (
@@ -141,8 +141,8 @@ export default function HeroSection({
           </div>
         ))}
 
-        {/* Content - always on top */}
-        <div className="relative z-20 flex min-h-[600px] md:min-h-[780px] items-center">
+        {/* Content - always on top; key ensures text/buttons update when slide changes */}
+        <div key={`hero-content-${current}`} className="relative z-20 flex min-h-[600px] md:min-h-[780px] items-center">
           <div className="mx-auto w-full max-w-6xl px-8 md:px-12">
             {/* Left - Text Overlay */}
             <div className="max-w-2xl">
