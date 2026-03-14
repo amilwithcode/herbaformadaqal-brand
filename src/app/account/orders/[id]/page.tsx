@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
+import { GoogleAdsConversion } from "@/components/analytics/GoogleAdsConversion";
 import type { OrderStatus } from "@/modules/orders/types";
 
 type Props = {
@@ -130,6 +131,7 @@ export default async function AccountOrderDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
+      <GoogleAdsConversion orderId={order.id} orderStatus={order.status as string} />
       <SiteNavbar />
       <main className="mx-auto max-w-6xl px-6 py-10 space-y-6">
         <div className="space-y-1">
