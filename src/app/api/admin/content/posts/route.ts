@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "") + "-" + Date.now();
 
+    const fontStr = (v: unknown) => (typeof v === "string" ? v.trim() : "");
     let payload: Record<string, unknown> = {
       title: title.trim(),
       excerpt: typeof az.excerpt === "string" ? az.excerpt : body.excerpt || "",
@@ -97,6 +98,12 @@ export async function POST(req: NextRequest) {
       is_pinned: body.isPinned ?? false,
       image_url: body.imageUrl || body.image_url || "",
       category: typeof az.category === "string" ? az.category : body.category || "",
+      title_font_size: fontStr(body.title_font_size),
+      title_font_weight: fontStr(body.title_font_weight),
+      excerpt_font_size: fontStr(body.excerpt_font_size),
+      excerpt_font_weight: fontStr(body.excerpt_font_weight),
+      body_font_size: fontStr(body.body_font_size),
+      body_font_weight: fontStr(body.body_font_weight),
     };
     const optionalFields: { key: string; value: unknown }[] = [
       { key: "excerpt", value: payload.excerpt },
@@ -105,6 +112,12 @@ export async function POST(req: NextRequest) {
       { key: "is_pinned", value: payload.is_pinned },
       { key: "image_url", value: payload.image_url },
       { key: "category", value: payload.category },
+      { key: "title_font_size", value: payload.title_font_size },
+      { key: "title_font_weight", value: payload.title_font_weight },
+      { key: "excerpt_font_size", value: payload.excerpt_font_size },
+      { key: "excerpt_font_weight", value: payload.excerpt_font_weight },
+      { key: "body_font_size", value: payload.body_font_size },
+      { key: "body_font_weight", value: payload.body_font_weight },
     ];
 
     // İlk cəhd - bütün sütunlarla
@@ -213,6 +226,12 @@ export async function PATCH(req: NextRequest) {
     if (typeof body.isPinned === "boolean") patch.is_pinned = body.isPinned;
     if (typeof body.imageUrl === "string") patch.image_url = body.imageUrl;
     if (typeof body.image_url === "string") patch.image_url = body.image_url;
+    if (typeof body.title_font_size === "string") patch.title_font_size = body.title_font_size.trim();
+    if (typeof body.title_font_weight === "string") patch.title_font_weight = body.title_font_weight.trim();
+    if (typeof body.excerpt_font_size === "string") patch.excerpt_font_size = body.excerpt_font_size.trim();
+    if (typeof body.excerpt_font_weight === "string") patch.excerpt_font_weight = body.excerpt_font_weight.trim();
+    if (typeof body.body_font_size === "string") patch.body_font_size = body.body_font_size.trim();
+    if (typeof body.body_font_weight === "string") patch.body_font_weight = body.body_font_weight.trim();
 
     if (Object.keys(patch).length > 0) {
       const { error: updError } = await supabase.from(TABLE).update(patch).eq("id", id);

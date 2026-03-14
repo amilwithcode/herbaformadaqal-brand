@@ -15,6 +15,12 @@ type BlogPost = {
   image_url: string;
   is_pinned: boolean;
   created_at: string;
+  title_font_size?: string;
+  title_font_weight?: string;
+  excerpt_font_size?: string;
+  excerpt_font_weight?: string;
+  body_font_size?: string;
+  body_font_weight?: string;
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -132,12 +138,24 @@ export default function BlogSection() {
             )}
 
             {/* Title */}
-            <h3 className="text-sm font-bold text-slate-900 line-clamp-2 mb-2">
+            <h3
+              className="text-sm font-bold text-slate-900 line-clamp-2 mb-2"
+              style={{
+                ...(post.title_font_size ? { fontSize: post.title_font_size } : {}),
+                ...(post.title_font_weight ? { fontWeight: post.title_font_weight } : {}),
+              }}
+            >
               {post.title}
             </h3>
 
             {/* Excerpt */}
-            <p className="text-xs text-slate-600 line-clamp-4 mb-4 flex-1">
+            <p
+              className="text-xs text-slate-600 line-clamp-4 mb-4 flex-1"
+              style={{
+                ...(post.excerpt_font_size ? { fontSize: post.excerpt_font_size } : {}),
+                ...(post.excerpt_font_weight ? { fontWeight: post.excerpt_font_weight } : {}),
+              }}
+            >
               {post.excerpt || post.body?.slice(0, 150) || ""}
             </p>
 

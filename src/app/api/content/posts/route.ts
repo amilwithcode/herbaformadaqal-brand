@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { data: rows, error } = await supabase
     .from("content_posts")
-    .select("id, title, excerpt, body, category, slug, image_url, is_pinned, created_at")
+    .select("id, title, excerpt, body, category, slug, image_url, is_pinned, created_at, title_font_size, title_font_weight, excerpt_font_size, excerpt_font_weight, body_font_size, body_font_weight")
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 

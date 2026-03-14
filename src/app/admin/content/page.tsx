@@ -30,6 +30,9 @@ type AdminAd = {
   imageUrl: string;
   linkUrl: string;
   isActive: boolean;
+  translations?: Record<string, string>;
+  title_font_size?: string;
+  title_font_weight?: string;
 };
 
 const POST_LOCALES = [
@@ -50,6 +53,12 @@ type AdminPost = {
   imageUrl: string;
   isPinned: boolean;
   translations?: Record<string, PostTranslation>;
+  title_font_size?: string;
+  title_font_weight?: string;
+  excerpt_font_size?: string;
+  excerpt_font_weight?: string;
+  body_font_size?: string;
+  body_font_weight?: string;
 };
 
 type AdminProgram = {
@@ -60,6 +69,11 @@ type AdminProgram = {
   duration: string;
   price: number;
   isActive: boolean;
+  translations?: Record<string, { title: string; description: string }>;
+  title_font_size?: string;
+  title_font_weight?: string;
+  description_font_size?: string;
+  description_font_weight?: string;
 };
 
 export default function AdminContentPage() {
@@ -67,10 +81,15 @@ export default function AdminContentPage() {
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [programs, setPrograms] = useState<AdminProgram[]>([]);
 
-  const [adTitle, setAdTitle] = useState("");
+  const [adTranslations, setAdTranslations] = useState<Record<string, string>>({
+    az: "", en: "", tr: "", ru: "",
+  });
+  const [adTitleFontSize, setAdTitleFontSize] = useState("");
+  const [adTitleFontWeight, setAdTitleFontWeight] = useState("");
   const [adImageUrl, setAdImageUrl] = useState("");
   const [uploadingAdImage, setUploadingAdImage] = useState(false);
   const [adLinkUrl, setAdLinkUrl] = useState("");
+  const [editingAdId, setEditingAdId] = useState<string | null>(null);
 
   const [postTranslations, setPostTranslations] = useState<Record<string, PostTranslation>>({
     az: { title: "", excerpt: "", body: "", category: "" },
@@ -81,13 +100,28 @@ export default function AdminContentPage() {
   const [postImageUrl, setPostImageUrl] = useState("");
   const [uploadingPostImage, setUploadingPostImage] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [postTitleFontSize, setPostTitleFontSize] = useState("");
+  const [postTitleFontWeight, setPostTitleFontWeight] = useState("");
+  const [postExcerptFontSize, setPostExcerptFontSize] = useState("");
+  const [postExcerptFontWeight, setPostExcerptFontWeight] = useState("");
+  const [postBodyFontSize, setPostBodyFontSize] = useState("");
+  const [postBodyFontWeight, setPostBodyFontWeight] = useState("");
   
-  const [programTitle, setProgramTitle] = useState("");
-  const [programDesc, setProgramDesc] = useState("");
+  const [programTranslations, setProgramTranslations] = useState<Record<string, { title: string; description: string }>>({
+    az: { title: "", description: "" },
+    en: { title: "", description: "" },
+    tr: { title: "", description: "" },
+    ru: { title: "", description: "" },
+  });
+  const [programTitleFontSize, setProgramTitleFontSize] = useState("");
+  const [programTitleFontWeight, setProgramTitleFontWeight] = useState("");
+  const [programDescFontSize, setProgramDescFontSize] = useState("");
+  const [programDescFontWeight, setProgramDescFontWeight] = useState("");
   const [programImageUrl, setProgramImageUrl] = useState("");
   const [programDuration, setProgramDuration] = useState("");
   const [programPrice, setProgramPrice] = useState("");
   const [uploadingProgramImage, setUploadingProgramImage] = useState(false);
+  const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [savingAd, setSavingAd] = useState(false);
@@ -120,14 +154,20 @@ export default function AdminContentPage() {
           image_url?: string;
           link_url?: string;
           is_active?: boolean;
+          translations?: Record<string, string>;
+          title_font_size?: string;
+          title_font_weight?: string;
         };
         const mappedAds: AdminAd[] = (Array.isArray(adsData) ? (adsData as AdAPI[]) : []).map(
           (ad) => ({
             id: String(ad.id),
-            title: ad.title || "",
+            title: (ad.translations?.az ?? ad.title) || "",
             imageUrl: ad.image_url || "",
             linkUrl: ad.link_url || "",
             isActive: ad.is_active !== false,
+            translations: ad.translations,
+            title_font_size: ad.title_font_size ?? "",
+            title_font_weight: ad.title_font_weight ?? "",
           })
         );
         setAds(mappedAds);
@@ -141,7 +181,15 @@ export default function AdminContentPage() {
           image_url?: string;
           is_pinned?: boolean;
         };
-        type PostAPIWithTranslations = PostAPI & { translations?: Record<string, PostTranslation> };
+        type PostAPIWithTranslations = PostAPI & {
+          translations?: Record<string, PostTranslation>;
+          title_font_size?: string;
+          title_font_weight?: string;
+          excerpt_font_size?: string;
+          excerpt_font_weight?: string;
+          body_font_size?: string;
+          body_font_weight?: string;
+        };
         const mappedPosts: AdminPost[] = (Array.isArray(postsData) ? (postsData as PostAPIWithTranslations[]) : []).map(
           (p) => ({
             id: String(p.id),
@@ -152,6 +200,12 @@ export default function AdminContentPage() {
             imageUrl: p.image_url || "",
             isPinned: Boolean(p.is_pinned),
             translations: p.translations,
+            title_font_size: p.title_font_size ?? "",
+            title_font_weight: p.title_font_weight ?? "",
+            excerpt_font_size: p.excerpt_font_size ?? "",
+            excerpt_font_weight: p.excerpt_font_weight ?? "",
+            body_font_size: p.body_font_size ?? "",
+            body_font_weight: p.body_font_weight ?? "",
           })
         );
         setPosts(mappedPosts);
@@ -165,15 +219,25 @@ export default function AdminContentPage() {
           duration?: string;
           price?: number | string;
           is_active?: boolean;
+          translations?: Record<string, { title: string; description: string }>;
+          title_font_size?: string;
+          title_font_weight?: string;
+          description_font_size?: string;
+          description_font_weight?: string;
         };
         const mappedPrograms = (Array.isArray(programsData) ? (programsData as ProgramAPI[]) : []).map((p) => ({
           id: String(p.id),
-          title: p.title || "",
-          description: p.description || "",
+          title: (p.translations?.az?.title ?? p.title) || "",
+          description: (p.translations?.az?.description ?? p.description) || "",
           imageUrl: p.image_url || "",
           duration: p.duration || "",
           price: Number(p.price) || 0,
           isActive: p.is_active !== false,
+          translations: p.translations,
+          title_font_size: p.title_font_size ?? "",
+          title_font_weight: p.title_font_weight ?? "",
+          description_font_size: p.description_font_size ?? "",
+          description_font_weight: p.description_font_weight ?? "",
         }));
         setPrograms(mappedPrograms);
       })
@@ -187,16 +251,27 @@ export default function AdminContentPage() {
     };
   }, []);
 
+  const resetAdForm = () => {
+    setAdTranslations({ az: "", en: "", tr: "", ru: "" });
+    setAdTitleFontSize("");
+    setAdTitleFontWeight("");
+    setAdImageUrl("");
+    setAdLinkUrl("");
+    setEditingAdId(null);
+  };
+
   const addAd = async () => {
-    const trimmedTitle = adTitle.trim();
-    if (!trimmedTitle) return;
+    const azTitle = (adTranslations.az ?? "").trim();
+    if (!azTitle) return;
     setSavingAd(true);
     try {
       const res = await fetch("/api/admin/content/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: trimmedTitle,
+          translations: adTranslations,
+          title_font_size: adTitleFontSize.trim(),
+          title_font_weight: adTitleFontWeight.trim(),
           imageUrl: adImageUrl.trim(),
           linkUrl: adLinkUrl.trim(),
           isActive: true,
@@ -206,15 +281,73 @@ export default function AdminContentPage() {
         const row = await res.json();
         const ad: AdminAd = {
           id: String(row.id),
-          title: row.title || "",
+          title: adTranslations.az || "",
           imageUrl: row.image_url || "",
           linkUrl: row.link_url || "",
           isActive: Boolean(row.is_active),
+          translations: adTranslations,
+          title_font_size: adTitleFontSize || "",
+          title_font_weight: adTitleFontWeight || "",
         };
         setAds((prev) => [ad, ...prev]);
-        setAdTitle("");
-        setAdImageUrl("");
-        setAdLinkUrl("");
+        resetAdForm();
+      }
+    } catch {
+    } finally {
+      setSavingAd(false);
+    }
+  };
+
+  const startEditAd = (ad: AdminAd) => {
+    setEditingAdId(ad.id);
+    setAdTranslations({
+      az: ad.translations?.az ?? ad.title,
+      en: ad.translations?.en ?? "",
+      tr: ad.translations?.tr ?? "",
+      ru: ad.translations?.ru ?? "",
+    });
+    setAdTitleFontSize(ad.title_font_size ?? "");
+    setAdTitleFontWeight(ad.title_font_weight ?? "");
+    setAdImageUrl(ad.imageUrl ?? "");
+    setAdLinkUrl(ad.linkUrl ?? "");
+  };
+
+  const saveEditAd = async () => {
+    if (!editingAdId) return;
+    const azTitle = (adTranslations.az ?? "").trim();
+    if (!azTitle) return;
+    setSavingAd(true);
+    try {
+      const res = await fetch("/api/admin/content/ads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingAdId,
+          translations: adTranslations,
+          title_font_size: adTitleFontSize.trim(),
+          title_font_weight: adTitleFontWeight.trim(),
+          imageUrl: adImageUrl.trim(),
+          linkUrl: adLinkUrl.trim(),
+        }),
+      });
+      if (res.ok) {
+        const row = await res.json();
+        setAds((prev) =>
+          prev.map((a) =>
+            a.id === editingAdId
+              ? {
+                  ...a,
+                  title: adTranslations.az,
+                  imageUrl: row.image_url ?? a.imageUrl,
+                  linkUrl: row.link_url ?? a.linkUrl,
+                  translations: adTranslations,
+                  title_font_size: adTitleFontSize,
+                  title_font_weight: adTitleFontWeight,
+                }
+              : a
+          )
+        );
+        resetAdForm();
       }
     } catch {
     } finally {
@@ -290,6 +423,12 @@ export default function AdminContentPage() {
           translations: postTranslations,
           imageUrl: postImageUrl.trim(),
           isPinned: false,
+          title_font_size: postTitleFontSize.trim(),
+          title_font_weight: postTitleFontWeight.trim(),
+          excerpt_font_size: postExcerptFontSize.trim(),
+          excerpt_font_weight: postExcerptFontWeight.trim(),
+          body_font_size: postBodyFontSize.trim(),
+          body_font_weight: postBodyFontWeight.trim(),
         }),
       });
       if (res.ok) {
@@ -303,6 +442,12 @@ export default function AdminContentPage() {
           imageUrl: row.image_url || "",
           isPinned: Boolean(row.is_pinned),
           translations: postTranslations,
+          title_font_size: postTitleFontSize || "",
+          title_font_weight: postTitleFontWeight || "",
+          excerpt_font_size: postExcerptFontSize || "",
+          excerpt_font_weight: postExcerptFontWeight || "",
+          body_font_size: postBodyFontSize || "",
+          body_font_weight: postBodyFontWeight || "",
         };
         setPosts((prev) => [post, ...prev]);
         setPostTranslations({
@@ -312,6 +457,12 @@ export default function AdminContentPage() {
           ru: { title: "", excerpt: "", body: "", category: "" },
         });
         setPostImageUrl("");
+        setPostTitleFontSize("");
+        setPostTitleFontWeight("");
+        setPostExcerptFontSize("");
+        setPostExcerptFontWeight("");
+        setPostBodyFontSize("");
+        setPostBodyFontWeight("");
       } else {
         const errorData = await res.json().catch(() => ({ error: "Naməlum xəta" }));
         alert("Xəta: " + (errorData.error || "Post əlavə edilə bilmədi"));
@@ -335,6 +486,12 @@ export default function AdminContentPage() {
       ru: tr.ru ?? { title: "", excerpt: "", body: "", category: "" },
     });
     setPostImageUrl(post.imageUrl || "");
+    setPostTitleFontSize(post.title_font_size ?? "");
+    setPostTitleFontWeight(post.title_font_weight ?? "");
+    setPostExcerptFontSize(post.excerpt_font_size ?? "");
+    setPostExcerptFontWeight(post.excerpt_font_weight ?? "");
+    setPostBodyFontSize(post.body_font_size ?? "");
+    setPostBodyFontWeight(post.body_font_weight ?? "");
   };
 
   const saveEditPost = async () => {
@@ -353,6 +510,12 @@ export default function AdminContentPage() {
           id: editingPostId,
           translations: postTranslations,
           imageUrl: postImageUrl.trim(),
+          title_font_size: postTitleFontSize.trim(),
+          title_font_weight: postTitleFontWeight.trim(),
+          excerpt_font_size: postExcerptFontSize.trim(),
+          excerpt_font_weight: postExcerptFontWeight.trim(),
+          body_font_size: postBodyFontSize.trim(),
+          body_font_weight: postBodyFontWeight.trim(),
         }),
       });
       if (res.ok) {
@@ -360,7 +523,17 @@ export default function AdminContentPage() {
         setPosts((prev) =>
           prev.map((p) =>
             p.id === editingPostId
-              ? { ...p, ...updated, translations: postTranslations }
+              ? {
+                  ...p,
+                  ...updated,
+                  translations: postTranslations,
+                  title_font_size: postTitleFontSize,
+                  title_font_weight: postTitleFontWeight,
+                  excerpt_font_size: postExcerptFontSize,
+                  excerpt_font_weight: postExcerptFontWeight,
+                  body_font_size: postBodyFontSize,
+                  body_font_weight: postBodyFontWeight,
+                }
               : p
           )
         );
@@ -372,6 +545,12 @@ export default function AdminContentPage() {
           ru: { title: "", excerpt: "", body: "", category: "" },
         });
         setPostImageUrl("");
+        setPostTitleFontSize("");
+        setPostTitleFontWeight("");
+        setPostExcerptFontSize("");
+        setPostExcerptFontWeight("");
+        setPostBodyFontSize("");
+        setPostBodyFontWeight("");
       } else {
         const err = await res.json().catch(() => ({}));
         alert(err.error || "Yadda saxlanılmadı");
@@ -393,6 +572,12 @@ export default function AdminContentPage() {
       ru: { title: "", excerpt: "", body: "", category: "" },
     });
     setPostImageUrl("");
+    setPostTitleFontSize("");
+    setPostTitleFontWeight("");
+    setPostExcerptFontSize("");
+    setPostExcerptFontWeight("");
+    setPostBodyFontSize("");
+    setPostBodyFontWeight("");
   };
 
   const togglePin = async (id: string) => {
@@ -432,17 +617,37 @@ export default function AdminContentPage() {
     }
   };
 
+  const resetProgramForm = () => {
+    setProgramTranslations({
+      az: { title: "", description: "" },
+      en: { title: "", description: "" },
+      tr: { title: "", description: "" },
+      ru: { title: "", description: "" },
+    });
+    setProgramTitleFontSize("");
+    setProgramTitleFontWeight("");
+    setProgramDescFontSize("");
+    setProgramDescFontWeight("");
+    setProgramImageUrl("");
+    setProgramDuration("");
+    setProgramPrice("");
+    setEditingProgramId(null);
+  };
+
   const addProgram = async () => {
-    const trimmedTitle = programTitle.trim();
-    if (!trimmedTitle) return;
+    const azTitle = (programTranslations.az?.title ?? "").trim();
+    if (!azTitle) return;
     setSavingProgram(true);
     try {
       const res = await fetch("/api/admin/content/programs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: trimmedTitle,
-          description: programDesc.trim(),
+          translations: programTranslations,
+          title_font_size: programTitleFontSize.trim(),
+          title_font_weight: programTitleFontWeight.trim(),
+          description_font_size: programDescFontSize.trim(),
+          description_font_weight: programDescFontWeight.trim(),
           imageUrl: programImageUrl.trim(),
           duration: programDuration.trim(),
           price: Number(programPrice) || 0,
@@ -453,19 +658,88 @@ export default function AdminContentPage() {
         const row = await res.json();
         const prog: AdminProgram = {
           id: String(row.id),
-          title: row.title || "",
-          description: row.description || "",
+          title: programTranslations.az?.title || "",
+          description: programTranslations.az?.description || "",
           imageUrl: row.image_url || "",
           duration: row.duration || "",
           price: Number(row.price) || 0,
           isActive: row.is_active !== false,
+          translations: programTranslations,
+          title_font_size: programTitleFontSize || "",
+          title_font_weight: programTitleFontWeight || "",
+          description_font_size: programDescFontSize || "",
+          description_font_weight: programDescFontWeight || "",
         };
         setPrograms((prev) => [prog, ...prev]);
-        setProgramTitle("");
-        setProgramDesc("");
-        setProgramImageUrl("");
-        setProgramDuration("");
-        setProgramPrice("");
+        resetProgramForm();
+      }
+    } catch {
+    } finally {
+      setSavingProgram(false);
+    }
+  };
+
+  const startEditProgram = (prog: AdminProgram) => {
+    setEditingProgramId(prog.id);
+    const tr = prog.translations ?? {};
+    setProgramTranslations({
+      az: { title: tr.az?.title ?? prog.title, description: tr.az?.description ?? prog.description },
+      en: { title: tr.en?.title ?? "", description: tr.en?.description ?? "" },
+      tr: { title: tr.tr?.title ?? "", description: tr.tr?.description ?? "" },
+      ru: { title: tr.ru?.title ?? "", description: tr.ru?.description ?? "" },
+    });
+    setProgramTitleFontSize(prog.title_font_size ?? "");
+    setProgramTitleFontWeight(prog.title_font_weight ?? "");
+    setProgramDescFontSize(prog.description_font_size ?? "");
+    setProgramDescFontWeight(prog.description_font_weight ?? "");
+    setProgramImageUrl(prog.imageUrl ?? "");
+    setProgramDuration(prog.duration ?? "");
+    setProgramPrice(String(prog.price ?? ""));
+  };
+
+  const saveEditProgram = async () => {
+    if (!editingProgramId) return;
+    const azTitle = (programTranslations.az?.title ?? "").trim();
+    if (!azTitle) return;
+    setSavingProgram(true);
+    try {
+      const res = await fetch("/api/admin/content/programs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingProgramId,
+          translations: programTranslations,
+          title_font_size: programTitleFontSize.trim(),
+          title_font_weight: programTitleFontWeight.trim(),
+          description_font_size: programDescFontSize.trim(),
+          description_font_weight: programDescFontWeight.trim(),
+          imageUrl: programImageUrl.trim(),
+          duration: programDuration.trim(),
+          price: Number(programPrice) || 0,
+        }),
+      });
+      if (res.ok) {
+        const row = await res.json();
+        setPrograms((prev) =>
+          prev.map((p) =>
+            p.id === editingProgramId
+              ? {
+                  ...p,
+                  title: programTranslations.az?.title ?? p.title,
+                  description: programTranslations.az?.description ?? p.description,
+                  imageUrl: row.image_url ?? p.imageUrl,
+                  duration: row.duration ?? p.duration,
+                  price: Number(row.price) ?? p.price,
+                  translations: programTranslations,
+                  title_font_size: programTitleFontSize,
+                  title_font_weight: programTitleFontWeight,
+                  description_font_size: programDescFontSize,
+                  description_font_weight: programDescFontWeight,
+                }
+              : p
+          )
+        );
+        resetProgramForm();
       }
     } catch {
     } finally {
@@ -549,18 +823,43 @@ export default function AdminContentPage() {
               </span>
             </div>
 
-            {/* Add Ad Form */}
+            {/* Add / Edit Ad Form */}
             <div className="mb-6 space-y-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-              <h3 className="text-sm font-medium text-slate-900">Yeni Reklam</h3>
+              <h3 className="text-sm font-medium text-slate-900">
+                {editingAdId ? "Reklamı redaktə et (dillərə görə)" : "Yeni Reklam"}
+              </h3>
+              <p className="text-xs text-slate-500">Hər dil üçün başlıq daxil edin. Azərbaycan mütləqdir.</p>
               <div className="space-y-3">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq</label>
-                  <input
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Reklam başlığı..."
-                    value={adTitle}
-                    onChange={(e) => setAdTitle(e.target.value)}
-                  />
+                {POST_LOCALES.map(({ code, label }) => (
+                  <div key={code}>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq ({label})</label>
+                    <input
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      placeholder={`Başlıq (${label})...`}
+                      value={adTranslations[code] ?? ""}
+                      onChange={(e) => setAdTranslations((prev) => ({ ...prev, [code]: e.target.value }))}
+                    />
+                  </div>
+                ))}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq şrift ölçüsü (məs: 18px, 1.25rem)</label>
+                    <input
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      placeholder="18px"
+                      value={adTitleFontSize}
+                      onChange={(e) => setAdTitleFontSize(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq şrift qalınlığı (məs: 400, 600, 700)</label>
+                    <input
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      placeholder="600"
+                      value={adTitleFontWeight}
+                      onChange={(e) => setAdTitleFontWeight(e.target.value)}
+                    />
+                  </div>
                 </div>
                 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -643,19 +942,28 @@ export default function AdminContentPage() {
                 </div>
               </div>
               
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end gap-2 pt-2">
+                {editingAdId && (
+                  <button
+                    type="button"
+                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                    onClick={resetAdForm}
+                  >
+                    Ləğv et
+                  </button>
+                )}
                 <button
                   type="button"
                   className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-emerald-700 disabled:opacity-70"
-                  onClick={addAd}
-                  disabled={savingAd || !adTitle}
+                  onClick={editingAdId ? saveEditAd : addAd}
+                  disabled={savingAd || !(adTranslations.az ?? "").trim()}
                 >
                   {savingAd ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
                     <Plus size={14} />
                   )}
-                  {savingAd ? "Əlavə edilir..." : "Reklam Əlavə Et"}
+                  {savingAd ? "Saxlanılır..." : editingAdId ? "Yadda saxla" : "Reklam Əlavə Et"}
                 </button>
               </div>
             </div>
@@ -717,6 +1025,14 @@ export default function AdminContentPage() {
                           onClick={() => toggleAd(ad.id)}
                         >
                           {ad.isActive ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                        </button>
+                        <button
+                          type="button"
+                          title="Redaktə et"
+                          className="rounded-full p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                          onClick={() => startEditAd(ad)}
+                        >
+                          <Edit3 size={14} />
                         </button>
                         <button
                           type="button"
@@ -844,6 +1160,32 @@ export default function AdminContentPage() {
                   )}
                 </div>
               </div>
+              <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-3">
+                <h4 className="text-xs font-semibold text-slate-700">Şrift parametrləri (ölçü və qalınlıq)</h4>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Başlıq: ölçü / qalınlıq</label>
+                    <div className="flex gap-2">
+                      <input className="flex-1 rounded border border-slate-200 px-2 py-1.5 text-sm" placeholder="18px" value={postTitleFontSize} onChange={(e) => setPostTitleFontSize(e.target.value)} />
+                      <input className="w-20 rounded border border-slate-200 px-2 py-1.5 text-sm" placeholder="600" value={postTitleFontWeight} onChange={(e) => setPostTitleFontWeight(e.target.value)} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Anons: ölçü / qalınlıq</label>
+                    <div className="flex gap-2">
+                      <input className="flex-1 rounded border border-slate-200 px-2 py-1.5 text-sm" placeholder="14px" value={postExcerptFontSize} onChange={(e) => setPostExcerptFontSize(e.target.value)} />
+                      <input className="w-20 rounded border border-slate-200 px-2 py-1.5 text-sm" placeholder="400" value={postExcerptFontWeight} onChange={(e) => setPostExcerptFontWeight(e.target.value)} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Mətn: ölçü / qalınlıq</label>
+                    <div className="flex gap-2">
+                      <input className="flex-1 rounded border border-slate-200 px-2 py-1.5 text-sm" placeholder="16px" value={postBodyFontSize} onChange={(e) => setPostBodyFontSize(e.target.value)} />
+                      <input className="w-20 rounded border border-slate-200 px-2 py-1.5 text-sm" placeholder="400" value={postBodyFontWeight} onChange={(e) => setPostBodyFontWeight(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="flex justify-end gap-2 pt-2">
                 {editingPostId && (
                   <button
@@ -960,33 +1302,65 @@ export default function AdminContentPage() {
               </span>
             </div>
 
-            {/* Add Program Form */}
+            {/* Add / Edit Program Form */}
             <div className="mb-6 space-y-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-              <h3 className="text-sm font-medium text-slate-900">Yeni Proqram</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Proqram Adı</label>
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                      placeholder="Məs: Arıqlama proqramı"
-                      value={programTitle}
-                      onChange={(e) => setProgramTitle(e.target.value)}
-                    />
+              <h3 className="text-sm font-medium text-slate-900">
+                {editingProgramId ? "Proqramı redaktə et (dillərə görə)" : "Yeni Proqram"}
+              </h3>
+              <p className="text-xs text-slate-500">Hər dil üçün ad və təsvir daxil edin. Azərbaycan mütləqdir.</p>
+              <div className="space-y-4 max-h-[50vh] overflow-y-auto">
+                {POST_LOCALES.map(({ code, label }) => (
+                  <div key={code} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
+                    <h4 className="text-xs font-semibold text-slate-700">{label}</h4>
+                    <div>
+                      <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Ad</label>
+                      <input
+                        className="w-full rounded border border-slate-200 px-2 py-1.5 text-sm"
+                        placeholder="Proqram adı..."
+                        value={programTranslations[code]?.title ?? ""}
+                        onChange={(e) =>
+                          setProgramTranslations((prev) => ({
+                            ...prev,
+                            [code]: { ...(prev[code] ?? { title: "", description: "" }), title: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-0.5 block text-[10px] font-medium text-slate-500">Təsvir</label>
+                      <textarea
+                        rows={2}
+                        className="w-full rounded border border-slate-200 px-2 py-1.5 text-sm resize-none"
+                        placeholder="Təsvir..."
+                        value={programTranslations[code]?.description ?? ""}
+                        onChange={(e) =>
+                          setProgramTranslations((prev) => ({
+                            ...prev,
+                            [code]: { ...(prev[code] ?? { title: "", description: "" }), description: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Təsvir</label>
-                    <textarea
-                      rows={3}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none"
-                      placeholder="Proqram haqqında ətraflı..."
-                      value={programDesc}
-                      onChange={(e) => setProgramDesc(e.target.value)}
-                    />
+                ))}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-500">Başlıq şrift ölçüsü / qalınlığı</label>
+                  <div className="flex gap-2">
+                    <input className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="18px" value={programTitleFontSize} onChange={(e) => setProgramTitleFontSize(e.target.value)} />
+                    <input className="w-20 rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="600" value={programTitleFontWeight} onChange={(e) => setProgramTitleFontWeight(e.target.value)} />
                   </div>
                 </div>
-                
-                <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-500">Təsvir şrift ölçüsü / qalınlığı</label>
+                  <div className="flex gap-2">
+                    <input className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="14px" value={programDescFontSize} onChange={(e) => setProgramDescFontSize(e.target.value)} />
+                    <input className="w-20 rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="400" value={programDescFontWeight} onChange={(e) => setProgramDescFontWeight(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-slate-500">Müddət</label>
@@ -1078,22 +1452,30 @@ export default function AdminContentPage() {
                       </a>
                     )}
                   </div>
-                </div>
               </div>
               
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end gap-2 pt-2">
+                {editingProgramId && (
+                  <button
+                    type="button"
+                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                    onClick={resetProgramForm}
+                  >
+                    Ləğv et
+                  </button>
+                )}
                 <button
                   type="button"
                   className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-emerald-700 disabled:opacity-70"
-                  onClick={addProgram}
-                  disabled={savingProgram || !programTitle}
+                  onClick={editingProgramId ? saveEditProgram : addProgram}
+                  disabled={savingProgram || !(programTranslations.az?.title ?? "").trim()}
                 >
                   {savingProgram ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
                     <Plus size={14} />
                   )}
-                  {savingProgram ? "Əlavə edilir..." : "Proqram Əlavə Et"}
+                  {savingProgram ? "Saxlanılır..." : editingProgramId ? "Yadda saxla" : "Proqram Əlavə Et"}
                 </button>
               </div>
             </div>
@@ -1147,6 +1529,14 @@ export default function AdminContentPage() {
                     </div>
                     
                     <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        title="Redaktə et"
+                        className="rounded-full p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                        onClick={() => startEditProgram(prog)}
+                      >
+                        <Edit3 size={14} />
+                      </button>
                        <button
                         type="button"
                         title={prog.isActive ? "Deaktiv et" : "Aktiv et"}

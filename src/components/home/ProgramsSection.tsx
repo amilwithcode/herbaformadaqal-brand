@@ -15,17 +15,21 @@ type ProgramCard = {
   imageUrl: string;
   duration: string;
   price: number;
+  title_font_size?: string;
+  title_font_weight?: string;
+  description_font_size?: string;
+  description_font_weight?: string;
 };
 
 export default function ProgramsSection() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { hidePrices } = useSiteSettings();
   const [programs, setPrograms] = useState<ProgramCard[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/content/programs")
+    fetch(`/api/content/programs?locale=${locale}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((rows) => {
         if (!active) return;
@@ -40,6 +44,10 @@ export default function ProgramsSection() {
             imageUrl: row.image_url || "",
             duration: row.duration || "",
             price: Number(row.price) || 0,
+            title_font_size: row.title_font_size,
+            title_font_weight: row.title_font_weight,
+            description_font_size: row.description_font_size,
+            description_font_weight: row.description_font_weight,
           }))
           .slice(0, 3);
         setPrograms(mapped);
@@ -55,7 +63,7 @@ export default function ProgramsSection() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [locale]);
 
   return (
     <section className="space-y-6 rounded-3xl border border-emerald-100 bg-[#e6f3ec] px-6 py-8 md:px-10 md:py-10">
@@ -158,10 +166,22 @@ function ProgramCardItem({ program, hidePrices, t }: { program: ProgramCard; hid
           }`}
         >
           <div className="bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-16 pb-5 px-5 space-y-2.5">
-            <h3 className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-sm">
+            <h3
+              className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-sm"
+              style={{
+                ...(program.title_font_size ? { fontSize: program.title_font_size } : {}),
+                ...(program.title_font_weight ? { fontWeight: program.title_font_weight } : {}),
+              }}
+            >
               {program.title}
             </h3>
-            <p className="text-xs text-white/70 line-clamp-2">
+            <p
+              className="text-xs text-white/70 line-clamp-2"
+              style={{
+                ...(program.description_font_size ? { fontSize: program.description_font_size } : {}),
+                ...(program.description_font_weight ? { fontWeight: program.description_font_weight } : {}),
+              }}
+            >
               {program.description}
             </p>
             <div className="flex items-center justify-between gap-2 pt-1">
@@ -180,10 +200,22 @@ function ProgramCardItem({ program, hidePrices, t }: { program: ProgramCard; hid
           }`}
         >
           <div className="bg-gradient-to-t from-black/60 to-transparent pt-10 pb-4 px-5">
-            <h3 className="text-sm font-semibold text-white line-clamp-1 drop-shadow-sm">
+            <h3
+              className="text-sm font-semibold text-white line-clamp-1 drop-shadow-sm"
+              style={{
+                ...(program.title_font_size ? { fontSize: program.title_font_size } : {}),
+                ...(program.title_font_weight ? { fontWeight: program.title_font_weight } : {}),
+              }}
+            >
               {program.title}
             </h3>
-            <p className="text-xs text-white/60 line-clamp-1 mt-0.5">
+            <p
+              className="text-xs text-white/60 line-clamp-1 mt-0.5"
+              style={{
+                ...(program.description_font_size ? { fontSize: program.description_font_size } : {}),
+                ...(program.description_font_weight ? { fontWeight: program.description_font_weight } : {}),
+              }}
+            >
               {program.description}
             </p>
           </div>
