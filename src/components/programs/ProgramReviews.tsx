@@ -29,8 +29,10 @@ type Props = {
   currentUserId?: string | null;
 };
 
+const LOCALE_MAP: Record<string, string> = { az: "az-AZ", en: "en-US", ru: "ru-RU", tr: "tr-TR" };
+
 export default function ProgramReviews({ programSlug, currentUserId }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { showToast } = useGlobalToast();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats>({ total: 0, avgRating: 0 });
@@ -155,7 +157,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rating) {
-      const msg = "Zəhmət olmasa reytinq seçin";
+      const msg = t("programs.reviews.rating_required");
       setError(msg);
       showToast(msg, "error");
       return;
@@ -180,7 +182,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Xəta baş verdi");
+        throw new Error(data.error || t("programs.reviews.error_submit"));
       }
 
       const successMsg = userReview ? t("programs.reviews.toast_updated") : t("programs.reviews.toast_created");
@@ -191,7 +193,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
       await fetchReviews();
       setTimeout(() => setSuccess(""), 4000);
     } catch (err: any) {
-      const errMsg = err.message || "Xəta baş verdi";
+      const errMsg = err.message || t("programs.reviews.error_submit");
       setError(errMsg);
       showToast(errMsg, "error");
     } finally {
@@ -235,7 +237,7 @@ export default function ProgramReviews({ programSlug, currentUserId }: Props) {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString("az-AZ", {
+    return d.toLocaleDateString(LOCALE_MAP[locale] || "az-AZ", {
       day: "numeric",
       month: "long",
       year: "numeric",

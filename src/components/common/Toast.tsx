@@ -13,9 +13,8 @@ type ToastProps = {
 
 export function Toast({ message, type = "success", duration = 3000, onClose }: ToastProps) {
   const { t } = useI18n();
-  const displayMessage = message.startsWith("notification.") || message.startsWith("cart.") || message.startsWith("wishlist.")
-    ? t(message)
-    : message;
+  const isTranslationKey = /^(notification|cart|wishlist|programs|product|auth|common)\./.test(message);
+  const displayMessage = isTranslationKey ? t(message) : message;
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {

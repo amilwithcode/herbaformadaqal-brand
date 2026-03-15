@@ -42,11 +42,11 @@ export default function WeightCalculatorSection() {
         }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) {
-        setError(
-          data.error ||
-            t("weight.ai.error_generic")
-        );
+      if (!res.ok || data.errorKey) {
+        const msg = data.errorKey
+          ? t(`weight.ai.${data.errorKey}`)
+          : (data.error || t("weight.ai.error_generic"));
+        setError(msg);
         return;
       }
       setResult({

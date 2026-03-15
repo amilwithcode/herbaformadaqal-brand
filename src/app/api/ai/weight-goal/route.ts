@@ -7,10 +7,7 @@ export async function POST(req: Request) {
 
   if (!apiKey) {
     return NextResponse.json(
-      {
-        error:
-          "Süni intellekt hazırda konfiqurasiya olunmayıb. Zəhmət olmasa OpenAI açarını əlavə edin.",
-      },
+      { errorKey: "error_not_configured" },
       { status: 500 }
     );
   }
@@ -29,7 +26,7 @@ export async function POST(req: Request) {
 
   if (!heightCm || !weightKg || heightCm < 100 || heightCm > 250) {
     return NextResponse.json(
-      { error: "Məlumatlar düzgün deyil. Boy və çəkini yenidən yoxlayın." },
+      { errorKey: "error_validation" },
       { status: 400 }
     );
   }
@@ -98,9 +95,8 @@ Weight: ${weightKg} kg.`;
     });
 
     if (!response.ok) {
-      const text = await response.text();
       return NextResponse.json(
-        { error: "Süni intellekt cavabı alınmadı.", details: text },
+        { errorKey: "error_response_failed" },
         { status: 500 }
       );
     }
@@ -121,7 +117,7 @@ Weight: ${weightKg} kg.`;
       parsed = JSON.parse(content);
     } catch {
       return NextResponse.json(
-        { error: "Süni intellektdən düzgün cavab alınmadı." },
+        { errorKey: "error_parse_failed" },
         { status: 500 }
       );
     }
@@ -141,7 +137,7 @@ Weight: ${weightKg} kg.`;
 
     if (!targetWeightKg || !message) {
       return NextResponse.json(
-        { error: "Süni intellektdən lazımi məlumat alınmadı." },
+        { errorKey: "error_incomplete" },
         { status: 500 }
       );
     }
@@ -156,7 +152,7 @@ Weight: ${weightKg} kg.`;
     );
   } catch {
     return NextResponse.json(
-      { error: "Süni intellekt xidmətinə qoşulmaq mümkün olmadı." },
+      { errorKey: "error_connection" },
       { status: 500 }
     );
   }
