@@ -106,7 +106,7 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
         }),
         timeoutPromise,
       ]);
-
+      console.log(authError);
       if (authError) {
         const msg = (authError.message || "").toLowerCase();
         const isNetworkError =
@@ -115,6 +115,8 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
           msg.includes("fetch") || msg.includes("networkerror") ||
           msg.includes("failed to fetch") || msg.includes("504") ||
           msg.includes("timeout");
+        const isConfirmationEmailError =
+          msg.includes("confirmation email") || msg.includes("sending confirmation");
 
         if (msg.includes("already registered") || msg.includes("already exists")) {
           toast.error(
@@ -123,6 +125,11 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
           );
         } else if (msg.includes("password")) {
           toast.error("Şifrə çox zəifdir", "Daha güclü şifrə seçin (ən azı 6 simvol).");
+        } else if (isConfirmationEmailError) {
+          toast.error(
+            "Təsdiq emaili göndərilmədi",
+            "Email ayarları yoxlanılır. İnkişaf üçün Supabase Dashboard-da Authentication → Email-də \"Confirm email\" söndürülə bilər və ya SMTP təyin edin."
+          );
         } else if (isNetworkError) {
           toast.error(
             "Əlaqə xətası",
