@@ -221,7 +221,10 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://vitals.vercel-insights.com" />
         <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googleadservices.com" />
+        <link rel="dns-prefetch" href="https://googleads.g.doubleclick.net" />
         {/* Popup CSS — render-blocking olmasın (FCP/LCP yaxşılaşır) */}
         <link rel="stylesheet" href="/popup.css" media="print" id="popup-css" />
         <script

@@ -286,7 +286,12 @@ export async function middleware(request: NextRequest) {
     frame-src
       https://*.stripe.com
       https://hcaptcha.com
-      https://*.hcaptcha.com;
+      https://*.hcaptcha.com
+      https://googleads.g.doubleclick.net
+      https://tpc.googlesyndication.com
+      https://pagead2.googlesyndication.com
+      https://*.doubleclick.net
+      https://www.google.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
