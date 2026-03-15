@@ -16,6 +16,12 @@ type BlogPost = {
   slug: string;
   image_url: string;
   created_at: string;
+  title_font_size?: string;
+  title_font_weight?: string;
+  excerpt_font_size?: string;
+  excerpt_font_weight?: string;
+  body_font_size?: string;
+  body_font_weight?: string;
 };
 
 export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -123,7 +129,13 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         )}
 
         {/* Title */}
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
+        <h1
+          className={`text-slate-900 mb-4 ${!post.title_font_size && !post.title_font_weight ? "text-2xl md:text-3xl font-bold" : ""}`}
+          style={{
+            ...(post.title_font_size && { fontSize: post.title_font_size }),
+            ...(post.title_font_weight && { fontWeight: post.title_font_weight }),
+          }}
+        >
           {post.title}
         </h1>
 
@@ -148,14 +160,26 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
         {/* Excerpt */}
         {post.excerpt && (
-          <p className="text-base text-slate-700 font-medium mb-6 leading-relaxed border-l-4 border-emerald-400 pl-4 bg-emerald-50/50 py-3 rounded-r-lg">
+          <p
+            className={`text-slate-700 mb-6 leading-relaxed border-l-4 border-emerald-400 pl-4 bg-emerald-50/50 py-3 rounded-r-lg ${!post.excerpt_font_size && !post.excerpt_font_weight ? "text-base font-medium" : ""}`}
+            style={{
+              ...(post.excerpt_font_size && { fontSize: post.excerpt_font_size }),
+              ...(post.excerpt_font_weight && { fontWeight: post.excerpt_font_weight }),
+            }}
+          >
             {post.excerpt}
           </p>
         )}
 
         {/* Body */}
         {post.body && (
-          <div className="prose prose-emerald max-w-none text-slate-800 leading-relaxed">
+          <div
+            className="prose prose-emerald max-w-none text-slate-800 leading-relaxed"
+            style={{
+              ...(post.body_font_size && { fontSize: post.body_font_size }),
+              ...(post.body_font_weight && { fontWeight: post.body_font_weight }),
+            }}
+          >
             {post.body.split("\n").map((paragraph: string, idx: number) => (
               <p key={idx} className="mb-4">
                 {paragraph}

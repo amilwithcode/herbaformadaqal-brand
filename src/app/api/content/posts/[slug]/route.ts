@@ -15,9 +15,10 @@ export async function GET(
 
   let post: Record<string, unknown> | null = null;
 
+  const postFields = "id, title, excerpt, body, category, slug, image_url, is_pinned, created_at, title_font_size, title_font_weight, excerpt_font_size, excerpt_font_weight, body_font_size, body_font_weight";
   const { data: bySlug } = await supabase
     .from("content_posts")
-    .select("id, title, excerpt, body, category, slug, image_url, is_pinned, created_at")
+    .select(postFields)
     .eq("slug", slug)
     .maybeSingle();
   if (bySlug) post = bySlug as Record<string, unknown>;
@@ -25,7 +26,7 @@ export async function GET(
   if (!post) {
     const { data: byId } = await supabase
       .from("content_posts")
-      .select("id, title, excerpt, body, category, slug, image_url, is_pinned, created_at")
+      .select(postFields)
       .eq("id", slug)
       .maybeSingle();
     if (byId) post = byId as Record<string, unknown>;
