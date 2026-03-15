@@ -120,30 +120,30 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
 
         if (msg.includes("already registered") || msg.includes("already exists")) {
           toast.error(
-            "Email artıq mövcuddur",
-            "Bu email ilə artıq qeydiyyat var. Daxil olmağa cəhd edin."
+            t("auth.toast.email_exists_title"),
+            t("auth.toast.email_exists_message")
           );
         } else if (msg.includes("password")) {
-          toast.error("Şifrə çox zəifdir", "Daha güclü şifrə seçin (ən azı 6 simvol).");
+          toast.error(t("auth.toast.password_weak_title"), t("auth.toast.password_weak_message"));
         } else if (isConfirmationEmailError) {
           toast.error(
-            "Təsdiq emaili göndərilmədi",
-            "Email ayarları yoxlanılır. İnkişaf üçün Supabase Dashboard-da Authentication → Email-də \"Confirm email\" söndürülə bilər və ya SMTP təyin edin."
+            t("auth.toast.confirmation_email_failed_title"),
+            t("auth.toast.confirmation_email_failed_message")
           );
         } else if (isNetworkError) {
           toast.error(
-            "Əlaqə xətası",
-            "Serverlə əlaqə qururkən xəta baş verdi. Bir neçə saniyə gözləyib yenidən cəhd edin."
+            t("auth.toast.connection_error_title"),
+            t("auth.toast.connection_error_message")
           );
         } else {
-          toast.error("Qeydiyyat uğursuz oldu", authError.message || t("auth.error.register_generic"));
+          toast.error(t("auth.toast.register_failed_title"), authError.message || t("auth.error.register_generic"));
         }
         setIsSubmitting(false);
         return;
       }
 
       if (!authData?.user) {
-        toast.error("Xəta baş verdi", t("auth.error.register_generic"));
+        toast.error(t("auth.toast.generic_error_title"), t("auth.error.register_generic"));
         setIsSubmitting(false);
         return;
       }
@@ -160,33 +160,27 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
       }).catch(() => {});
 
       if (authData.user.email_confirmed_at) {
-        toast.success("Qeydiyyat tamamlandı!", "Hesabınıza yönləndirilirsiniz...");
+        toast.success(t("auth.toast.register_success_title"), t("auth.toast.register_success_message"));
         setTimeout(() => router.push("/account"), 1200);
       } else {
         toast.info(
-          "Qeydiyyat uğurlu oldu!",
-          "Email ünvanınıza təsdiq linki göndərildi. Emailinizi yoxlayın."
+          t("auth.toast.register_success_email_title"),
+          t("auth.toast.register_success_email_message")
         );
         setTimeout(() => router.push("/auth/login?registered=true"), 2000);
       }
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       if (errMsg === "__TIMEOUT__") {
-        toast.error(
-          "Vaxt bitdi",
-          "Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin."
-        );
+        toast.error(t("auth.toast.timeout_title"), t("auth.toast.timeout_message"));
       } else if (
         errMsg.toLowerCase().includes("fetch") ||
         errMsg.toLowerCase().includes("network") ||
         errMsg === "{}"
       ) {
-        toast.error(
-          "Əlaqə xətası",
-          "Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayın."
-        );
+        toast.error(t("auth.toast.connection_error_title"), t("auth.toast.connection_error_check"));
       } else {
-        toast.error("Xəta baş verdi", t("auth.error.register_generic"));
+        toast.error(t("auth.toast.generic_error_title"), t("auth.error.register_generic"));
       }
       setIsSubmitting(false);
     }
@@ -206,7 +200,7 @@ export default function RegisterForm({ siteName }: { siteName?: string }) {
           </h1>
           <p className="mt-1 text-sm text-emerald-700">
             {siteName
-              ? `${siteName}-a qoşulun və sağlamlığınızı idarə edin`
+              ? t("auth.register.subtitle_with_site", { siteName })
               : t("auth.register.subtitle")}
           </p>
         </div>

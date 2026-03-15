@@ -71,9 +71,9 @@ export default function LoginForm() {
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "";
       if (errMsg === "__TIMEOUT__") {
-        toast.error("Vaxt bitdi", "Supabase serveri cavab vermir — bir az gözləyib yenidən cəhd edin.");
+        toast.error(t("auth.toast.timeout_title"), t("auth.toast.timeout_message"));
       } else {
-        toast.error("Əlaqə xətası", "Serverlə əlaqə qururkən xəta baş verdi. İnternet bağlantınızı yoxlayın.");
+        toast.error(t("auth.toast.connection_error_title"), t("auth.toast.connection_error_check"));
       }
       setIsSubmitting(false);
       return;
@@ -87,15 +87,15 @@ export default function LoginForm() {
         msg.includes("fetch") || msg.includes("network") ||
         msg.includes("504") || msg.includes("timeout")
       ) {
-        toast.error("Əlaqə xətası", "Serverlə əlaqə qururkən xəta baş verdi. Yenidən cəhd edin.");
+        toast.error(t("auth.toast.connection_error_title"), t("auth.toast.connection_error_message"));
       } else if (msg.includes("invalid login credentials") || msg.includes("invalid_credentials")) {
-        toast.error("Giriş uğursuz oldu", "Email və ya şifrə yanlışdır. Yenidən yoxlayın.");
+        toast.error(t("auth.toast.login_failed_title"), t("auth.toast.login_failed_message"));
       } else if (msg.includes("email not confirmed")) {
-        toast.info("Email təsdiqlənməyib", "Emailinizi yoxlayın və təsdiq linkini klikləyin.");
+        toast.info(t("auth.toast.email_not_confirmed_title"), t("auth.toast.email_not_confirmed_message"));
       } else if (msg.includes("too many requests") || msg.includes("rate limit")) {
-        toast.error("Çox sayda cəhd", "Bir neçə dəqiqə gözləyib yenidən cəhd edin.");
+        toast.error(t("auth.toast.too_many_requests_title"), t("auth.toast.too_many_requests_message"));
       } else {
-        toast.error("Xəta baş verdi", authError.message);
+        toast.error(t("auth.toast.generic_error_title"), authError.message);
       }
       setIsSubmitting(false);
       return;
@@ -124,7 +124,7 @@ export default function LoginForm() {
       } catch {}
     }
 
-    toast.success("Giriş uğurlu oldu!", "Hesabınıza yönləndirilirsiniz...");
+    toast.success(t("auth.toast.login_success_title"), t("auth.toast.login_success_message"));
 
     setTimeout(() => {
       if (isAdmin) {
@@ -230,7 +230,7 @@ export default function LoginForm() {
             disabled={isSubmitting}
             className="group flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-900/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Giriş edilir..." : t("auth.login.submit")}
+            {isSubmitting ? t("auth.login.submitting") : t("auth.login.submit")}
             {!isSubmitting && (
               <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
             )}
