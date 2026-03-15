@@ -171,20 +171,16 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           </p>
         )}
 
-        {/* Body */}
+        {/* Body — adminin daxil etdiyi boşluq və sətir sonları saxlanılır */}
         {post.body && (
           <div
-            className="prose prose-emerald max-w-none text-slate-800 leading-relaxed"
+            className="prose prose-emerald max-w-none text-slate-800 leading-relaxed whitespace-pre-wrap"
             style={{
               ...(post.body_font_size && { fontSize: post.body_font_size }),
               ...(post.body_font_weight && { fontWeight: post.body_font_weight }),
             }}
           >
-            {post.body.split("\n").map((paragraph: string, idx: number) => (
-              <p key={idx} className="mb-4">
-                {paragraph}
-              </p>
-            ))}
+            {post.body}
           </div>
         )}
 
