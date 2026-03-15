@@ -24,7 +24,7 @@ export default async function ProductsPage({
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
       <SiteNavbar initialSettings={settings} />
-      <main className="mx-auto max-w-6xl px-6 py-10 space-y-6">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10 space-y-6">
         <ProductsHeader />
         <ProductsClient products={products} categories={categories} />
       </main>

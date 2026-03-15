@@ -57,9 +57,9 @@ export default function ProductsList({ products, viewMode }: ProductsListProps) 
   return (
     <div className="space-y-8">
       <div
-        className={`grid gap-6 ${
+        className={`grid gap-3 sm:gap-4 md:gap-6 ${
           viewMode === "grid"
-            ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+            ? "grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             : "grid-cols-1 md:grid-cols-2"
         }`}
       >
