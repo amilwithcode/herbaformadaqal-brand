@@ -102,6 +102,7 @@
   "programs.empty": "Henüz program eklenmedi. Lütfen admin panelinden program oluşturun.",
   "programs.label": "Program",
   "programs.start_now": "Şimdi Başla",
+  "programs.card.price": "Fiyat",
   "cart.title": "Sepet",
   "cart.empty": "Sepetiniz boş. Ana sayfaya dönerek ürün ekleyebilirsiniz.",
   "cart.item.default_description": "Sağlık ürünü",
