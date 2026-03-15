@@ -3,6 +3,7 @@ import { Noto_Sans } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
+import { parseKeywords } from "@/lib/keywords-utils";
 import Script from "next/script";
 import SpeedInsightsWrapper from "@/components/common/SpeedInsightsWrapper";
 import "./globals.css";
@@ -68,9 +69,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     meta?.description ||
     "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda rəsmi distribütor.";
-  const keywords =
+  const keywordsRaw =
     meta?.keywords ||
     "herbalife, sağlamlıq, arıqlama, çəki itirmə, qidalanma, vitamin, əlavə, azərbaycan, bakı, sağlam həyat";
+  const keywords = parseKeywords(keywordsRaw);
   const rawOgImage =
     meta?.og_image ||
     meta?.image ||
@@ -85,7 +87,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${settings?.public_site_name || "Herbalife"}`,
     },
     description,
-    keywords: keywords.split(",").map((k: string) => k.trim()),
+    keywords: keywords.length > 0 ? keywords : undefined,
     authors: [{ name: settings?.public_site_name || "Herbalife Distribütor" }],
     creator: settings?.public_site_name || "Herbalife Distribütor",
     publisher: settings?.public_site_name || "Herbalife Distribütor",
@@ -146,7 +148,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [{ settings }, requestLocale] = await Promise.all([
+  const [{ settings, meta }, requestLocale] = await Promise.all([
     getSiteData(),
     getRequestLocale(),
   ]);
@@ -156,6 +158,10 @@ export default async function RootLayout({
   const siteName =
     settings?.public_site_name || settings?.site_name || "Herbalife";
   const logoUrl = settings?.logo || `${siteUrl}/logo.png`;
+  const keywordsForMeta = parseKeywords(
+    meta?.keywords || "herbalife, sağlamlıq, arıqlama, çəki itirmə, qidalanma, vitamin, əlavə, azərbaycan, bakı, sağlam həyat"
+  );
+  const keywordsMetaContent = keywordsForMeta.length > 0 ? keywordsForMeta.join(", ") : "";
 
   /* ── JSON-LD: Google Organization schema (loqo buradan oxunur) ── */
   const organizationSchema = {
@@ -191,6 +197,10 @@ export default async function RootLayout({
   return (
     <html lang={requestLocale}>
       <head>
+        {/* Açar sözlər: hər biri ayrıca meta keywords-də nəzərə alınır */}
+        {keywordsMetaContent ? (
+          <meta name="keywords" content={keywordsMetaContent} />
+        ) : null}
         {/* Google Search Console — mağazanın sahibliyinin təsdiqi */}
         <meta
           name="google-site-verification"

@@ -7,6 +7,7 @@ import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getHomeProducts, getCategories } from "@/modules/products/queries";
 import { getSiteSettings, getPageSections, getHeroSlides, getMetaTags } from "@/modules/settings/queries";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
+import { parseKeywords } from "@/lib/keywords-utils";
 import { getMessages } from "@/lib/i18n";
 
 const OG_LOCALE_MAP: Record<string, string> = {
@@ -47,14 +48,15 @@ export async function generateMetadata({
 
   const title = metaTags?.title || `${brandName} - Sağlam Həyat Üçün Herbalife Məhsulları | Azərbaycan`;
   const description = metaTags?.description || "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda rəsmi distribütor. Pulsuz çatdırılma Bakı daxilində.";
-  const keywords = metaTags?.keywords || "herbalife azərbaycan, herbalife bakı, arıqlama məhsulları, çəki itirmə, sağlam qidalanma, vitamin, əlavə, herbalife distribütor, sağlam həyat, herbalife məhsulları";
+  const keywordsRaw = metaTags?.keywords || "herbalife azərbaycan, herbalife bakı, arıqlama məhsulları, çəki itirmə, sağlam qidalanma, vitamin, əlavə, herbalife distribütor, sağlam həyat, herbalife məhsulları";
+  const keywords = parseKeywords(keywordsRaw);
   const rawOgImage = metaTags?.og_image || metaTags?.image || settings?.logo || `${siteUrl}/og-image.jpg`;
   const ogImage = ensureAbsoluteImageUrl(rawOgImage, siteUrl) || `${siteUrl}/og-image.jpg`;
 
   return {
     title,
     description,
-    keywords: keywords.split(",").map((k: string) => k.trim()),
+    keywords: keywords.length > 0 ? keywords : undefined,
     openGraph: {
       title: metaTags?.og_title || title,
       description: metaTags?.og_description || description,

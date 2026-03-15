@@ -227,7 +227,16 @@ export default function AdminMetaTagsPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Title" placeholder="Səhifə başlığı" value={form.title} onChange={v => setForm({ ...form, title: v })} />
             <Field label="Description" placeholder="Qısa təsvir" value={form.description} onChange={v => setForm({ ...form, description: v })} textarea />
-            <Field label="Keywords" placeholder="açar söz1, açar söz2" value={form.keywords} onChange={v => setForm({ ...form, keywords: v })} />
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">Keywords</label>
+              <input
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 text-black"
+                placeholder="açar söz1, açar söz2, açar söz3"
+                value={form.keywords}
+                onChange={(e) => setForm({ ...form, keywords: e.target.value })}
+              />
+              <p className="text-xs text-slate-400 mt-1">Vergül (,), nöqtəli vergül (;) və ya yeni sətir ilə ayırın. Hər açar söz səhifənin meta teqində ayrıca nəzərə alınır.</p>
+            </div>
             <ImageUploadField label="Şəkil (SEO)" value={form.image} onChange={v => setForm({ ...form, image: v })} />
           </div>
 
@@ -319,7 +328,15 @@ export default function AdminMetaTagsPage() {
                         </div>
                         <Field label="Title" value={editForm.title} onChange={v => setEditForm({ ...editForm, title: v })} />
                         <Field label="Description" value={editForm.description} onChange={v => setEditForm({ ...editForm, description: v })} textarea />
-                        <Field label="Keywords" value={editForm.keywords} onChange={v => setEditForm({ ...editForm, keywords: v })} />
+                        <div>
+                        <label className="text-xs font-medium text-slate-500 mb-1 block">Keywords</label>
+                        <input
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 text-black"
+                          value={editForm.keywords}
+                          onChange={(e) => setEditForm({ ...editForm, keywords: e.target.value })}
+                        />
+                        <p className="text-xs text-slate-400 mt-1">Vergül, nöqtəli vergül və ya yeni sətir ilə ayırın.</p>
+                      </div>
                         <ImageUploadField label="Şəkil (SEO)" value={editForm.image} onChange={v => setEditForm({ ...editForm, image: v })} disabled={saving} />
                       </div>
                       <div className="border-t border-slate-100 pt-4">

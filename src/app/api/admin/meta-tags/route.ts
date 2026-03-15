@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { formatKeywordsForStorage } from "@/lib/keywords-utils";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -25,9 +26,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Page is required" }, { status: 400 });
   }
 
+  const normalizedKeywords = formatKeywordsForStorage(keywords);
+
   const { data, error } = await supabase
     .from("meta_tags")
-    .insert({ page, title, description, keywords, image, og_title, og_description, og_image })
+    .insert({ page, title, description, keywords: normalizedKeywords, image, og_title, og_description, og_image })
     .select()
     .single();
 
@@ -47,9 +50,11 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
 
+  const normalizedKeywords = formatKeywordsForStorage(keywords);
+
   const { data, error } = await supabase
     .from("meta_tags")
-    .update({ page, title, description, keywords, image, og_title, og_description, og_image })
+    .update({ page, title, description, keywords: normalizedKeywords, image, og_title, og_description, og_image })
     .eq("id", id)
     .select()
     .single();
