@@ -101,6 +101,7 @@
   "programs.empty": "Hələ heç bir proqram əlavə edilməyib. Zəhmət olmasa admin paneldən proqram yaradın.",
   "programs.label": "Proqram",
   "programs.start_now": "İndi Başla",
+  "programs.card.price": "Qiymət",
   "cart.title": "Səbət",
   "cart.empty": "Səbət boşdur. Ana səhifəyə qayıdaraq məhsul əlavə edə bilərsiniz.",
   "cart.item.default_description": "Sağlamlıq məhsulu",

@@ -102,6 +102,7 @@
   "programs.empty": "No programs added yet. Please create a program from the admin panel.",
   "programs.label": "Program",
   "programs.start_now": "Start Now",
+  "programs.card.price": "Price",
   "cart.title": "Cart",
   "cart.empty": "Your cart is empty. Go back to the homepage to add products.",
   "cart.item.default_description": "Health product",

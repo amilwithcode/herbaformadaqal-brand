@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useI18n } from "@/contexts/I18nContext";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 
 export type ProgramCard = {
   id: string;
@@ -68,18 +68,18 @@ export default function ProgramsClient({ programs }: { programs: ProgramCard[] }
                 <div className="mt-4 flex items-center justify-between border-t border-emerald-50 pt-4">
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase text-emerald-400">
-                      Qiymət
+                      {t("programs.card.price")}
                     </span>
                     <span className="text-lg font-bold text-emerald-600">
                       {program.price} ₼
                     </span>
                   </div>
-                  <Link
+                  <LocalizedLink
                     href={`/programs/${program.slug}`}
                     className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-emerald-700"
                   >
-                    Ətraflı
-                  </Link>
+                    {t("programs.view_details")}
+                  </LocalizedLink>
                 </div>
               </div>
             </div>
