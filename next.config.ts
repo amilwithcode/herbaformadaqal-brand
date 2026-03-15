@@ -4,15 +4,19 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@vercel/speed-insights"],
-  // Statik JS/CSS uzun müddət keşlənir — başqa ölkələrdən təkrar ziyarətdə sürət
+  // Statik JS/CSS uzun müddət keşlənir — xarici ölkələrdən sürət (Speed Insights)
   async headers() {
+    const longImmutable = "public, max-age=31536000, immutable";
+    const longStale = "public, max-age=86400, stale-while-revalidate=604800"; // 1 gün + 7 gün SWR
     return [
-      {
-        source: "/_next/static/:path*",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
+      { source: "/_next/static/:path*", headers: [{ key: "Cache-Control", value: longImmutable }] },
+      { source: "/popup.css", headers: [{ key: "Cache-Control", value: longStale }] },
+      { source: "/popup.js", headers: [{ key: "Cache-Control", value: longStale }] },
+      { source: "/robots.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },
+      { source: "/:path*.svg", headers: [{ key: "Cache-Control", value: longStale }] },
+      { source: "/:path*.ico", headers: [{ key: "Cache-Control", value: longStale }] },
+      { source: "/og-image.jpg", headers: [{ key: "Cache-Control", value: longStale }] },
+      { source: "/logo.png", headers: [{ key: "Cache-Control", value: longStale }] },
     ];
   },
   images: {
@@ -35,8 +39,8 @@ const nextConfig: NextConfig = {
     // Lazım olan ölçülər - gərəksiz şəkil variantları yaratmasın
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
-    // Şəkilləri bir müddət keşlə
-    minimumCacheTTL: 60 * 60 * 24, // 24 saat
+    // Xarici CDN/edge üçün uzun keş — başqa ölkələrdən sürətli şəkil çəkilişi
+    minimumCacheTTL: 60 * 60 * 24 * 7, // 7 gün
   },
   experimental: {
     serverActions: {

@@ -212,14 +212,24 @@ export default async function RootLayout({
         <link rel="alternate" hrefLang="en" href={`${siteUrl}/en`} />
         <link rel="alternate" hrefLang="tr" href={`${siteUrl}/tr`} />
         <link rel="alternate" hrefLang="ru" href={`${siteUrl}/ru`} />
-        {/* DNS Preconnect — başqa ölkələrdən sürətli yüklənmə üçün */}
+        {/* DNS Preconnect — xarici ölkələrdən sürətli yüklənmə (Speed Insights / LCP) */}
         <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
         <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://vitals.vercel-insights.com" />
         <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        {/* Popup CSS */}
-        <link rel="stylesheet" href="/popup.css" />
+        {/* Popup CSS — render-blocking olmasın (FCP/LCP yaxşılaşır) */}
+        <link rel="stylesheet" href="/popup.css" media="print" id="popup-css" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var l=document.getElementById('popup-css');if(l){l.media='all';}})();`,
+          }}
+        />
+        <noscript><link rel="stylesheet" href="/popup.css" /></noscript>
 
         {/* ── JSON-LD Structured Data (Google loqo + axtarış) ── */}
         <script
@@ -239,6 +249,12 @@ export default async function RootLayout({
         className={`${notoSans.variable} antialiased bg-slate-950 text-slate-100 font-sans`}
       >
         <Providers initialLocale={requestLocale}>{children}</Providers>
+        {/* Popup üçün cari dil (popup.js dillərə görə mətn göstərir) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__HERBALIFE_LOCALE__="${requestLocale}";`,
+          }}
+        />
         {/* Popup Script */}
         <Script src="/popup.js" strategy="afterInteractive" />
         {/* Google tag (gtag.js) */}

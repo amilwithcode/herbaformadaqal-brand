@@ -13,13 +13,47 @@
   const POPUP_CONFIG_KEY     = 'herbalife_popup_config';
   const POPUP_CONFIG_VERSION = 'herbalife_popup_config_ts';
 
-  // Default configuration
+  // Default configuration (fullName həmişə API-dan gəlir; title/description dilə görə aşağıdakı çevirilərdən)
   var config = {
     fullName:    'AD SOYAD',
     title:       'Müstəqil Herbalife Tərəfdaşı',
     description: 'İstifadəçi şirkətin rəsmi saytı deyil, müstəqil tərəfdaşın səhifəsindədir.',
     updatedAt:   null,
   };
+
+  // Dillərə görə sabit mətnlər (admin yalnız Ad Soyad redaktə edir)
+  var translations = {
+    az: {
+      title:       'Müstəqil Herbalife Tərəfdaşı',
+      description: 'İstifadəçi şirkətin rəsmi saytı deyil, müstəqil tərəfdaşın səhifəsindədir.',
+      closeLabel:  'Popup-ı bağla',
+    },
+    en: {
+      title:       'Independent Herbalife Partner',
+      description: 'You are not on the company\'s official site but on an independent partner\'s page.',
+      closeLabel:  'Close popup',
+    },
+    tr: {
+      title:       'Bağımsız Herbalife İş Ortağı',
+      description: 'Kullanıcı şirketin resmi sitesinde değil, bağımsız bir iş ortağının sayfasındadır.',
+      closeLabel:  'Açılır pencereyi kapat',
+    },
+    ru: {
+      title:       'Независимый партнёр Herbalife',
+      description: 'Вы находитесь не на официальном сайте компании, а на странице независимого партнёра.',
+      closeLabel:  'Закрыть всплывающее окно',
+    },
+  };
+
+  function getLocale() {
+    try {
+      var loc = (typeof window !== 'undefined' && window.__HERBALIFE_LOCALE__) || '';
+      if (translations[loc]) return loc;
+      var match = typeof window !== 'undefined' && window.location && window.location.pathname && window.location.pathname.match(/^\/(az|en|tr|ru)(?:\/|$)/);
+      if (match && translations[match[1]]) return match[1];
+    } catch (e) { /* ignore */ }
+    return 'az';
+  }
 
   /* ── localStorage helpers ── */
   function loadLocalConfig() {
@@ -64,18 +98,25 @@
   }
 
   function createPopupHTML() {
+    var locale = getLocale();
+    var t = translations[locale] || translations.az;
+    var titleText = t.title;
+    var descText = t.description;
+    var closeLabelText = t.closeLabel;
+    // Ad Soyad həmişə admin/API-dan (config.fullName)
+    var nameText = config.fullName;
     return (
       '<div class="herbalife-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="herbalife-popup-title">' +
         '<div class="herbalife-popup-container">' +
-          '<button class="herbalife-popup-close" aria-label="Popup-ı bağla" type="button">' +
+          '<button class="herbalife-popup-close" aria-label="' + escapeHtml(closeLabelText) + '" type="button">' +
             '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">' +
               '<path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
             '</svg>' +
           '</button>' +
           '<div class="herbalife-popup-content">' +
-            '<h2 id="herbalife-popup-title" class="herbalife-popup-title">' + escapeHtml(config.title) + '</h2>' +
-            '<p class="herbalife-popup-description">' + escapeHtml(config.description) + '</p>' +
-            '<p class="herbalife-popup-name"><strong>' + escapeHtml(config.fullName) + '</strong></p>' +
+            '<h2 id="herbalife-popup-title" class="herbalife-popup-title">' + escapeHtml(titleText) + '</h2>' +
+            '<p class="herbalife-popup-description">' + escapeHtml(descText) + '</p>' +
+            '<p class="herbalife-popup-name"><strong>' + escapeHtml(nameText) + '</strong></p>' +
           '</div>' +
         '</div>' +
       '</div>'
