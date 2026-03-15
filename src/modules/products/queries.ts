@@ -330,15 +330,50 @@ export async function getProductsByCategory(categoryId: number) {
   return await enrichProductsWithTranslationsAndRatings((products || []) as Product[]);
 }
 
-export async function getPrograms() {
+const PROGRAMS_LOCALES = ["az", "en", "tr", "ru"] as const;
+const PROGRAMS_FIELDS = ["title", "description"] as const;
+
+export async function getPrograms(locale?: string) {
   const supabase = await getSupabaseServerClient();
-  const { data } = await supabase
+  const { data: rows } = await supabase
     .from("programs")
-    .select("id, title, description, image_url, duration, price, slug, is_active")
+    .select("id, title, description, image_url, duration, price, slug, is_active, title_font_size, title_font_weight, description_font_size, description_font_weight")
     .eq("is_active", true)
     .order("created_at", { ascending: false });
-    
-  return data || [];
+
+  const list = rows ?? [];
+  if (list.length === 0) return list;
+
+  const useTranslations =
+    locale &&
+    PROGRAMS_LOCALES.includes(locale as (typeof PROGRAMS_LOCALES)[number]) &&
+    locale !== "az";
+
+  if (!useTranslations) return list;
+
+  const ids = list.map((r: { id: number }) => r.id);
+  const { data: trans } = await supabase
+    .from("translations")
+    .select("entity_id, field, value")
+    .eq("entity_table", "programs")
+    .eq("language", locale)
+    .in("entity_id", ids)
+    .in("field", PROGRAMS_FIELDS);
+
+  const byId = new Map<number, Record<string, string>>();
+  (trans || []).forEach((t: { entity_id: number; field: string; value: string }) => {
+    if (!byId.has(t.entity_id)) byId.set(t.entity_id, {});
+    byId.get(t.entity_id)![t.field] = t.value ?? "";
+  });
+
+  return list.map((row: Record<string, unknown>) => {
+    const tr = byId.get(row.id as number) || {};
+    return {
+      ...row,
+      title: tr.title ?? row.title,
+      description: tr.description ?? row.description,
+    };
+  });
 }
 
 export async function searchProducts(query: string) {

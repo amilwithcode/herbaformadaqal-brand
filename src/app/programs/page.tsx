@@ -9,7 +9,7 @@ export const revalidate = 60;
 export default async function ProgramsPage() {
   const supabase = await getSupabaseServerClient();
   const [rawPrograms, settingsResult] = await Promise.all([
-    getPrograms(),
+    getPrograms("az"),
     supabase.from("site_settings").select("public_site_name, site_name, logo, footer_phone").eq("id", 1).maybeSingle(),
   ]);
 

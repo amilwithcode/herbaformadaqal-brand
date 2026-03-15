@@ -52,7 +52,7 @@ type UnifiedProgram = {
 export default function ProgramDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const unwrappedParams = React.use(params);
   const slug = unwrappedParams.slug;
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { hidePrices, hidePoints } = useSiteSettings();
 
   const [program, setProgram] = useState<UnifiedProgram | null>(null);
@@ -95,7 +95,7 @@ export default function ProgramDetailsPage({ params }: { params: Promise<{ slug:
           };
         } else {
           // 2. Try DB
-          const res = await fetch(`/api/programs/${slug}`);
+          const res = await fetch(`/api/programs/${slug}?locale=${locale}`);
           if (res.ok) {
             const dbProgram = await res.json();
             currentProgram = {
@@ -154,7 +154,7 @@ export default function ProgramDetailsPage({ params }: { params: Promise<{ slug:
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, locale, t]);
 
   const entry: ProgramProgressEntry = progress[program?.slug || slug] || {};
   const completedTasks = new Set(entry.completedTasks || []);

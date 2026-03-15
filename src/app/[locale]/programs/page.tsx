@@ -6,10 +6,15 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export const revalidate = 60;
 
-export default async function ProgramsPage() {
+export default async function ProgramsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const supabase = await getSupabaseServerClient();
   const [rawPrograms, settingsResult] = await Promise.all([
-    getPrograms(),
+    getPrograms(locale),
     supabase.from("site_settings").select("public_site_name, site_name, logo, footer_phone").eq("id", 1).maybeSingle(),
   ]);
 
