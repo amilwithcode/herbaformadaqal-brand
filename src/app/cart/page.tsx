@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useI18n } from "@/contexts/I18nContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import { useGlobalToast } from "@/contexts/ToastContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Loader2, MessageCircle, LogIn } from "lucide-react";
 
@@ -14,6 +15,7 @@ export default function CartPage() {
   const pathname = usePathname();
   const { items, remove, updateQty, total } = useCart();
   const { t } = useI18n();
+  const { showToast } = useGlobalToast();
   const { hidePrices, hidePoints } = useSiteSettings();
   const [checkingOut, setCheckingOut] = useState(false);
   const [adminPhone, setAdminPhone] = useState("");
@@ -90,7 +92,10 @@ export default function CartPage() {
       setAddressError(t("cart.checkout.validation.address_required"));
       hasError = true;
     }
-    if (hasError) return;
+    if (hasError) {
+      showToast(t("cart.checkout.validation_fill_all"), "error");
+      return;
+    }
     setCheckingOut(true);
     try {
       const lines = items
@@ -108,7 +113,9 @@ export default function CartPage() {
           } => v !== null
         );
       if (!lines.length) {
-        throw new Error("No valid items");
+        showToast(t("cart.error.checkout"), "error");
+        setCheckingOut(false);
+        return;
       }
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -124,24 +131,31 @@ export default function CartPage() {
         }),
       });
       if (res.status === 401) {
-        window.location.href = loginUrl;
+        showToast(t("cart.checkout.login_required"), "info");
+        setTimeout(() => { window.location.href = loginUrl; }, 800);
         return;
       }
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Checkout failed");
+        const errMsg = errData.error || t("cart.error.checkout");
+        showToast(errMsg, "error");
+        setCheckoutError(errMsg);
+        setCheckingOut(false);
+        return;
       }
       const data = await res.json();
       if (data && typeof data.paymentUrl === "string" && data.paymentUrl) {
-        window.location.href = data.paymentUrl as string;
+        showToast(t("cart.checkout.redirecting_to_payment"), "success");
+        setTimeout(() => { window.location.href = data.paymentUrl as string; }, 600);
         return;
       }
-      setCheckoutError(
-        t("cart.error.payment_link")
-      );
+      showToast(t("cart.error.payment_link"), "error");
+      setCheckoutError(t("cart.error.payment_link"));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      setCheckoutError(msg && msg !== "Checkout failed" ? msg : t("cart.error.checkout"));
+      const displayMsg = msg && msg !== "Checkout failed" ? msg : t("cart.error.checkout");
+      showToast(displayMsg, "error");
+      setCheckoutError(displayMsg);
     } finally {
       setCheckingOut(false);
     }

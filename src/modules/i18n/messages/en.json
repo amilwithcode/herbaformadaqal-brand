@@ -129,6 +129,8 @@
   "cart.checkout.validation.address_required": "Please enter your address",
   "cart.checkout.login_required": "Log in to complete your order",
   "cart.checkout.login_required_hint": "You will be redirected to the login page when you click the button.",
+  "cart.checkout.validation_fill_all": "Please fill in all required fields.",
+  "cart.checkout.redirecting_to_payment": "Redirecting to payment...",
   "wishlist.title": "Wishlist",
   "wishlist.empty": "Your wishlist is empty. Save products to find them easily later.",
   "wishlist.item.default_description": "Product you want to buy later",

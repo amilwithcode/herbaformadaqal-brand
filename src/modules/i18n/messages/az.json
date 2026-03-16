@@ -133,6 +133,8 @@
   "cart.checkout.validation.address_required": "Ünvan daxil edin",
   "cart.checkout.login_required": "Sifarişi tamamlamaq üçün daxil olun",
   "cart.checkout.login_required_hint": "Düyməyə basanda giriş səhifəsinə yönləndiriləcəksiniz.",
+  "cart.checkout.validation_fill_all": "Zəhmət olmasa bütün məcburi sahələri doldurun.",
+  "cart.checkout.redirecting_to_payment": "Ödəniş səhifəsinə yönləndirilirsiniz...",
   "wishlist.title": "Seçilmişlər",
   "wishlist.empty": "Wishlist boşdur. Məhsulları qeyd edərək sonradan rahat tapa bilərsiniz.",
   "wishlist.item.default_description": "Sonradan almaq istədiyin məhsul",

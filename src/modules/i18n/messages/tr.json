@@ -129,6 +129,8 @@
   "cart.checkout.validation.address_required": "Lütfen adres girin",
   "cart.checkout.login_required": "Siparişi tamamlamak için giriş yapın",
   "cart.checkout.login_required_hint": "Butona tıkladığınızda giriş sayfasına yönlendirileceksiniz.",
+  "cart.checkout.validation_fill_all": "Lütfen tüm zorunlu alanları doldurun.",
+  "cart.checkout.redirecting_to_payment": "Ödeme sayfasına yönlendiriliyorsunuz...",
   "wishlist.title": "Favoriler",
   "wishlist.empty": "Favori listeniz boş. Ürünleri kaydederek sonradan kolayca bulabilirsiniz.",
   "wishlist.item.default_description": "Daha sonra almak istediğin ürün",

@@ -126,6 +126,8 @@
   "cart.checkout.validation.address_required": "Введите адрес",
   "cart.checkout.login_required": "Войдите, чтобы оформить заказ",
   "cart.checkout.login_required_hint": "Вы будете перенаправлены на страницу входа при нажатии кнопки.",
+  "cart.checkout.validation_fill_all": "Пожалуйста, заполните все обязательные поля.",
+  "cart.checkout.redirecting_to_payment": "Перенаправление на страницу оплаты...",
   "wishlist.title": "Избранное",
   "wishlist.empty": "Список избранного пуст. Сохраняйте продукты, чтобы легко найти их позже.",
   "wishlist.item.default_description": "Товар, который вы хотите купить позже",
