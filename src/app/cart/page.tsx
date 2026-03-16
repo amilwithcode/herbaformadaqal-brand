@@ -1,18 +1,32 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useI18n } from "@/contexts/I18nContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
-import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Loader2, MessageCircle } from "lucide-react";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Loader2, MessageCircle, LogIn } from "lucide-react";
 
 export default function CartPage() {
+  const pathname = usePathname();
   const { items, remove, updateQty, total } = useCart();
   const { t } = useI18n();
   const { hidePrices, hidePoints } = useSiteSettings();
   const [checkingOut, setCheckingOut] = useState(false);
   const [adminPhone, setAdminPhone] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data: { user } }) => setIsLoggedIn(!!user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+    return () => sub?.subscription?.unsubscribe();
+  }, []);
 
   // Fetch admin phone for WhatsApp link
   useEffect(() => {
@@ -39,8 +53,14 @@ export default function CartPage() {
   const shipping = items.length ? 0 : 0;
   const grandTotal = subtotal + shipping;
 
+  const loginUrl = `/auth/login?next=${encodeURIComponent(pathname || "/cart")}`;
+
   const handleCheckout = async () => {
     if (!items.length || checkingOut) return;
+    if (isLoggedIn === false) {
+      window.location.href = loginUrl;
+      return;
+    }
     setCheckoutError(null);
     setNameError("");
     setPhoneError("");
@@ -103,8 +123,13 @@ export default function CartPage() {
           },
         }),
       });
+      if (res.status === 401) {
+        window.location.href = loginUrl;
+        return;
+      }
       if (!res.ok) {
-        throw new Error("Checkout failed");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Checkout failed");
       }
       const data = await res.json();
       if (data && typeof data.paymentUrl === "string" && data.paymentUrl) {
@@ -114,10 +139,9 @@ export default function CartPage() {
       setCheckoutError(
         t("cart.error.payment_link")
       );
-    } catch {
-      setCheckoutError(
-        t("cart.error.checkout")
-      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      setCheckoutError(msg && msg !== "Checkout failed" ? msg : t("cart.error.checkout"));
     } finally {
       setCheckingOut(false);
     }
@@ -249,6 +273,25 @@ export default function CartPage() {
                       </div>
                     </div>
                     <div className="space-y-3">
+                      {isLoggedIn === false && (
+                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-center gap-3">
+                          <LogIn size={20} className="text-amber-600 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-amber-900">
+                              {t("cart.checkout.login_required")}
+                            </p>
+                            <p className="text-xs text-amber-700 mt-0.5">
+                              {t("cart.checkout.login_required_hint")}
+                            </p>
+                          </div>
+                          <Link
+                            href={loginUrl}
+                            className="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                          >
+                            {t("auth.login.title")}
+                          </Link>
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <div className="text-sm font-semibold text-emerald-950">
                           {t("cart.checkout.contact_title")}

@@ -127,6 +127,8 @@
   "cart.checkout.validation.phone_invalid": "Geçersiz telefon numarası",
   "cart.checkout.validation.city_required": "Lütfen şehir girin",
   "cart.checkout.validation.address_required": "Lütfen adres girin",
+  "cart.checkout.login_required": "Siparişi tamamlamak için giriş yapın",
+  "cart.checkout.login_required_hint": "Butona tıkladığınızda giriş sayfasına yönlendirileceksiniz.",
   "wishlist.title": "Favoriler",
   "wishlist.empty": "Favori listeniz boş. Ürünleri kaydederek sonradan kolayca bulabilirsiniz.",
   "wishlist.item.default_description": "Daha sonra almak istediğin ürün",

@@ -131,6 +131,8 @@
   "cart.checkout.validation.phone_invalid": "Telefon nömrəsi yanlışdır",
   "cart.checkout.validation.city_required": "Şəhər daxil edin",
   "cart.checkout.validation.address_required": "Ünvan daxil edin",
+  "cart.checkout.login_required": "Sifarişi tamamlamaq üçün daxil olun",
+  "cart.checkout.login_required_hint": "Düyməyə basanda giriş səhifəsinə yönləndiriləcəksiniz.",
   "wishlist.title": "Seçilmişlər",
   "wishlist.empty": "Wishlist boşdur. Məhsulları qeyd edərək sonradan rahat tapa bilərsiniz.",
   "wishlist.item.default_description": "Sonradan almaq istədiyin məhsul",

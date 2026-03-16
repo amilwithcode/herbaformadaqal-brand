@@ -124,6 +124,8 @@
   "cart.checkout.validation.phone_invalid": "Некорректный номер телефона",
   "cart.checkout.validation.city_required": "Введите город",
   "cart.checkout.validation.address_required": "Введите адрес",
+  "cart.checkout.login_required": "Войдите, чтобы оформить заказ",
+  "cart.checkout.login_required_hint": "Вы будете перенаправлены на страницу входа при нажатии кнопки.",
   "wishlist.title": "Избранное",
   "wishlist.empty": "Список избранного пуст. Сохраняйте продукты, чтобы легко найти их позже.",
   "wishlist.item.default_description": "Товар, который вы хотите купить позже",
