@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
   }
 
+  const locale = ["az", "en", "tr", "ru"].includes(body.locale) ? body.locale : "az";
   const payload = {
     title: body.title || "",
     subtitle: body.subtitle || "",
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
     image_position: body.image_position || "center center",
     is_active: body.is_active ?? true,
     sort_order: body.sort_order ?? 0,
+    locale,
   };
 
   const { data, error } = await supabase
@@ -75,6 +77,7 @@ export async function PUT(req: NextRequest) {
   if (typeof body.image_position === "string") patch.image_position = body.image_position;
   if (typeof body.is_active === "boolean") patch.is_active = body.is_active;
   if (typeof body.sort_order === "number") patch.sort_order = body.sort_order;
+  if (body.locale && ["az", "en", "tr", "ru"].includes(body.locale)) patch.locale = body.locale;
 
   const { data, error } = await supabase
     .from(TABLE)

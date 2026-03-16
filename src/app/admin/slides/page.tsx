@@ -17,6 +17,13 @@ import {
   Layers,
 } from "lucide-react";
 
+const LOCALES = [
+  { value: "az", label: "Azərbaycan" },
+  { value: "en", label: "English" },
+  { value: "tr", label: "Türkçe" },
+  { value: "ru", label: "Русский" },
+] as const;
+
 type Slide = {
   id: number;
   title: string;
@@ -27,6 +34,7 @@ type Slide = {
   image_position?: string;
   is_active: boolean;
   sort_order: number;
+  locale?: string;
 };
 
 export default function AdminSlidesPage() {
@@ -38,6 +46,7 @@ export default function AdminSlidesPage() {
 
   // Form state
   const [form, setForm] = useState({
+    locale: "az" as (typeof LOCALES)[number]["value"],
     title: "",
     subtitle: "",
     button_text: "Məhsullara keç →",
@@ -70,6 +79,7 @@ export default function AdminSlidesPage() {
 
   const resetForm = () => {
     setForm({
+      locale: "az",
       title: "",
       subtitle: "",
       button_text: "Məhsullara keç →",
@@ -85,6 +95,7 @@ export default function AdminSlidesPage() {
   const handleEdit = (slide: Slide) => {
     setEditingId(slide.id);
     setForm({
+      locale: (slide.locale && LOCALES.some((l) => l.value === slide.locale) ? slide.locale : "az") as (typeof LOCALES)[number]["value"],
       title: slide.title,
       subtitle: slide.subtitle,
       button_text: slide.button_text,
@@ -204,8 +215,7 @@ export default function AdminSlidesPage() {
             Hero Seksiyalar
           </h1>
           <p className="text-sm text-slate-500 max-w-2xl">
-            Əsas səhifədə göstərilən seksiyaları idarə edin. Hər seksiyada arxa fon
-            şəkli, başlıq, alt başlıq və düymə ola bilər.
+            Əsas səhifədə göstərilən hero slaydlarını idarə edin. Hər dil üçün ayrıca slayd əlavə edin (az, en, tr, ru) — sayt dili dəyişəndə uyğun dildəki mətn göstərilir.
           </p>
         </div>
       </div>
@@ -226,6 +236,29 @@ export default function AdminSlidesPage() {
                   <X size={16} />
                 </button>
               )}
+            </div>
+
+            {/* Dil (locale) — əsas səhifədə bu slaydın mətni hansı dilə göstəriləcək */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-slate-600">
+                Dil (mətn hansı dilə göstəriləcək)
+              </label>
+              <select
+                value={form.locale}
+                onChange={(e) =>
+                  setForm({ ...form, locale: e.target.value as (typeof LOCALES)[number]["value"] })
+                }
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              >
+                {LOCALES.map((l) => (
+                  <option key={l.value} value={l.value}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-400">
+                Eyni slaydı hər dil üçün ayrıca əlavə edin (eyni şəkil, eyni sıra; başlıq/alt başlıq/düymə hər dil üçün fərqli ola bilər).
+              </p>
             </div>
 
             {/* Image Upload */}
@@ -487,7 +520,7 @@ export default function AdminSlidesPage() {
                     {/* Content */}
                     <div className="flex flex-1 flex-col justify-between p-4">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-xs text-slate-400">
                             #{idx + 1}
                           </span>
@@ -495,6 +528,24 @@ export default function AdminSlidesPage() {
                           <span className="text-xs text-slate-400">
                             Sıra: {slide.sort_order}
                           </span>
+                          {slide.locale && (
+                            <>
+                              <span className="text-xs text-slate-400">•</span>
+                              <span
+                                className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium ${
+                                  slide.locale === "az"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : slide.locale === "en"
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : slide.locale === "tr"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                {LOCALES.find((l) => l.value === slide.locale)?.label ?? slide.locale.toUpperCase()}
+                              </span>
+                            </>
+                          )}
                         </div>
                         <h3 className="font-semibold text-slate-900 line-clamp-1">
                           {slide.title || "Başlıqsız seksiya"}
