@@ -1,57 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useI18n } from "@/contexts/I18nContext";
 import CountUp from "@/components/ui/CountUp";
 import ProductCard from "@/components/products/ProductCard";
 import type { Product } from "@/modules/products/types";
 
-export default function AboutClient() {
+type Props = {
+  initialAboutContent: string;
+  initialProducts: Product[];
+};
+
+export default function AboutClient({ initialAboutContent, initialProducts }: Props) {
   const { t, locale } = useI18n();
-  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [aboutContent, setAboutContent] = useState("");
-
-  useEffect(() => {
-    fetch("/api/settings")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data) return;
-        // Locale-ə uyğun sütunu seç; boşdursa az-a, sonra köhnə sahəyə düş
-        const localeKey = `about_content_${locale}`;
-        const text =
-          (typeof data[localeKey] === "string" && data[localeKey].trim()
-            ? data[localeKey]
-            : typeof data.about_content_az === "string" && data.about_content_az.trim()
-            ? data.about_content_az
-            : typeof data.about_content === "string"
-            ? data.about_content
-            : "") as string;
-        setAboutContent(text);
-      })
-      .catch(() => {});
-  }, [locale]);
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/products/recommended")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        if (!active) return;
-        setRecommendedProducts(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (!active) return;
-        setRecommendedProducts([]);
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoadingProducts(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   return (
     <main className="mx-auto max-w-6xl space-y-10 px-6 py-10">
@@ -63,9 +23,13 @@ export default function AboutClient() {
           {t("about.hero.subtitle")}
         </p>
       </section>
-      <section className="space-y-4 text-sm md:text-base text-emerald-800 whitespace-pre-wrap">
-        {aboutContent && <p>{aboutContent}</p>}
-      </section>
+
+      {initialAboutContent && (
+        <section className="space-y-4 text-sm md:text-base text-emerald-800 whitespace-pre-wrap">
+          <p>{initialAboutContent}</p>
+        </section>
+      )}
+
       <section className="space-y-6">
         <h2 className="text-center text-xl font-semibold text-emerald-950">
           {t("about.values.title")}
@@ -73,7 +37,7 @@ export default function AboutClient() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-3xl border border-emerald-100 bg-white px-6 py-6 text-center text-sm text-emerald-900">
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#e4f3ec] text-emerald-700">
-              ✓
+              &#10003;
             </div>
             <h3 className="mt-3 text-base font-semibold">
               {t("about.values.items.quality.title")}
@@ -84,7 +48,7 @@ export default function AboutClient() {
           </div>
           <div className="rounded-3xl border border-emerald-100 bg-white px-6 py-6 text-center text-sm text-emerald-900">
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#e4f3ec] text-emerald-700">
-              ✓
+              &#10003;
             </div>
             <h3 className="mt-3 text-base font-semibold">
               {t("about.values.items.natural.title")}
@@ -95,7 +59,7 @@ export default function AboutClient() {
           </div>
           <div className="rounded-3xl border border-emerald-100 bg-white px-6 py-6 text-center text-sm text-emerald-900">
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#e4f3ec] text-emerald-700">
-              ❤
+              &#10084;
             </div>
             <h3 className="mt-3 text-base font-semibold">
               {t("about.values.items.care.title")}
@@ -106,7 +70,7 @@ export default function AboutClient() {
           </div>
           <div className="rounded-3xl border border-emerald-100 bg-white px-6 py-6 text-center text-sm text-emerald-900">
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#e4f3ec] text-emerald-700">
-              ℹ
+              &#9432;
             </div>
             <h3 className="mt-3 text-base font-semibold">
               {t("about.values.items.guidance.title")}
@@ -117,6 +81,7 @@ export default function AboutClient() {
           </div>
         </div>
       </section>
+
       <section className="grid gap-4 rounded-3xl bg-emerald-700 px-6 py-6 text-center text-emerald-50 md:grid-cols-3">
         <div>
           <div className="text-2xl font-semibold">
@@ -143,31 +108,27 @@ export default function AboutClient() {
           </div>
         </div>
       </section>
-      <section className="space-y-4">
-        <h2 className="text-center text-xl font-semibold text-emerald-950">
-          {t("about.recommended.title")}
-        </h2>
-        {loadingProducts && (
+
+      {initialProducts.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-center text-xl font-semibold text-emerald-950">
+            {t("about.recommended.title")}
+          </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-[300px] animate-pulse rounded-3xl bg-slate-100" />
-            ))}
-          </div>
-        )}
-        {!loadingProducts && recommendedProducts.length === 0 && (
-          <p className="text-center text-xs text-emerald-700">
-            {t("product.not_found")}
-          </p>
-        )}
-        {!loadingProducts && recommendedProducts.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {recommendedProducts.map((product) => {
+            {initialProducts.map((product) => {
               const titleTrans = product.translations?.find(
                 (tr) => tr.language === locale && tr.field === "title"
               );
-              const title = titleTrans?.value || product.slug.split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
-              const finalPrice = Number(product.base_price) * (1 - Number(product.discount_percent) / 100);
-              
+              const title =
+                titleTrans?.value ||
+                product.slug
+                  .split("-")
+                  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                  .join(" ");
+              const finalPrice =
+                Number(product.base_price) *
+                (1 - Number(product.discount_percent) / 100);
+
               return (
                 <ProductCard
                   key={product.id}
@@ -184,8 +145,8 @@ export default function AboutClient() {
               );
             })}
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </main>
   );
 }
