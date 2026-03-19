@@ -51,6 +51,8 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
 
   useEffect(() => {
     let active = true;
+    // Dil dəyişdikdə loading ekranını yenidən göstər
+    setIsReady(false);
     const currentLocale = locale;
     getMessages(currentLocale)
       .then((loaded) => {
