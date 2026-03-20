@@ -11,7 +11,7 @@ type AdminOrderItem = {
 };
 
 type AdminOrder = {
-  id: number;
+  id: string | number;
   created_at: string | null;
   status: string;
   total: number;
@@ -28,7 +28,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pendingActionOrderId, setPendingActionOrderId] = useState<number | null>(null);
+  const [pendingActionOrderId, setPendingActionOrderId] = useState<string | number | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -52,7 +52,7 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
-  const updateOrderStatus = async (orderId: number, status: string) => {
+  const updateOrderStatus = async (orderId: string | number, status: string) => {
     setPendingActionOrderId(orderId);
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
@@ -75,7 +75,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const deleteOrder = async (orderId: number) => {
+  const deleteOrder = async (orderId: string | number) => {
     const confirmed = window.confirm(
       `Sifariş #${orderId} silinsin? Bu əməliyyatı geri qaytarmaq olmur.`
     );
