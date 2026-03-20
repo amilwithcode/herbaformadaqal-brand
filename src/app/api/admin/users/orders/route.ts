@@ -26,13 +26,14 @@ export async function GET(req: NextRequest) {
     .select(`
       id,
       created_at,
-      total_amount,
+      total,
       status,
       points_earned,
       order_items (
         id,
         quantity,
-        price,
+        product_name,
+        unit_price,
         product:products (
           slug,
           points,
@@ -55,21 +56,29 @@ export async function GET(req: NextRequest) {
   // Process translations for product name
   type ProductTranslation = { field?: string; language?: string; value?: string };
   type ProductRow = { slug?: string; points?: number; translations?: ProductTranslation[] };
-  type OrderItemRow = { id: number; quantity: number; price: number; product?: ProductRow };
-  type OrderRow = { [key: string]: unknown; order_items: OrderItemRow[] };
-  const formattedOrders = (orders as OrderRow[]).map((order) => ({
+  type OrderItemRow = {
+    id: number;
+    quantity: number | null;
+    unit_price: number | null;
+    product_name?: string | null;
+    product?: ProductRow | null;
+  };
+  type OrderRow = { [key: string]: unknown; total?: number | null; order_items?: OrderItemRow[] | null };
+
+  const formattedOrders = ((orders as OrderRow[]) ?? []).map((order) => ({
     ...order,
-    order_items: order.order_items.map((item) => {
+    total_amount: Number(order.total ?? 0),
+    order_items: (order.order_items ?? []).map((item) => {
       const translations = item.product?.translations || [];
       const nameAz = translations.find((t) => t.field === "name" && t.language === "az")?.value;
       const nameAny = translations.find((t) => t.field === "name")?.value;
       
-      const productName = nameAz || nameAny || item.product?.slug || "Unknown Product";
+      const productName = nameAz || nameAny || item.product_name || item.product?.slug || "Unknown Product";
       
       return {
         id: item.id,
-        quantity: item.quantity,
-        price: item.price,
+        quantity: Number(item.quantity ?? 0),
+        price: Number(item.unit_price ?? 0),
         productName,
         productPoints: item.product?.points || 0
       };
