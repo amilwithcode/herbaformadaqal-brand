@@ -1,7 +1,7 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
-import ContactClient from "./ContactClient";
+import ContactClient from "@/components/contact/ContactClient";
 
 async function getContactSettings() {
   const supabase = await getSupabaseServerClient();
