@@ -3,7 +3,7 @@ import { getSupabaseAdminClient, getSupabaseServerClient } from "@/lib/supabase-
 import { verifyAdmin } from "@/lib/auth-utils";
 
 type Params = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 const ALLOWED_STATUSES = new Set([
@@ -17,7 +17,8 @@ const ALLOWED_STATUSES = new Set([
 ]);
 
 export async function PATCH(req: NextRequest, { params }: Params) {
-  const id = params.id?.trim();
+  const { id: rawId } = await params;
+  const id = rawId?.trim();
   if (!id) {
     return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
   }
@@ -50,7 +51,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const id = params.id?.trim();
+  const { id: rawId } = await params;
+  const id = rawId?.trim();
   if (!id) {
     return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
   }
