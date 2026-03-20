@@ -28,27 +28,76 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingActionOrderId, setPendingActionOrderId] = useState<number | null>(null);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("/api/admin/orders", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error || "Sifarişlər yüklənmədi");
+        return;
+      }
+      setOrders(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (e) {
+      console.error("Admin orders fetch error:", e);
+      setError("Şəbəkə xətası. Zəhmət olmasa yenidən cəhd edin.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await fetch("/api/admin/orders", { cache: "no-store" });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data?.error || "Sifarişlər yüklənmədi");
-          return;
-        }
-        setOrders(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.error("Admin orders fetch error:", e);
-        setError("Şəbəkə xətası. Zəhmət olmasa yenidən cəhd edin.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrders();
   }, []);
+
+  const updateOrderStatus = async (orderId: number, status: string) => {
+    setPendingActionOrderId(orderId);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error || "Status yenilənə bilmədi");
+        return;
+      }
+      setOrders((prev) =>
+        prev.map((order) => (order.id === orderId ? { ...order, status } : order))
+      );
+    } catch {
+      setError("Status yenilənərkən xəta baş verdi.");
+    } finally {
+      setPendingActionOrderId(null);
+    }
+  };
+
+  const deleteOrder = async (orderId: number) => {
+    const confirmed = window.confirm(
+      `Sifariş #${orderId} silinsin? Bu əməliyyatı geri qaytarmaq olmur.`
+    );
+    if (!confirmed) return;
+
+    setPendingActionOrderId(orderId);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error || "Sifariş silinə bilmədi");
+        return;
+      }
+      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+    } catch {
+      setError("Sifariş silinərkən xəta baş verdi.");
+    } finally {
+      setPendingActionOrderId(null);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -130,6 +179,33 @@ export default function AdminOrdersPage() {
                     </div>
                   ))
                 )}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+                <button
+                  type="button"
+                  onClick={() => updateOrderStatus(order.id, "paid")}
+                  disabled={pendingActionOrderId === order.id}
+                  className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                >
+                  Təsdiqlə
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateOrderStatus(order.id, "completed")}
+                  disabled={pendingActionOrderId === order.id}
+                  className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  Tamamla
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteOrder(order.id)}
+                  disabled={pendingActionOrderId === order.id}
+                  className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                >
+                  Sil
+                </button>
               </div>
             </div>
           ))}
