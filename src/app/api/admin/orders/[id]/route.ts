@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseServerClient } from "@/lib/supabase-server";
 import { verifyAdmin } from "@/lib/auth-utils";
 
-type Params = {
-  params: Promise<{ id: string }>;
-};
-
 const ALLOWED_STATUSES = new Set([
   "pending",
   "paid",
@@ -16,7 +12,11 @@ const ALLOWED_STATUSES = new Set([
   "refunded",
 ]);
 
-export async function PATCH(req: NextRequest, { params }: Params) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { params } = context;
   const { id: rawId } = await params;
   const id = rawId?.trim();
   if (!id) {
@@ -50,7 +50,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   return NextResponse.json(data);
 }
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { params } = context;
   const { id: rawId } = await params;
   const id = rawId?.trim();
   if (!id) {
