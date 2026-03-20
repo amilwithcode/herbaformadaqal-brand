@@ -32,7 +32,6 @@ export async function GET(req: NextRequest) {
       order_items (
         id,
         quantity,
-        product_name,
         unit_price,
         product:products (
           slug,
@@ -60,7 +59,6 @@ export async function GET(req: NextRequest) {
     id: number;
     quantity: number | null;
     unit_price: number | null;
-    product_name?: string | null;
     product?: ProductRow | null;
   };
   type OrderRow = { [key: string]: unknown; total?: number | null; order_items?: OrderItemRow[] | null };
@@ -73,7 +71,7 @@ export async function GET(req: NextRequest) {
       const nameAz = translations.find((t) => t.field === "name" && t.language === "az")?.value;
       const nameAny = translations.find((t) => t.field === "name")?.value;
       
-      const productName = nameAz || nameAny || item.product_name || item.product?.slug || "Unknown Product";
+      const productName = nameAz || nameAny || item.product?.slug || "Unknown Product";
       
       return {
         id: item.id,

@@ -19,10 +19,17 @@ type ProfileRow = {
 
 type OrderItemRow = {
   order_id: number;
-  product_name: string | null;
   quantity: number | null;
   unit_price: number | null;
   total: number | null;
+  product?: {
+    slug?: string | null;
+    translations?: Array<{
+      field?: string | null;
+      language?: string | null;
+      value?: string | null;
+    }> | null;
+  } | null;
 };
 
 export async function GET() {
@@ -61,7 +68,20 @@ export async function GET() {
       : Promise.resolve({ data: [], error: null }),
     adminClient
       .from("order_items")
-      .select("order_id, product_name, quantity, unit_price, total")
+      .select(`
+        order_id,
+        quantity,
+        unit_price,
+        total,
+        product:products (
+          slug,
+          translations (
+            field,
+            language,
+            value
+          )
+        )
+      `)
       .in("order_id", orderIds),
   ]);
 
@@ -97,12 +117,17 @@ export async function GET() {
         full_name: profile?.full_name ?? null,
         phone: profile?.phone ?? null,
       },
-      items: orderItems.map((item) => ({
-        product_name: item.product_name ?? "Məhsul",
-        quantity: Number(item.quantity ?? 0),
-        unit_price: Number(item.unit_price ?? 0),
-        total: Number(item.total ?? 0),
-      })),
+      items: orderItems.map((item) => {
+        const translations = item.product?.translations ?? [];
+        const nameAz = translations.find((t) => t.field === "name" && t.language === "az")?.value;
+        const nameAny = translations.find((t) => t.field === "name")?.value;
+        return {
+          product_name: nameAz || nameAny || item.product?.slug || "Məhsul",
+          quantity: Number(item.quantity ?? 0),
+          unit_price: Number(item.unit_price ?? 0),
+          total: Number(item.total ?? 0),
+        };
+      }),
     };
   });
 
