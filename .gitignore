@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/mobil/node_modules
+/mobil/.expo
 /.pnp
 .pnp.*
 .yarn/*
