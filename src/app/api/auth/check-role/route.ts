@@ -18,7 +18,7 @@ export async function GET() {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, is_admin")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -26,7 +26,15 @@ export async function GET() {
       return NextResponse.json({ role: "user" }, { status: 200 });
     }
 
-    return NextResponse.json({ role: normalizeRole(profile.role) }, { status: 200 });
+    const normalizedRole = normalizeRole(profile.role);
+    const resolvedRole =
+      normalizedRole !== "user"
+        ? normalizedRole
+        : profile.is_admin
+          ? "admin"
+          : "user";
+
+    return NextResponse.json({ role: resolvedRole }, { status: 200 });
   } catch {
     return NextResponse.json({ role: null }, { status: 500 });
   }

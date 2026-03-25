@@ -107,11 +107,14 @@ export default function LoginForm() {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, is_admin")
       .eq("id", authData?.user?.id)
       .maybeSingle();
 
-    if (!profileError && isAdminRole(profile?.role)) {
+    if (
+      !profileError &&
+      (isAdminRole(profile?.role) || Boolean(profile?.is_admin))
+    ) {
       isAdmin = true;
     }
 

@@ -226,7 +226,7 @@ export async function middleware(request: NextRequest) {
     if (isAdminRoute) {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, is_admin")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -236,7 +236,11 @@ export async function middleware(request: NextRequest) {
         url.searchParams.set("next", path);
         return NextResponse.redirect(url);
       }
-      if (!profile || !isAdminRole(profile.role)) {
+      const hasAdminAccess = Boolean(profile) && (
+        isAdminRole(profile.role) ||
+        Boolean(profile.is_admin)
+      );
+      if (!hasAdminAccess) {
         const url = request.nextUrl.clone();
         url.pathname = "/404";
         return NextResponse.rewrite(url);

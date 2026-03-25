@@ -156,7 +156,7 @@ export default function SiteNavbar({
         let avatarLetter = "U";
         const { data: profile } = await supabase
           .from("profiles")
-          .select("full_name, role")
+          .select("full_name, role, is_admin")
           .eq("id", user.id)
           .maybeSingle();
         const metaFullName =
@@ -173,7 +173,11 @@ export default function SiteNavbar({
           avatarLetter = user.email.charAt(0).toUpperCase();
         }
         if (!fullName) return;
-        let role = profile?.role || "user";
+        let role = isAdminRole(profile?.role)
+          ? String(profile?.role)
+          : profile?.is_admin
+            ? "admin"
+            : "user";
 
         // Fallback: if profile query didn't return role, check via API
         if (!isAdminRole(role) && !profile?.role) {
