@@ -47,7 +47,7 @@ export default function AdminLogin() {
       }
 
       // Fallback: check via API if profile query failed
-      if (!isAdmin && profileError) {
+      if (!isAdmin) {
         try {
           const res = await fetch("/api/auth/check-role");
           if (res.ok) {

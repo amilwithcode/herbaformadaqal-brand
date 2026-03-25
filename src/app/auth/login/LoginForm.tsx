@@ -114,7 +114,7 @@ export default function LoginForm() {
       isAdmin = true;
     }
 
-    if (!isAdmin && profileError) {
+    if (!isAdmin) {
       try {
         const res = await fetch("/api/auth/check-role");
         if (res.ok) {
