@@ -236,10 +236,9 @@ export async function middleware(request: NextRequest) {
         url.searchParams.set("next", path);
         return NextResponse.redirect(url);
       }
-      const hasAdminAccess = Boolean(profile) && (
-        isAdminRole(profile.role) ||
-        Boolean(profile.is_admin)
-      );
+      const hasAdminAccess = profile
+        ? isAdminRole(profile.role) || Boolean(profile.is_admin)
+        : false;
       if (!hasAdminAccess) {
         const url = request.nextUrl.clone();
         url.pathname = "/404";
