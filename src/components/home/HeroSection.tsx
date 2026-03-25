@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useI18n } from "@/contexts/I18nContext";
-import CountUp from "@/components/ui/CountUp";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -40,14 +39,11 @@ export default function HeroSection({
   slides: externalSlides,
 }: {
   brandName?: string;
-  sectionData?: any;
+  sectionData?: { title?: string; subtitle?: string; buttonText?: string };
   slides?: HeroSlide[];
 }) {
   const { t, locale } = useI18n();
-  const name = brandName || t("hero.brand_fallback");
-  const parts = name.split(" ");
-  const firstLine = parts.length > 1 ? parts.slice(0, -1).join(" ") : name;
-  const secondLine = parts.length > 1 ? parts[parts.length - 1] : "";
+  const heroTitleFallback = (brandName && brandName.trim()) || t("hero.title");
 
   const slides =
     externalSlides && externalSlides.length > 0
@@ -56,7 +52,7 @@ export default function HeroSection({
 
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const goTo = useCallback(
     (index: number) => {
@@ -94,7 +90,7 @@ export default function HeroSection({
 
   const title =
     (activeSlide.title && activeSlide.title.trim()) ||
-    (useTranslatedContent ? t("hero.title") : (sectionData?.title || t("hero.title")));
+    (useTranslatedContent ? heroTitleFallback : (sectionData?.title || heroTitleFallback));
   const subtitle =
     (activeSlide.subtitle && activeSlide.subtitle.trim()) ||
     (useTranslatedContent ? t("hero.subtitle") : (sectionData?.subtitle || t("hero.subtitle")));
@@ -108,38 +104,33 @@ export default function HeroSection({
     <section className="hidden md:block relative w-full overflow-hidden">
       {/* Slides */}
       <div className="relative min-h-[600px] md:min-h-[780px]">
-        {slides.map((slide, idx) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-              idx === current
-                ? "opacity-100 z-10"
-                : "opacity-0 z-0"
-            }`}
-          >
-            {/* Background Image - next/image ilə optimallaşdırılmış */}
-            {slide.image_url ? (
-              <div className="absolute inset-0">
-                <Image
-                  src={slide.image_url}
-                  alt={slide.title || t("common.hero_alt")}
-                  fill
-                  className="object-cover object-center"
-                  style={{
-                    objectPosition: slide.image_position || "center center",
-                  }}
-                  priority={idx === 0}
-                  sizes="100vw"
-                  quality={90}
-                />
-                {/* Overlay - darker on left for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
-              </div>
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-white" />
-            )}
-          </div>
-        ))}
+        {/* Yalnız aktiv slayd render olunur: eyni anda çox şəkil yüklənməsinin qarşısını alır */}
+        <div
+          key={activeSlide.id}
+          className="absolute inset-0 z-10 opacity-100 transition-opacity duration-700 ease-in-out"
+        >
+          {/* Background Image - next/image ilə optimallaşdırılmış */}
+          {activeSlide.image_url ? (
+            <div className="absolute inset-0">
+              <Image
+                src={activeSlide.image_url}
+                alt={activeSlide.title || t("common.hero_alt")}
+                fill
+                className="object-cover object-center"
+                style={{
+                  objectPosition: activeSlide.image_position || "center center",
+                }}
+                priority={current === 0}
+                sizes="100vw"
+                quality={85}
+              />
+              {/* Overlay - darker on left for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+            </div>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-white" />
+          )}
+        </div>
 
         {/* Content - always on top; key ensures text/buttons update when slide changes */}
         <div key={`hero-content-${current}`} className="relative z-20 flex min-h-[600px] md:min-h-[780px] items-center">

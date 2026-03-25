@@ -5,6 +5,7 @@ import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { isAdminRole } from "@/lib/roles";
 import { useI18n } from "@/contexts/I18nContext";
 import { LocaleSwitcher } from "@/components/navigation/LocaleSwitcher";
 import { 
@@ -175,7 +176,7 @@ export default function SiteNavbar({
         let role = profile?.role || "user";
 
         // Fallback: if profile query didn't return role, check via API
-        if (role === "user" && !profile?.role) {
+        if (!isAdminRole(role) && !profile?.role) {
           try {
             const res = await fetch("/api/auth/check-role");
             if (res.ok) {
@@ -443,7 +444,7 @@ export default function SiteNavbar({
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 top-11 z-20 w-40 rounded-2xl border border-emerald-100 bg-white py-1 text-[11px] shadow-lg">
-                  {navUser.role === 'admin' && (
+                  {isAdminRole(navUser.role) && (
                     <LocalizedLink
                       href="/admin"
                       className="flex w-full items-center justify-between px-3 py-2 text-emerald-900 hover:bg-emerald-50 border-b border-emerald-50"
@@ -454,11 +455,11 @@ export default function SiteNavbar({
                     </LocalizedLink>
                   )}
                   <LocalizedLink
-                    href={navUser.role === 'admin' ? '/admin' : '/account'}
+                    href={isAdminRole(navUser.role) ? '/admin' : '/account'}
                     className="flex w-full items-center justify-between px-3 py-2 text-emerald-900 hover:bg-emerald-50"
                     onClick={() => setUserMenuOpen(false)}
                   >
-                    <span>{navUser.role === 'admin' ? t("nav.admin_panel") : t("nav.go_to_profile")}</span>
+                    <span>{isAdminRole(navUser.role) ? t("nav.admin_panel") : t("nav.go_to_profile")}</span>
                     <ExternalLink size={12} />
                   </LocalizedLink>
                   <button
@@ -604,7 +605,7 @@ export default function SiteNavbar({
               {navUser ? (
                 <>
                   <LocalizedLink
-                    href={navUser.role === 'admin' ? '/admin' : '/account'}
+                    href={isAdminRole(navUser.role) ? '/admin' : '/account'}
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm border border-emerald-100"
                   >
@@ -617,13 +618,13 @@ export default function SiteNavbar({
                           {navUser.fullName}
                         </span>
                         <span className="text-[10px] text-emerald-500">
-                          {navUser.role === 'admin' ? t("nav.admin_panel") : t("nav.profile")}
+                          {isAdminRole(navUser.role) ? t("nav.admin_panel") : t("nav.profile")}
                         </span>
                       </div>
                     </div>
                     <ChevronRight size={16} className="text-emerald-300" />
                   </LocalizedLink>
-                  {navUser.role === 'admin' && (
+                  {isAdminRole(navUser.role) && (
                     <LocalizedLink
                       href="/admin"
                       onClick={() => setMenuOpen(false)}

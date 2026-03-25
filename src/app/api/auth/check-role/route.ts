@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { normalizeRole } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export async function GET() {
       return NextResponse.json({ role: "user" }, { status: 200 });
     }
 
-    return NextResponse.json({ role: profile.role }, { status: 200 });
+    return NextResponse.json({ role: normalizeRole(profile.role) }, { status: 200 });
   } catch {
     return NextResponse.json({ role: null }, { status: 500 });
   }

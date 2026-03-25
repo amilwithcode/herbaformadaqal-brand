@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAdminRole } from "@/lib/roles";
 
 // Simple in-memory rate limiter (Note: specific to single-instance/long-running server)
 // For distributed systems (Vercel/Serverless), use Redis (e.g., Upstash)
@@ -235,7 +236,7 @@ export async function middleware(request: NextRequest) {
         url.searchParams.set("next", path);
         return NextResponse.redirect(url);
       }
-      if (!profile || profile.role !== "admin") {
+      if (!profile || !isAdminRole(profile.role)) {
         const url = request.nextUrl.clone();
         url.pathname = "/404";
         return NextResponse.rewrite(url);

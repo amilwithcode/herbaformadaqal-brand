@@ -4,6 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, Loader2, ShieldCheck } from "lucide-react";
+import { isAdminRole } from "@/lib/roles";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -42,7 +43,7 @@ export default function AdminLogin() {
         .eq("id", data.user.id)
         .maybeSingle();
 
-      if (!profileError && profile?.role === "admin") {
+      if (!profileError && isAdminRole(profile?.role)) {
         isAdmin = true;
       }
 
@@ -52,7 +53,7 @@ export default function AdminLogin() {
           const res = await fetch("/api/auth/check-role");
           if (res.ok) {
             const apiData = await res.json();
-            if (apiData.role === "admin") isAdmin = true;
+            if (isAdminRole(apiData.role)) isAdmin = true;
           }
         } catch {}
       }

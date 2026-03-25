@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { isAdminRole } from "@/lib/roles";
 import { useI18n } from "@/contexts/I18nContext";
 import { useToast, ToastContainer } from "@/components/ui/Toast";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
@@ -110,7 +111,7 @@ export default function LoginForm() {
       .eq("id", authData?.user?.id)
       .maybeSingle();
 
-    if (!profileError && profile?.role === "admin") {
+    if (!profileError && isAdminRole(profile?.role)) {
       isAdmin = true;
     }
 
@@ -119,7 +120,7 @@ export default function LoginForm() {
         const res = await fetch("/api/auth/check-role");
         if (res.ok) {
           const data = await res.json();
-          if (data.role === "admin") isAdmin = true;
+          if (isAdminRole(data.role)) isAdmin = true;
         }
       } catch {}
     }
