@@ -507,7 +507,7 @@ export async function getRecommendedProducts(limit = 4) {
     }
   }
 
-  return await enrichProductsWithRatings(recommendedProducts);
+  return await enrichProductsWithTranslationsAndRatings(recommendedProducts);
 }
 
 export async function getMostViewedProducts(excludeProductId?: number, limit = 8) {
@@ -566,33 +566,6 @@ export async function getMostViewedProducts(excludeProductId?: number, limit = 8
     .filter(Boolean) as Product[];
 
   return await enrichProductsWithTranslationsAndRatings(ordered);
-}
-
-async function enrichProductsWithRatings(products: Product[]): Promise<Product[]> {
-  if (!products.length) return [];
-  const productIds = products.map((p) => p.id);
-  const supabase = await getSupabaseServerClient();
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select("product_id, rating")
-    .in("product_id", productIds);
-
-  const reviewsMap = new Map<number, number[]>();
-  (reviews || []).forEach((r) => {
-    const pid = (r as { product_id: number; rating: number }).product_id;
-    const rating = (r as { product_id: number; rating: number }).rating;
-    const list = reviewsMap.get(pid) || [];
-    list.push(rating);
-    reviewsMap.set(pid, list);
-  });
-
-  return products.map((p) => {
-    const ratings = reviewsMap.get(p.id) || [];
-    const count = ratings.length;
-    const sum = ratings.reduce((a, b) => a + b, 0);
-    const avg = count > 0 ? sum / count : 0;
-    return { ...p, rating_average: avg, review_count: count };
-  });
 }
 
 async function enrichProductsWithTranslationsAndRatings(products: Product[]): Promise<Product[]> {

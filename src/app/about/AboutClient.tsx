@@ -119,12 +119,13 @@ export default function AboutClient({ initialAboutContent, initialProducts }: Pr
               const titleTrans = product.translations?.find(
                 (tr) => tr.language === locale && tr.field === "title"
               );
+              const anyTitle = product.translations?.find(
+                (tr) => tr.field === "title"
+              );
               const title =
                 titleTrans?.value ||
-                product.slug
-                  .split("-")
-                  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-                  .join(" ");
+                anyTitle?.value ||
+                t("home.product_fallback");
               const finalPrice =
                 Number(product.base_price) *
                 (1 - Number(product.discount_percent) / 100);
