@@ -1,10 +1,28 @@
+import type { Metadata } from "next";
 import { getPrograms } from "@/modules/products/queries";
 import ProgramsClient, { type ProgramCard } from "@/components/programs/ProgramsClient";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { buildPageMetadata } from "@/lib/build-page-metadata";
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    locale,
+    pageKey: "programs",
+    canonicalPath: "/programs",
+    fallbackTitle: "Proqramlar",
+    fallbackDescription:
+      "Çəki idarəsi və sağlamlıq proqramları — sizə uyğun planı seçin.",
+  });
+}
 
 export default async function ProgramsPage({
   params,

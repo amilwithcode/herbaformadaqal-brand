@@ -7,6 +7,7 @@ import ProductsFilters from "./ProductsFilters";
 import ProductsList from "./ProductsList";
 import { useI18n } from "@/contexts/I18nContext";
 import { getLocalizedPath } from "@/lib/localized-path";
+import { productMatchesQuery } from "@/lib/product-search";
 
 type ProductsClientProps = {
   products: Product[];
@@ -81,43 +82,7 @@ export default function ProductsClient({
     }
     if (search.trim()) {
       const q = search.toLowerCase().trim();
-      list = list.filter((p) => {
-        const normalizedSlug = (p.slug || "").toLowerCase().replace(/-/g, " ");
-        const normalizedQuery = q.replace(/-/g, " ");
-
-        // Axtarışı həm slug, həm də tərcümə olunmuş adlar üzrə edək
-        const titleTrans = p.translations?.find(
-          (tr) => tr.language === locale && tr.field === "title"
-        );
-        const anyTitle = p.translations?.find(
-          (tr) => tr.field === "title"
-        );
-        const localizedName = (
-          titleTrans?.value ||
-          anyTitle?.value ||
-          normalizedSlug
-        ).toLowerCase();
-
-        // Description-da da axtarış et
-        const descTrans = p.translations?.find(
-          (tr) => tr.language === locale && tr.field === "description"
-        );
-        const anyDesc = p.translations?.find(
-          (tr) => tr.field === "description"
-        );
-        const localizedDesc = (
-          descTrans?.value ||
-          anyDesc?.value ||
-          ""
-        ).toLowerCase();
-
-        return (
-          normalizedSlug.includes(normalizedQuery) ||
-          p.slug.toLowerCase().includes(q) ||
-          localizedName.includes(q) ||
-          localizedDesc.includes(q)
-        );
-      });
+      list = list.filter((p) => productMatchesQuery(p, q));
     }
     if (sort === "price_low") {
       list = [...list].sort(

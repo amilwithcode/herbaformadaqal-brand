@@ -383,24 +383,26 @@ export async function searchProducts(query: string) {
 
   const supabase = await getSupabaseServerClient();
   const trimmedQuery = query.trim();
-  // Case-insensitive axtarış üçün % əlavə et (ilike PostgreSQL-də case-insensitive-dir)
-  const searchTerm = `%${trimmedQuery}%`;
+  // PostgREST .or() vergülləri ayırıcı kimi oxuyur — təmizlə; %/_ ilike xüsusi simvolları da aradan qaldır
+  const safeForIlike = trimmedQuery.replace(/[,()%]/g, " ").replace(/[%_]/g, " ").trim();
+  if (!safeForIlike) {
+    return [];
+  }
+  const searchTerm = `%${safeForIlike}%`;
 
-  // 1. Products cədvəlində axtarış (slug, name, description) - ilike case-insensitive-dir
-  // Amma əmin olmaq üçün həm böyük, həm də kiçik hərflə axtaraq
+  // 1. Products: slug + name (description sütunu sxemada olmaya bilər — tərcümələrdə axtarılır)
   const { data: productsByDirectMatch } = await supabase
     .from("products")
     .select("*")
     .eq("is_active", true)
-    .or(`slug.ilike.${searchTerm},name.ilike.${searchTerm},description.ilike.${searchTerm}`);
+    .or(`slug.ilike.${searchTerm},name.ilike.${searchTerm}`);
 
-  // 2. Translations cədvəlində axtarış (title və description field-ləri) - ilike case-insensitive-dir
-  // Amma əmin olmaq üçün həm böyük, həm də kiçik hərflə axtaraq
+  // 2. Bütün dillərdə title, description, name tərcümələri
   const { data: translations } = await supabase
     .from("translations")
     .select("entity_id")
     .eq("entity_table", "products")
-    .in("field", ["title", "description"])
+    .in("field", ["title", "description", "name"])
     .ilike("value", searchTerm);
 
   // 3. Translations-də tapılan məhsul ID-lərini götür

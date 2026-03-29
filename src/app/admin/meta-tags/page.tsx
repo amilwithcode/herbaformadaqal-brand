@@ -29,8 +29,23 @@ const emptyForm = {
 };
 
 const PAGE_SUGGESTIONS = [
-  "home", "products", "about", "contact", "blog",
-  "programs", "login", "register", "cart", "checkout",
+  "home",
+  "products",
+  "about",
+  "contact",
+  "blog",
+  "programs",
+  "login",
+  "register",
+  "cart",
+  "checkout",
+  "wishlist",
+  "search",
+  "faq",
+  "terms",
+  "privacy",
+  "returns",
+  "shipping",
 ];
 
 export default function AdminMetaTagsPage() {

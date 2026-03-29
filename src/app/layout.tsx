@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Noto_Sans } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
@@ -23,13 +22,6 @@ async function getRequestLocale(): Promise<"az" | "en" | "tr" | "ru"> {
   if (locale === "en" || locale === "tr" || locale === "ru") return locale;
   return "az";
 }
-
-const notoSans = Noto_Sans({
-  variable: "--font-noto-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 /* ─── Ümumi data fetcher (həm metadata, həm layout istifadə edir) ─── */
 async function getSiteData() {
@@ -215,10 +207,6 @@ export default async function RootLayout({
         {/* DNS Preconnect — xarici ölkələrdən sürətli yüklənmə (Speed Insights / LCP) */}
         <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
         <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://vitals.vercel-insights.com" />
         <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
@@ -248,9 +236,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${notoSans.variable} antialiased bg-slate-950 text-slate-100 font-sans`}
-      >
+      <body className="antialiased bg-slate-950 text-slate-100 font-sans">
         <Providers initialLocale={requestLocale}>{children}</Providers>
         {/* Popup üçün cari dil (popup.js dillərə görə mətn göstərir) */}
         <script

@@ -1,7 +1,9 @@
+import type { Metadata } from "next";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
 import ContactClient from "./ContactClient";
+import { buildPageMetadata } from "@/lib/build-page-metadata";
 
 async function getContactSettings() {
   const supabase = await getSupabaseServerClient();
@@ -13,6 +15,22 @@ async function getContactSettings() {
     .eq("id", 1)
     .maybeSingle();
   return data;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    locale,
+    pageKey: "contact",
+    canonicalPath: "/contact",
+    fallbackTitle: "Əlaqə",
+    fallbackDescription:
+      "Bizimlə əlaqə saxlayın: telefon, ünvan və mesaj formu.",
+  });
 }
 
 export default async function ContactPage() {

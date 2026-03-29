@@ -28,6 +28,7 @@ import {
   LayoutDashboard
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { getLocalizedPath, getPathWithoutLocale } from "@/lib/localized-path";
 
 type NavbarUser = {
   fullName: string;
@@ -263,27 +264,37 @@ export default function SiteNavbar({
     e.preventDefault();
     const q = searchValue.trim();
     if (!q) return;
-    
-    // Əsas səhifədə və məhsullar səhifəsində local filtering
-    if (pathname === "/") {
-      // Əsas səhifədə: FeaturedProductsSection-a event göndər
+
+    const basePath = getPathWithoutLocale(pathname);
+    const isHome = basePath === "/" || basePath === "";
+    const isProducts =
+      basePath === "/products" || basePath.startsWith("/products/");
+
+    setMenuOpen(false);
+    setSearchOpen(false);
+
+    if (isHome) {
       const event = new CustomEvent("homepage-search", { detail: q });
       window.dispatchEvent(event);
-      // URL-i yenilə
-      router.push(`/?search=${encodeURIComponent(q)}`, { scroll: false });
-      setSearchOpen(false);
-    } else if (pathname === "/products") {
-      // Məhsullar səhifəsində: ProductsClient-a event göndər
+      router.push(
+        getLocalizedPath(`/?search=${encodeURIComponent(q)}`, locale),
+        { scroll: false }
+      );
+    } else if (isProducts) {
       const event = new CustomEvent("products-search", { detail: q });
       window.dispatchEvent(event);
-      // URL-i yenilə
-      router.push(`/products?search=${encodeURIComponent(q)}`, { scroll: false });
-      setSearchOpen(false);
+      router.push(
+        getLocalizedPath(`/products?search=${encodeURIComponent(q)}`, locale),
+        { scroll: false }
+      );
     } else {
-      // Digər səhifələrdə: /search səhifəsinə yönləndir
-      const encoded = encodeURIComponent(q);
-      setSearchOpen(false);
-      router.push(`/search?q=${encoded}`);
+      // Lokalizəli /search marşrutu yoxdur; məhsullar səhifəsində filter
+      const event = new CustomEvent("products-search", { detail: q });
+      window.dispatchEvent(event);
+      router.push(
+        getLocalizedPath(`/products?search=${encodeURIComponent(q)}`, locale),
+        { scroll: false }
+      );
     }
   };
   
@@ -294,11 +305,14 @@ export default function SiteNavbar({
       const q = params.get("search") || "";
       if (q) {
         setSearchValue(q);
-        // Əgər əsas səhifədə və ya məhsullar səhifəsindədirsə, event göndər
-        if (pathname === "/") {
+        const basePath = getPathWithoutLocale(pathname);
+        const isHome = basePath === "/" || basePath === "";
+        const isProducts =
+          basePath === "/products" || basePath.startsWith("/products/");
+        if (isHome) {
           const event = new CustomEvent("homepage-search", { detail: q });
           window.dispatchEvent(event);
-        } else if (pathname === "/products") {
+        } else if (isProducts) {
           const event = new CustomEvent("products-search", { detail: q });
           window.dispatchEvent(event);
         }
@@ -531,9 +545,9 @@ export default function SiteNavbar({
         </nav>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay — z alt navbar-dan yüksək olsun (z-[60]) */}
       <div
-        className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[70] md:hidden transition-opacity duration-300 ${
           menuOpen ? "visible opacity-100" : "invisible opacity-0"
         }`}
       >
@@ -604,8 +618,8 @@ export default function SiteNavbar({
               </nav>
             </div>
 
-            {/* Mobile Footer / Auth */}
-            <div className="border-t border-emerald-100 bg-emerald-50/30 p-6 space-y-3">
+            {/* Mobile Footer / Auth — çentiqlı ekran + vizual boşluq */}
+            <div className="border-t border-emerald-100 bg-emerald-50/30 space-y-3 px-6 pb-[max(1.75rem,env(safe-area-inset-bottom,0px))] pt-5">
               {navUser ? (
                 <>
                   <LocalizedLink

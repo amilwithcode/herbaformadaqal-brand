@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useI18n } from "@/contexts/I18nContext";
 import ProductCard from "@/components/products/ProductCard";
@@ -15,6 +16,8 @@ type FeaturedProduct = {
   slug?: string;
   rating?: number;
   reviewCount?: number;
+  /** Bütün dillərdə mətn axtarışı (slug + tərcümələr) */
+  searchBlob?: string;
 };
 
 type FeaturedProductsSectionProps = {
@@ -25,16 +28,17 @@ export default function FeaturedProductsSection({
   products,
 }: FeaturedProductsSectionProps) {
   const { t } = useI18n();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // URL-dən search query-ni oxu
+  // URL-dən search query-ni oxu (dil dəyişəndə və ilk yükdə)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const q = params.get("search") || "";
       setSearchQuery(q);
     }
-  }, []);
+  }, [pathname]);
 
   // Axtarış nəticələrini filter et
   const filteredProducts = useMemo(() => {
@@ -45,7 +49,13 @@ export default function FeaturedProductsSection({
     return products.filter((p) => {
       const name = p.name?.toLowerCase() || "";
       const slug = p.slug?.toLowerCase() || "";
-      return name.includes(q) || slug.includes(q);
+      const blob = p.searchBlob || "";
+      return (
+        blob.includes(q) ||
+        name.includes(q) ||
+        slug.includes(q) ||
+        slug.replace(/-/g, " ").includes(q.replace(/-/g, " "))
+      );
     });
   }, [products, searchQuery]);
 

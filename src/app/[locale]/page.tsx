@@ -9,6 +9,7 @@ import { getSiteSettings, getPageSections, getHeroSlides, getMetaTags } from "@/
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import { parseKeywords } from "@/lib/keywords-utils";
 import { getMessages } from "@/lib/i18n";
+import { productSearchHaystack } from "@/lib/product-search";
 
 const OG_LOCALE_MAP: Record<string, string> = {
   az: "az_AZ",
@@ -129,6 +130,7 @@ export default async function Home({
       rating: p.rating_average || 0,
       reviewCount: p.review_count || 0,
       tag: null,
+      searchBlob: productSearchHaystack(p),
     };
   });
 

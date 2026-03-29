@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { getSiteSettings } from "@/modules/settings/queries";
+import { buildPageMetadata } from "@/lib/build-page-metadata";
 import { getRecommendedProducts } from "@/modules/products/queries";
 import AboutClient from "@/app/about/AboutClient";
 import SiteNavbar from "@/components/layout/SiteNavbar";
@@ -31,6 +33,22 @@ async function getAboutData(locale = "az") {
   const products = await getRecommendedProducts(4).catch(() => []);
 
   return { settings, aboutContent, products };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    locale,
+    pageKey: "about",
+    canonicalPath: "/about",
+    fallbackTitle: "Haqqımızda",
+    fallbackDescription:
+      "Herbalife distribütoru haqqında məlumat, missiyamız və dəyərlərimiz.",
+  });
 }
 
 export default async function AboutPage({

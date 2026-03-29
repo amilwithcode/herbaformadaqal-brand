@@ -9,6 +9,8 @@ export type Category = {
 export type Product = {
   id: number;
   slug: string;
+  /** Cədvəldə varsa — axtarış və fallback üçün */
+  name?: string | null;
   category_id: number | null;
   base_price: number;
   discount_percent: number;
