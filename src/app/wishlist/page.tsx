@@ -4,16 +4,43 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCart } from "@/contexts/CartContext";
 import Link from "next/link";
 import { useI18n } from "@/contexts/I18nContext";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function WishlistPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { items, remove } = useWishlist();
   const { add: addToCart } = useCart();
   const { t } = useI18n();
+  const fromParam = searchParams?.get("from")?.trim() || "";
+  const canReturnToFrom =
+    fromParam.startsWith("/") &&
+    !fromParam.includes("/cart") &&
+    !fromParam.includes("/wishlist");
+
+  const handleGoBack = () => {
+    if (canReturnToFrom) {
+      router.push(fromParam);
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/");
+  };
 
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
       <div className="mx-auto max-w-6xl px-6 py-10 space-y-8">
         <div className="space-y-2">
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+          >
+            ← {t("common.back")}
+          </button>
           <h1 className="text-3xl md:text-4xl font-semibold text-emerald-950">
             {t("wishlist.title")}
           </h1>

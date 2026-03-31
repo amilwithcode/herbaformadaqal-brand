@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
@@ -9,12 +9,15 @@ import { useI18n } from "@/contexts/I18nContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { useGlobalToast } from "@/contexts/ToastContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { getLocalizedPath } from "@/lib/localized-path";
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Loader2, MessageCircle, LogIn } from "lucide-react";
 
 export default function CartPage() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { items, remove, updateQty, total } = useCart();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { showToast } = useGlobalToast();
   const { hidePrices, hidePoints } = useSiteSettings();
   const [checkingOut, setCheckingOut] = useState(false);
@@ -56,6 +59,32 @@ export default function CartPage() {
   const grandTotal = subtotal + shipping;
 
   const loginUrl = `/auth/login?next=${encodeURIComponent(pathname || "/cart")}`;
+  const fromParam = searchParams?.get("from")?.trim() || "";
+  const canReturnToFrom =
+    fromParam.startsWith("/") &&
+    !fromParam.includes("/cart") &&
+    !fromParam.includes("/wishlist");
+
+  const handleGoBack = () => {
+    if (canReturnToFrom) {
+      router.push(fromParam);
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/");
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!items.length) return;
+    const checkoutPath = getLocalizedPath(
+      `/checkout?from=${encodeURIComponent(pathname || "/cart")}`,
+      locale
+    );
+    router.push(checkoutPath);
+  };
 
   const handleCheckout = async () => {
     if (!items.length || checkingOut) return;
@@ -165,6 +194,13 @@ export default function CartPage() {
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
       <div className="mx-auto max-w-6xl px-6 py-10 space-y-8">
         <div className="space-y-2">
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+          >
+            ← {t("common.back")}
+          </button>
           <h1 className="text-3xl md:text-4xl font-semibold text-emerald-950">
             {t("cart.title")}
           </h1>
@@ -378,25 +414,12 @@ export default function CartPage() {
                         </button>
                       </div>
                       <button
-                        className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
-                        onClick={handleCheckout}
-                        disabled={checkingOut}
+                        className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
+                        onClick={handleProceedToCheckout}
                       >
-                        {checkingOut ? (
-                          <>
-                            <Loader2 size={18} className="animate-spin" />
-                            <span>{t("cart.summary.checkout")}...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>{t("cart.summary.checkout")}</span>
-                            <ArrowRight size={18} />
-                          </>
-                        )}
+                        <span>{t("cart.summary.checkout")}</span>
+                        <ArrowRight size={18} />
                       </button>
-                      {checkoutError && (
-                        <p className="text-xs text-red-600">{checkoutError}</p>
-                      )}
                     </div>
                   </>
                 )}

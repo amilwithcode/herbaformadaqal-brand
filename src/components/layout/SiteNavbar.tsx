@@ -27,7 +27,7 @@ import {
   UserPlus,
   LayoutDashboard
 } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getLocalizedPath, getPathWithoutLocale } from "@/lib/localized-path";
 
 type NavbarUser = {
@@ -69,6 +69,7 @@ export default function SiteNavbar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t, locale } = useI18n();
   const tagline = t("nav.tagline");
   const safeTagline = tagline === "nav.tagline" ? { az: "Herbalife ilə həyatını dəyiş", en: "Change your life with Herbalife", tr: "Herbalife ile hayatını değiştir", ru: "Измените жизнь с Herbalife" }[locale] ?? "Herbalife ilə həyatını dəyiş" : tagline;
@@ -82,6 +83,12 @@ export default function SiteNavbar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [mounted, setMounted] = useState(false);
+
+  const currentPathWithQuery = useMemo(() => {
+    const currentPath = pathname || "/";
+    const currentQuery = searchParams?.toString();
+    return currentQuery ? `${currentPath}?${currentQuery}` : currentPath;
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     setMounted(true);
@@ -427,7 +434,7 @@ export default function SiteNavbar({
         {/* Right: Cart, Wishlist, User */}
         <div className="flex items-center gap-1 sm:gap-2 text-xs text-emerald-900">
           <LocalizedLink
-            href="/wishlist"
+            href={`/wishlist?from=${encodeURIComponent(currentPathWithQuery)}`}
             className="relative flex h-9 w-9 items-center justify-center border border-emerald-200 bg-white text-emerald-900 transition-colors hover:bg-emerald-600 hover:text-white"
           >
             <Heart size={16} />
@@ -438,7 +445,7 @@ export default function SiteNavbar({
             )}
           </LocalizedLink>
           <LocalizedLink
-            href="/cart"
+            href={`/cart?from=${encodeURIComponent(currentPathWithQuery)}`}
             className="relative flex h-10 w-10 items-center justify-center border border-emerald-200 bg-white text-emerald-900 transition-colors hover:bg-emerald-600 hover:text-white"
           >
             <ShoppingCart size={20} />
