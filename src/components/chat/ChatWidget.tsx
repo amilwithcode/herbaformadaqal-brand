@@ -228,7 +228,7 @@ export default function ChatWidget() {
 
   const hasMessages = messages.length > 0;
 
-  if (pathname.startsWith("/admin")) {
+  if ((pathname || "").startsWith("/admin")) {
     return null;
   }
 
