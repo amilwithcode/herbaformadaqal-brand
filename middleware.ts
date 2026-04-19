@@ -82,6 +82,11 @@ function getPreferredLocale(request: NextRequest, forRoot = false): string {
   return getLocaleFromAcceptLanguage(acceptLanguage);
 }
 
+function isGoogleAdsenseCrawler(request: NextRequest): boolean {
+  const ua = (request.headers.get("user-agent") || "").toLowerCase();
+  return ua.includes("adsbot-google") || ua.includes("mediapartners-google");
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
@@ -105,6 +110,14 @@ export async function middleware(request: NextRequest) {
   if (!isApi && !isAdmin && !isAuth && !isAccount && !isNext && !isStatic) {
     if (path === "/" || path === "") {
       const locale = getPreferredLocale(request, true);
+      if (isGoogleAdsenseCrawler(request)) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${locale}`;
+        const res = NextResponse.rewrite(url);
+        res.cookies.set("locale", locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+        res.headers.set("x-locale", locale);
+        return res;
+      }
       const url = request.nextUrl.clone();
       url.pathname = `/${locale}`;
       const res = NextResponse.redirect(url, 307);
