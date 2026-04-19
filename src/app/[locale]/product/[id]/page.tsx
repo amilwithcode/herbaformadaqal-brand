@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import ProductIdPage from "@/app/product/[id]/page";
 
 type Props = {
@@ -5,5 +6,9 @@ type Props = {
 };
 
 export default async function Page({ params }: Props) {
-  return <ProductIdPage params={params} />;
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Yüklənir...</div>}>
+      <ProductIdPage params={params} />
+    </Suspense>
+  );
 }
