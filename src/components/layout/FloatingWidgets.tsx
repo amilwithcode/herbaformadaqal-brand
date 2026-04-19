@@ -65,7 +65,7 @@ export default function FloatingWidgets() {
         href={whatsappLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-[75px] md:bottom-6 right-[85px] z-[70] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl transition-all hover:scale-110 active:scale-95"
+        className="fixed bottom-[75px] md:bottom-6 right-[95px] z-[70] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl transition-all hover:scale-110 active:scale-95"
         title={t("floating.whatsapp_contact")}
       >
         <svg viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8">
@@ -77,7 +77,7 @@ export default function FloatingWidgets() {
       <button
         type="button"
         onClick={scrollToTop}
-        className={`fixed bottom-[82px] md:bottom-8 right-[160px] z-[70] flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white shadow-2xl transition-all duration-300 hover:bg-orange-600 hover:scale-110 active:scale-95 ${
+        className={`fixed bottom-[82px] md:bottom-8 right-[175px] z-[70] flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white shadow-2xl transition-all duration-300 hover:bg-orange-600 hover:scale-110 active:scale-95 ${
           showScrollTop
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4 pointer-events-none"
