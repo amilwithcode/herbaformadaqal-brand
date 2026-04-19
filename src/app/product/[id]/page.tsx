@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -16,8 +16,8 @@ type ViewProduct = {
   price: number;
 };
 
-export default function ProductPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { add: addToCart } = useCart();
   const { add: addToWishlist, has } = useWishlist();
   const [qty, setQty] = useState(1);

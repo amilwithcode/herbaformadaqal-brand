@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { searchProducts, getCategories } from "@/modules/products/queries";
 import ProductsClient from "@/components/products/ProductsClient";
 import HomeFooter from "@/components/home/HomeFooter";
@@ -27,7 +28,9 @@ export default async function SearchPage({
         <h1 className="text-2xl font-bold text-emerald-900">
           Axtarış nəticələri: &quot;{query}&quot;
         </h1>
-        <ProductsClient products={products} categories={categories} />
+        <Suspense fallback={<div className="h-96 flex items-center justify-center">Axtarılır...</div>}>
+          <ProductsClient products={products} categories={categories} />
+        </Suspense>
       </main>
       <HomeFooter />
     </div>

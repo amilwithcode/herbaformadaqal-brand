@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getBrowseProducts, getCategories } from "@/modules/products/queries";
 import { getSiteSettings } from "@/modules/settings/queries";
@@ -46,7 +47,9 @@ export default async function ProductsPage({
       <SiteNavbar initialSettings={settings} />
       <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10 space-y-6">
         <ProductsHeader />
-        <ProductsClient products={products} categories={categories} />
+        <Suspense fallback={<div className="h-96 flex items-center justify-center">Məhsullar yüklənir...</div>}>
+          <ProductsClient products={products} categories={categories} />
+        </Suspense>
       </main>
       <HomeFooter />
     </div>

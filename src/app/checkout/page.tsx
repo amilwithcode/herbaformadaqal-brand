@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { useI18n } from "@/contexts/I18nContext";
@@ -8,7 +8,7 @@ import { useGlobalToast } from "@/contexts/ToastContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { getLocalizedPath } from "@/lib/localized-path";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -154,51 +154,59 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
-      <div className="mx-auto max-w-3xl px-6 py-10 space-y-6">
-        <h1 className="text-3xl md:text-4xl font-semibold">{t("checkout.title")}</h1>
-        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm space-y-4">
+    <div className="mx-auto max-w-3xl px-6 py-10 space-y-6">
+      <h1 className="text-3xl md:text-4xl font-semibold">{t("checkout.title")}</h1>
+      <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.name_label")} value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.phone_label")} value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.city_label")} value={city} onChange={(e) => setCity(e.target.value)} />
+          <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.address_label")} value={address} onChange={(e) => setAddress(e.target.value)} />
+        </div>
+
+        <div className="border-t border-emerald-100 pt-4 space-y-3">
+          <h2 className="text-sm font-semibold text-emerald-900">{t("checkout.card_info")}</h2>
+          <input className="w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.card_holder")} value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} />
+          <input className="w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.card_number")} value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.name_label")} value={fullName} onChange={(e) => setFullName(e.target.value)} />
-            <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.phone_label")} value={phone} onChange={(e) => setPhone(e.target.value)} />
-            <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.city_label")} value={city} onChange={(e) => setCity(e.target.value)} />
-            <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("cart.checkout.address_label")} value={address} onChange={(e) => setAddress(e.target.value)} />
-          </div>
-
-          <div className="border-t border-emerald-100 pt-4 space-y-3">
-            <h2 className="text-sm font-semibold text-emerald-900">{t("checkout.card_info")}</h2>
-            <input className="w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.card_holder")} value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} />
-            <input className="w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.card_number")} value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.expiry")} value={expiry} onChange={(e) => setExpiry(e.target.value)} />
-              <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.cvv")} value={cvv} onChange={(e) => setCvv(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-sm flex items-center justify-between">
-            <span>{t("cart.summary.total")}</span>
-            <span className="font-semibold">{total.toFixed(2)} ₼</span>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="flex-1 rounded-xl border border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
-            >
-              {t("checkout.cancel")}
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={submitting}
-              className="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-            >
-              {submitting ? `${t("checkout.confirm")}...` : t("checkout.confirm")}
-            </button>
+            <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.expiry")} value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+            <input className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm outline-none" placeholder={t("checkout.cvv")} value={cvv} onChange={(e) => setCvv(e.target.value)} />
           </div>
         </div>
+
+        <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-sm flex items-center justify-between">
+          <span>{t("cart.summary.total")}</span>
+          <span className="font-semibold">{total.toFixed(2)} ₼</span>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="flex-1 rounded-xl border border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+          >
+            {t("checkout.cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={submitting}
+            className="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {submitting ? `${t("checkout.confirm")}...` : t("checkout.confirm")}
+          </button>
+        </div>
       </div>
+    </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Yüklənir...</div>}>
+        <CheckoutContent />
+      </Suspense>
     </div>
   );
 }

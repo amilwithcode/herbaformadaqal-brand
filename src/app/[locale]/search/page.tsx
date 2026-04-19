@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { searchProducts, getCategories } from "@/modules/products/queries";
 import ProductsClient from "@/components/products/ProductsClient";
@@ -54,7 +55,9 @@ export default async function LocaleSearchPage({
         <h1 className="text-2xl font-bold text-emerald-900">
           Axtarış nəticələri: &quot;{query}&quot;
         </h1>
-        <ProductsClient products={products} categories={categories} />
+        <Suspense fallback={<div className="h-96 flex items-center justify-center">Axtarılır...</div>}>
+          <ProductsClient products={products} categories={categories} />
+        </Suspense>
       </main>
       <HomeFooter />
     </div>

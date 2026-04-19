@@ -6,7 +6,7 @@ import { GoogleAdsConversion } from "@/components/analytics/GoogleAdsConversion"
 import type { OrderStatus } from "@/modules/orders/types";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 type OrderItemRow = {
@@ -47,7 +47,8 @@ function formatOrderDate(value: string | null) {
 }
 
 export default async function AccountOrderDetailPage({ params }: Props) {
-  const idNum = Number(params.id);
+  const { id } = await params;
+  const idNum = Number(id);
   if (!idNum || Number.isNaN(idNum)) {
     notFound();
   }
