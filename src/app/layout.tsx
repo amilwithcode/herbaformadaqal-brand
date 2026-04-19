@@ -207,6 +207,7 @@ export default async function RootLayout({
           name="google-site-verification"
           content="dxY_YPSfH_pm788aIryoCAjNlbxzyTqmJn5xgvOK3Qs"
         />
+        <meta name="google-adsense-account" content="ca-pub-6351848176041276" />
         {/* Google Ads: dil URL-də göstərilir (policy uyğunluğu) */}
         <link rel="alternate" hrefLang="x-default" href={siteUrl} />
         <link rel="alternate" hrefLang="az" href={`${siteUrl}/az`} />
@@ -244,11 +245,6 @@ export default async function RootLayout({
             __html: JSON.stringify(websiteSchema),
           }}
         />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6351848176041276"
-          crossOrigin="anonymous"
-        ></script>
       </head>
       <body className="antialiased bg-slate-950 text-slate-100 font-sans">
         <Providers initialLocale={requestLocale}>{children}</Providers>
