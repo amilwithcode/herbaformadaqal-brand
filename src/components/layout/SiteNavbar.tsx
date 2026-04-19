@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getLocalizedPath, getPathWithoutLocale } from "@/lib/localized-path";
+import { Suspense } from "react";
 
 type NavbarUser = {
   fullName: string;
@@ -56,6 +57,65 @@ type SiteSettings = {
   socials: SocialLinks;
 };
 
+function NavActionLinks({ currentPath, cartCount, wishlistCount, t }: { currentPath: string, cartCount: number, wishlistCount: number, t: any }) {
+  const searchParams = useSearchParams();
+  const currentQuery = searchParams?.toString();
+  const currentPathWithQuery = currentQuery ? `${currentPath}?${currentQuery}` : currentPath;
+
+  return (
+    <>
+      <LocalizedLink
+        href={`/wishlist?from=${encodeURIComponent(currentPathWithQuery)}`}
+        className="group relative flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-white text-emerald-900 transition-all hover:bg-emerald-50"
+      >
+        <Heart size={18} className="transition-transform group-hover:scale-110" />
+        {wishlistCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white ring-2 ring-white">
+            {wishlistCount}
+          </span>
+        )}
+      </LocalizedLink>
+
+      <LocalizedLink
+        href={`/cart?from=${encodeURIComponent(currentPathWithQuery)}`}
+        className="group relative flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-white text-emerald-900 transition-all hover:bg-emerald-50"
+      >
+        <ShoppingCart size={18} className="transition-transform group-hover:scale-110" />
+        {cartCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white ring-2 ring-white">
+            {cartCount}
+          </span>
+        )}
+      </LocalizedLink>
+    </>
+  );
+}
+
+function MobileNavActionLinks({ currentPath, cartCount, wishlistCount, t }: { currentPath: string, cartCount: number, wishlistCount: number, t: any }) {
+  const searchParams = useSearchParams();
+  const currentQuery = searchParams?.toString();
+  const currentPathWithQuery = currentQuery ? `${currentPath}?${currentQuery}` : currentPath;
+
+  return (
+    <div className="mt-auto grid grid-cols-2 gap-4 border-t border-emerald-100 p-6 bg-emerald-50/50">
+      <LocalizedLink
+        href={`/wishlist?from=${encodeURIComponent(currentPathWithQuery)}`}
+        className="flex items-center justify-center gap-2 rounded-xl bg-white border border-emerald-200 py-3 text-sm font-semibold text-emerald-900"
+      >
+        <Heart size={18} />
+        <span>{t("nav.wishlist")} ({wishlistCount})</span>
+      </LocalizedLink>
+      <LocalizedLink
+        href={`/cart?from=${encodeURIComponent(currentPathWithQuery)}`}
+        className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200"
+      >
+        <ShoppingCart size={18} />
+        <span>{t("nav.cart")} ({cartCount})</span>
+      </LocalizedLink>
+    </div>
+  );
+}
+
 export default function SiteNavbar({ 
   initialSettings 
 }: { 
@@ -69,7 +129,7 @@ export default function SiteNavbar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams(); // MOVED TO SUB-COMPONENTS
   const { t, locale } = useI18n();
   const tagline = t("nav.tagline");
   const safeTagline = tagline === "nav.tagline" ? { az: "Herbalife ilə həyatını dəyiş", en: "Change your life with Herbalife", tr: "Herbalife ile hayatını değiştir", ru: "Измените жизнь с Herbalife" }[locale] ?? "Herbalife ilə həyatını dəyiş" : tagline;
@@ -84,11 +144,11 @@ export default function SiteNavbar({
   const [searchValue, setSearchValue] = useState("");
   const [mounted, setMounted] = useState(false);
 
-  const currentPathWithQuery = useMemo(() => {
-    const currentPath = pathname || "/";
-    const currentQuery = searchParams?.toString();
-    return currentQuery ? `${currentPath}?${currentQuery}` : currentPath;
-  }, [pathname, searchParams]);
+  // const currentPathWithQuery = useMemo(() => {
+  //   const currentPath = pathname || "/";
+  //   const currentQuery = searchParams?.toString();
+  //   return currentQuery ? `${currentPath}?${currentQuery}` : currentPath;
+  // }, [pathname, searchParams]); // MOVED TO SUB-COMPONENTS
 
   useEffect(() => {
     setMounted(true);
@@ -433,28 +493,14 @@ export default function SiteNavbar({
 
         {/* Right: Cart, Wishlist, User */}
         <div className="flex items-center gap-1 sm:gap-2 text-xs text-emerald-900">
-          <LocalizedLink
-            href={`/wishlist?from=${encodeURIComponent(currentPathWithQuery)}`}
-            className="relative flex h-9 w-9 items-center justify-center border border-emerald-200 bg-white text-emerald-900 transition-colors hover:bg-emerald-600 hover:text-white"
-          >
-            <Heart size={16} />
-            {mounted && wishlistCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-emerald-600 px-1.5 text-[10px] font-semibold text-emerald-50">
-                {wishlistCount}
-              </span>
-            )}
-          </LocalizedLink>
-          <LocalizedLink
-            href={`/cart?from=${encodeURIComponent(currentPathWithQuery)}`}
-            className="relative flex h-10 w-10 items-center justify-center border border-emerald-200 bg-white text-emerald-900 transition-colors hover:bg-emerald-600 hover:text-white"
-          >
-            <ShoppingCart size={20} />
-            {mounted && cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-emerald-600 px-1.5 text-[10px] font-semibold text-emerald-50">
-                {cartCount}
-              </span>
-            )}
-          </LocalizedLink>
+          <Suspense fallback={<div className="flex gap-1 sm:gap-2"><div className="h-9 w-9 rounded-full bg-emerald-50 animate-pulse" /><div className="h-10 w-10 rounded-full bg-emerald-50 animate-pulse" /></div>}>
+            <NavActionLinks 
+              currentPath={pathname || "/"} 
+              cartCount={cartCount} 
+              wishlistCount={wishlistCount} 
+              t={t} 
+            />
+          </Suspense>
           {navUser ? (
             <div className="relative hidden md:flex">
               <button
@@ -627,6 +673,14 @@ export default function SiteNavbar({
 
             {/* Mobile Footer / Auth — çentiqlı ekran + vizual boşluq */}
             <div className="border-t border-emerald-100 bg-emerald-50/30 space-y-3 px-6 pb-[max(1.75rem,env(safe-area-inset-bottom,0px))] pt-5">
+              <Suspense fallback={<div className="grid grid-cols-2 gap-4 h-12 animate-pulse bg-emerald-100 rounded-xl" />}>
+                <MobileNavActionLinks 
+                  currentPath={pathname || "/"} 
+                  cartCount={cartCount} 
+                  wishlistCount={wishlistCount} 
+                  t={t} 
+                />
+              </Suspense>
               {navUser ? (
                 <>
                   <LocalizedLink
