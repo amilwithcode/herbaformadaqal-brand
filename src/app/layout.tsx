@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
+import { unstable_cache } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import { parseKeywords } from "@/lib/keywords-utils";
@@ -24,24 +25,32 @@ async function getRequestLocale(): Promise<"az" | "en" | "tr" | "ru"> {
 }
 
 /* ─── Ümumi data fetcher (həm metadata, həm layout istifadə edir) ─── */
+const getCachedSiteData = unstable_cache(
+  async () => {
+    const supabase = await getSupabaseServerClient();
+    const [settingsData, metaData] = await Promise.all([
+      supabase
+        .from("site_settings")
+        .select("public_site_name, site_name, logo, footer_phone")
+        .eq("id", 1)
+        .maybeSingle(),
+      supabase
+        .from("meta_tags")
+        .select("*")
+        .eq("page", "home")
+        .maybeSingle(),
+    ]);
+    return {
+      settings: settingsData.data,
+      meta: metaData.data,
+    };
+  },
+  ["site-settings-meta"],
+  { revalidate: 300 }
+);
+
 async function getSiteData() {
-  const supabase = await getSupabaseServerClient();
-  const [settingsData, metaData] = await Promise.all([
-    supabase
-      .from("site_settings")
-      .select("public_site_name, site_name, logo, footer_phone")
-      .eq("id", 1)
-      .maybeSingle(),
-    supabase
-      .from("meta_tags")
-      .select("*")
-      .eq("page", "home")
-      .maybeSingle(),
-  ]);
-  return {
-    settings: settingsData.data,
-    meta: metaData.data,
-  };
+  return getCachedSiteData();
 }
 
 /* ─── Next.js Metadata ─── */
@@ -235,6 +244,11 @@ export default async function RootLayout({
             __html: JSON.stringify(websiteSchema),
           }}
         />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6351848176041276"
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body className="antialiased bg-slate-950 text-slate-100 font-sans">
         <Providers initialLocale={requestLocale}>{children}</Providers>
