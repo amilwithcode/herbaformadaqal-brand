@@ -62,6 +62,28 @@ export async function getSupabaseServerClient(): Promise<SupabaseClient> {
 }
 
 /**
+ * Keşləmə (unstable_cache) üçün cookies-dən asılı olmayan client.
+ * Yalnız ictimai (public) məlumatları gətirmək üçün istifadə edin.
+ */
+export function getSupabasePublicClient(): SupabaseClient {
+  if (!url || !key) {
+    return {
+      from: () => ({
+        select: () => ({
+          eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }),
+        }),
+      }),
+    } as unknown as SupabaseClient;
+  }
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+/**
  * Admin əməliyyatları üçün Service Role client (RLS-i bypass edir).
  * Yalnız server-side API route-larında istifadə edin!
  */

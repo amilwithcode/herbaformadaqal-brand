@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { unstable_cache } from "next/cache";
-import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { getSupabaseServerClient, getSupabasePublicClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import { parseKeywords } from "@/lib/keywords-utils";
 import Script from "next/script";
@@ -27,7 +27,7 @@ async function getRequestLocale(): Promise<"az" | "en" | "tr" | "ru"> {
 /* ─── Ümumi data fetcher (həm metadata, həm layout istifadə edir) ─── */
 const getCachedSiteData = unstable_cache(
   async () => {
-    const supabase = await getSupabaseServerClient();
+    const supabase = getSupabasePublicClient();
     const [settingsData, metaData] = await Promise.all([
       supabase
         .from("site_settings")
