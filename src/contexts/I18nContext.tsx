@@ -83,6 +83,7 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
   };
 
   const t = (key: string, params?: Record<string, string | number>) => {
+    if (!messages) return key;
     let msg = messages[key] ?? key;
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
