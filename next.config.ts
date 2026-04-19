@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ["@vercel/speed-insights"],
   // Statik JS/CSS uzun müddət keşlənir — xarici ölkələrdən sürət (Speed Insights)
   async headers() {
     const longImmutable = "public, max-age=31536000, immutable";
