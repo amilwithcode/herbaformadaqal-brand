@@ -236,51 +236,51 @@ export default function ChatWidget() {
     <>
       {/* Invite Bubble */}
       {showBubble && !open && (
-        <div className="fixed bottom-20 right-5 z-40 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="relative max-w-[260px] rounded-2xl bg-white p-4 shadow-xl border border-emerald-100">
+        <div className="fixed bottom-[145px] md:bottom-24 right-5 z-[70] animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="relative max-w-[280px] sm:max-w-[320px] rounded-2xl bg-white p-4 shadow-2xl border border-emerald-100">
             <button
               type="button"
               onClick={() => { setShowBubble(false); setBubbleDismissed(true); }}
-              className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-slate-500 text-[10px] hover:bg-slate-300"
+              className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md text-slate-500 text-xs hover:bg-slate-50 transition-colors z-10 border border-slate-100"
             >
               ×
             </button>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-3">
               <div className="relative">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-sm font-bold text-white shadow">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-sm font-bold text-white shadow-inner">
                   A
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-400" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-green-500" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-slate-800">{t("chat.operator_name")}</div>
-                <div className="text-[10px] text-emerald-600 font-medium">{t("chat.online")}</div>
+                <div className="text-sm font-bold text-slate-800 leading-none mb-1">{t("chat.operator_name")}</div>
+                <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">{t("chat.online")}</div>
               </div>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-[13px] text-slate-600 leading-relaxed font-medium">
               {t("chat.bubble_message")}
             </p>
             <button
               type="button"
               onClick={() => { setOpen(true); setShowBubble(false); setBubbleDismissed(true); }}
-              className="mt-3 w-full rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
+              className="mt-4 w-full rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95"
             >
               {t("chat.start_chat")}
             </button>
           </div>
           {/* Triangle pointer */}
-          <div className="absolute -bottom-2 right-8 h-4 w-4 rotate-45 bg-white border-r border-b border-emerald-100" />
+          <div className="absolute -bottom-2 right-10 h-4 w-4 rotate-45 bg-white border-r border-b border-emerald-100" />
         </div>
       )}
 
-      {/* Chat Toggle Button - mobil görünüşdə navbar-dan yuxarıda */}
+      {/* Chat Toggle Button */}
       <button
         type="button"
         onClick={() => { setOpen((prev) => !prev); setShowBubble(false); setBubbleDismissed(true); }}
-        className={`fixed bottom-20 md:bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
+        className={`fixed bottom-[75px] md:bottom-6 right-5 z-[70] flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${
           open
-            ? "bg-slate-700 hover:bg-slate-800 rotate-0"
-            : "bg-gradient-to-br from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800"
+            ? "bg-slate-800 rotate-0"
+            : "bg-gradient-to-br from-emerald-500 to-emerald-700"
         }`}
       >
         {open ? (
@@ -300,7 +300,7 @@ export default function ChatWidget() {
 
       {/* Chat Window - mobil görünüşdə navbar-dan yuxarıda */}
       {open && (
-        <div className="fixed bottom-24 md:bottom-24 right-5 z-40 flex w-[360px] max-w-[calc(100vw-40px)] flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-[85px] md:bottom-24 right-5 z-[70] flex w-[360px] max-w-[calc(100vw-40px)] flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-5 py-4">
             <div className="flex items-center justify-between">
