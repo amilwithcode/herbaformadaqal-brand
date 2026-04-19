@@ -236,7 +236,7 @@ export default function ChatWidget() {
     <>
       {/* Invite Bubble */}
       {showBubble && !open && (
-        <div className="fixed bottom-[145px] md:bottom-24 right-5 z-[70] animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="fixed bottom-[138px] md:bottom-[88px] right-5 z-[70] animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="relative max-w-[280px] sm:max-w-[320px] rounded-2xl bg-white p-4 shadow-2xl border border-emerald-100">
             <button
               type="button"
@@ -268,8 +268,8 @@ export default function ChatWidget() {
               {t("chat.start_chat")}
             </button>
           </div>
-          {/* Triangle pointer */}
-          <div className="absolute -bottom-2 right-10 h-4 w-4 rotate-45 bg-white border-r border-b border-emerald-100" />
+          {/* Triangle pointer pointing to the center of the toggle button below */}
+          <div className="absolute -bottom-2 right-[48px] h-4 w-4 rotate-45 bg-white border-r border-b border-emerald-100" />
         </div>
       )}
 
