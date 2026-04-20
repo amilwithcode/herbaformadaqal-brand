@@ -75,15 +75,6 @@ export default function ReviewsSection() {
   return (
     <section className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-[#e6f3ec] px-6 py-12 md:px-10 md:py-16">
       <div className="mx-auto max-w-4xl text-center">
-        <div className="mb-8 space-y-2">
-          <h2 className="text-2xl font-bold text-emerald-950 md:text-3xl">
-            {t("home.reviews.title")}
-          </h2>
-          <p className="text-emerald-700">
-            {t("home.reviews.subtitle")}
-          </p>
-        </div>
-
         <div className="relative">
           {/* Slider Content */}
           <div className="min-h-[250px] md:min-h-[200px]">

@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
   Trash2,
   Edit3,
-  Plus,
   Save,
   X,
   Star,
   Loader2,
   CheckCircle2,
   XCircle,
-  MoveUp,
-  MoveDown,
+  Image as ImageIcon,
 } from "lucide-react";
 
 type Testimonial = {
@@ -43,8 +42,10 @@ export default function AdminTestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("az");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<Partial<Testimonial>>({
     name: "",
@@ -81,6 +82,27 @@ export default function AdminTestimonialsPage() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const ext = file.name.split(".").pop();
+      const fileName = `testimonial-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("content")
+        .upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("content").getPublicUrl(fileName);
+      setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
+    } catch (err: any) {
+      alert("Şəkil yüklənərkən xəta: " + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleEdit = (t: Testimonial) => {
     setEditingId(t.id);
     setForm(t);
@@ -113,10 +135,10 @@ export default function AdminTestimonialsPage() {
 
     setSaving(true);
     try {
-      const url = editingId 
+      const url = editingId
         ? `/api/admin/testimonials/${editingId}`
         : "/api/admin/testimonials";
-      
+
       const res = await fetch(url, {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -179,8 +201,9 @@ export default function AdminTestimonialsPage() {
         <h2 className="mb-4 text-lg font-semibold text-slate-800">
           {editingId ? "Rəyi düzəlt" : "Yeni rəy əlavə et"}
         </h2>
-        
+
         <div className="grid gap-6 md:grid-cols-2">
+          {/* Sol tərəf - Əsas məlumatlar */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700">Müştəri Adı</label>
@@ -192,7 +215,7 @@ export default function AdminTestimonialsPage() {
                 placeholder="Məs: Əli Vəliyev"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Reytinq (1-5)</label>
@@ -216,15 +239,41 @@ export default function AdminTestimonialsPage() {
               </div>
             </div>
 
+            {/* Profil Şəkli */}
             <div>
-              <label className="block text-sm font-medium text-slate-700">Profil Şəkli URL</label>
-              <input
-                type="text"
-                value={form.image_url || ""}
-                onChange={e => setForm({ ...form, image_url: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-                placeholder="https://example.com/image.jpg"
-              />
+              <label className="block text-sm font-medium text-slate-700 mb-2">Profil Şəkli</label>
+              {form.image_url ? (
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200">
+                  <img
+                    src={form.image_url}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => setForm(f => ({ ...f, image_url: "" }))}
+                    className="absolute top-0 right-0 rounded-full bg-red-500 p-1 text-white hover:bg-red-600 shadow"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 p-4 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors">
+                  {uploading ? (
+                    <Loader2 size={24} className="animate-spin text-emerald-600" />
+                  ) : (
+                    <ImageIcon size={24} className="text-slate-400" />
+                  )}
+                  <span className="text-xs text-slate-500">{uploading ? "Yüklənir..." : "Şəkil seç"}</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                  />
+                </label>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -241,6 +290,7 @@ export default function AdminTestimonialsPage() {
             </div>
           </div>
 
+          {/* Sağ tərəf - Dillərə görə mətnlər */}
           <div className="space-y-4">
             <div className="flex gap-2 border-b border-slate-200">
               {LANGUAGES.map(lang => (
@@ -310,7 +360,7 @@ export default function AdminTestimonialsPage() {
           <thead className="bg-slate-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                Sıra
+                Şəkil
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                 Müştəri
@@ -329,25 +379,22 @@ export default function AdminTestimonialsPage() {
           <tbody className="divide-y divide-slate-200">
             {testimonials.map(t => (
               <tr key={t.id} className="hover:bg-slate-50">
-                <td className="px-6 py-4 text-sm text-slate-500">{t.sort_order}</td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    {t.image_url ? (
-                      <img
-                        src={t.image_url}
-                        alt={t.name}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
-                        {t.name[0]}
-                      </div>
-                    )}
-                    <div>
-                      <div className="text-sm font-medium text-slate-900">{t.name}</div>
-                      <div className="text-xs text-slate-500">{t.role_az}</div>
+                  {t.image_url ? (
+                    <img
+                      src={t.image_url}
+                      alt={t.name}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+                      {t.name[0]}
                     </div>
-                  </div>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-slate-900">{t.name}</div>
+                  <div className="text-xs text-slate-500">{t.role_az}</div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-0.5 text-amber-400">
