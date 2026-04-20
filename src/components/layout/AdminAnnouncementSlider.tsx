@@ -73,7 +73,7 @@ export default function AdminAnnouncementSlider() {
     );
   }
 
-  const content = (announcements[current] as any)[`content_${locale}`] || announcements[current].content_az || "";
+  const content = ((announcements[current] as any)[`content_${locale}`] || announcements[current].content_az || "").slice(0, 90);
 
   return (
     <div className="flex items-center gap-2 min-w-0 flex-1 max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
