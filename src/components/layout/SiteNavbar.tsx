@@ -29,7 +29,9 @@ import {
 } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getLocalizedPath, getPathWithoutLocale } from "@/lib/localized-path";
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
+
+const AdminAnnouncementSlider = lazy(() => import("./AdminAnnouncementSlider"));
 
 type NavbarUser = {
   fullName: string;
@@ -393,24 +395,13 @@ export default function SiteNavbar({
         className="flex items-center justify-between px-3 sm:px-6 py-1.5 sm:py-2 text-[10px] sm:text-[11px] text-white transition-colors duration-300"
         style={{ backgroundColor: siteSettings.primaryColor }}
       >
-        {/* Left: Navigation Links */}
-        <nav className="hidden md:flex items-center gap-4 lg:gap-6">
-          {[
-            { href: "/about", label: t("nav.about") },
-            { href: "/products", label: t("nav.products") },
-            { href: "/programs", label: t("nav.programs") },
-            { href: "/contact", label: t("nav.contact") },
-          ].map((link) => (
-            <LocalizedLink
-              key={link.href}
-              href={link.href}
-              className="text-white hover:text-emerald-200 transition-colors"
-            >
-              {link.label}
-            </LocalizedLink>
-          ))}
-        </nav>
-        
+        {/* Left: Admin Announcement Slider */}
+        <div className="flex items-center">
+          <Suspense fallback={<div className="h-4 w-48 bg-white/10 rounded animate-pulse" />}>
+            <AdminAnnouncementSlider />
+          </Suspense>
+        </div>
+
         {/* Right: WhatsApp, Phone, Language Switcher */}
         <div className="flex items-center gap-1.5 sm:gap-3">
           {siteSettings.socials.whatsapp && (

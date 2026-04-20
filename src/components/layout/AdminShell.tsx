@@ -42,6 +42,7 @@ const navItems = [
   { href: "/admin/content", label: "Kontent", icon: FileText },
   { href: "/admin/faqs", label: "FAQ Suallar", icon: HelpCircle },
   { href: "/admin/testimonials", label: "Testimoniallar", icon: MessageSquare },
+  { href: "/admin/announcements", label: "Header Mesajları", icon: Megaphone },
   { href: "/admin/promo-banners", label: "Tanıtım Bannerləri", icon: Megaphone },
   { href: "/admin/campaigns", label: "Kampaniyalar & Kuponlar", icon: Tag },
   { href: "/admin/popup", label: "Popup Ayarları", icon: Bell },

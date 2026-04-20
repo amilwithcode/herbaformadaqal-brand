@@ -179,13 +179,13 @@ export default async function Home({
         <WeightCalculatorSection />
         <PromoBannerSection />
         <CategoriesSection categories={categories} />
+        <section id="about">
+          <ReviewsSection />
+        </section>
         <section id="programs">
           <ProgramsSection />
         </section>
         <BlogSection />
-        <section id="about">
-          <ReviewsSection />
-        </section>
         <FAQSection />
       </main>
       <GoalsStrip />
