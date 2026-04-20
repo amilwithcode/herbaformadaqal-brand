@@ -1,27 +1,14 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-
-// Helper function to verify admin
-async function verifyAdmin(supabase: any) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
-  
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-    
-  return profile?.role === "admin";
-}
+import { verifyAdmin } from "@/lib/auth-utils";
 
 export async function GET() {
   try {
     const supabase = await getSupabaseServerClient();
-    const isAdmin = await verifyAdmin(supabase);
+    const authCheck = await verifyAdmin(supabase);
     
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
     }
 
     const { data, error } = await supabase
@@ -36,7 +23,7 @@ export async function GET() {
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error("Testimonials Admin API error:", err);
+    console.error("Testimonials Admin GET error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -44,13 +31,19 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const supabase = await getSupabaseServerClient();
-    const isAdmin = await verifyAdmin(supabase);
+    const authCheck = await verifyAdmin(supabase);
     
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
     }
 
     const body = await req.json();
+    
+    // remove id if present and empty
+    if (body.id === "" || body.id === null) {
+      delete body.id;
+    }
+
     const { data, error } = await supabase
       .from("testimonials")
       .insert([body])
@@ -64,7 +57,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error("Testimonials Admin API error:", err);
+    console.error("Testimonials Admin POST error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

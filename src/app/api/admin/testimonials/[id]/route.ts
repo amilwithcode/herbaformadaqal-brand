@@ -1,19 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-
-// Helper function to verify admin
-async function verifyAdmin(supabase: any) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
-  
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-    
-  return profile?.role === "admin";
-}
+import { verifyAdmin } from "@/lib/auth-utils";
 
 export async function PUT(
   req: Request,
@@ -22,10 +9,10 @@ export async function PUT(
   try {
     const { id } = await params;
     const supabase = await getSupabaseServerClient();
-    const isAdmin = await verifyAdmin(supabase);
+    const authCheck = await verifyAdmin(supabase);
     
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
     }
 
     const body = await req.json();
@@ -43,7 +30,7 @@ export async function PUT(
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error("Testimonials Admin API error:", err);
+    console.error("Testimonials Admin PUT error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -55,10 +42,10 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = await getSupabaseServerClient();
-    const isAdmin = await verifyAdmin(supabase);
+    const authCheck = await verifyAdmin(supabase);
     
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
     }
 
     const { error } = await supabase
@@ -73,7 +60,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Testimonials Admin API error:", err);
+    console.error("Testimonials Admin DELETE error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
