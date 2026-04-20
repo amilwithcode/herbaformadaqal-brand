@@ -16,6 +16,8 @@ export async function PUT(
     }
 
     const body = await req.json();
+    console.log(`Updating testimonial ${id} with body:`, body);
+
     const adminSupabase = getSupabaseAdminClient();
     const { data, error } = await adminSupabase
       .from("testimonials")
@@ -25,13 +27,18 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error("Error updating testimonial:", error);
-      return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
+      console.error("Database error updating testimonial:", error);
+      return NextResponse.json({ 
+        error: `Database error: ${error.message}`,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (err: any) {
-    console.error("Testimonials Admin PUT error:", err);
+    console.error("Testimonials Admin PUT server error:", err);
     return NextResponse.json({ error: `Server error: ${err.message || "Internal Server Error"}` }, { status: 500 });
   }
 }

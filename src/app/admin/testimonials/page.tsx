@@ -139,22 +139,40 @@ export default function AdminTestimonialsPage() {
         ? `/api/admin/testimonials/${editingId}`
         : "/api/admin/testimonials";
 
+      // Sadece veritabanında olan sahaları gönderiyoruz
+      const payload = {
+        name: form.name,
+        role_az: form.role_az || "",
+        role_en: form.role_en || "",
+        role_ru: form.role_ru || "",
+        role_tr: form.role_tr || "",
+        content_az: form.content_az,
+        content_en: form.content_en || "",
+        content_ru: form.content_ru || "",
+        content_tr: form.content_tr || "",
+        rating: form.rating || 5,
+        image_url: form.image_url || "",
+        is_active: form.is_active ?? true,
+        sort_order: form.sort_order ?? 0,
+      };
+
       const res = await fetch(url, {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
+
+      const result = await res.json();
 
       if (res.ok) {
         await fetchTestimonials();
         handleCancel();
       } else {
-        const err = await res.json();
-        alert("Xəta: " + (err.error || "Yadda saxlamaq mümkün olmadı"));
+        alert("Xəta: " + (result.error || "Yadda saxlamaq mümkün olmadı"));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Save error:", err);
-      alert("Sistem xətası");
+      alert("Sistem xətası: " + err.message);
     } finally {
       setSaving(false);
     }

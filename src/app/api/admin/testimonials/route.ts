@@ -40,8 +40,10 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    console.log("Creating testimonial with body:", body);
     
-    if (body.id === "" || body.id === null) {
+    // id varsa və boşdursa silirik (baza özü yaratsın)
+    if (body.id === "" || body.id === null || body.id === undefined) {
       delete body.id;
     }
 
@@ -53,13 +55,18 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("Error creating testimonial:", error);
-      return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
+      console.error("Database error creating testimonial:", error);
+      return NextResponse.json({ 
+        error: `Database error: ${error.message}`,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (err: any) {
-    console.error("Testimonials Admin POST error:", err);
+    console.error("Testimonials Admin POST server error:", err);
     return NextResponse.json({ error: `Server error: ${err.message || "Internal Server Error"}` }, { status: 500 });
   }
 }
