@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -29,9 +29,7 @@ import {
 } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getLocalizedPath, getPathWithoutLocale } from "@/lib/localized-path";
-import { Suspense, lazy } from "react";
-
-const AdminAnnouncementSlider = lazy(() => import("./AdminAnnouncementSlider"));
+import AdminAnnouncementSlider from "./AdminAnnouncementSlider";
 
 type NavbarUser = {
   fullName: string;
