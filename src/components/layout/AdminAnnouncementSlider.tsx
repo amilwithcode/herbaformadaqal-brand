@@ -34,12 +34,16 @@ export default function AdminAnnouncementSlider() {
   }, []);
 
   const goNext = useCallback(() => {
-    if (announcements.length <= 1) return;
+    setAnnouncements((prevAnnouncements) => {
+      if (prevAnnouncements.length <= 1) return prevAnnouncements;
+      return prevAnnouncements;
+    });
     setCurrent((prev) => (prev + 1) % announcements.length);
   }, [announcements.length]);
 
   useEffect(() => {
     if (announcements.length <= 1) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(goNext, 3000); // 3 saniyə
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
