@@ -34,17 +34,13 @@ export default function AdminAnnouncementSlider() {
   }, []);
 
   const goNext = useCallback(() => {
-    setAnnouncements((prevAnnouncements) => {
-      if (prevAnnouncements.length <= 1) return prevAnnouncements;
-      return prevAnnouncements;
-    });
     setCurrent((prev) => (prev + 1) % announcements.length);
   }, [announcements.length]);
 
   useEffect(() => {
     if (announcements.length <= 1) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(goNext, 3000); // 3 saniyə
+    intervalRef.current = setInterval(goNext, 3000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -52,22 +48,20 @@ export default function AdminAnnouncementSlider() {
 
   if (announcements.length === 0) return null;
 
-  const currentMsg = (announcements[current] as any)[`content_${locale}`] || announcements[current].content_az;
-
   return (
-    <div className="flex items-center gap-2 overflow-hidden h-full">
+    <div className="flex items-center gap-2 min-w-0 flex-1 max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
       <Megaphone size={14} className="text-emerald-300 shrink-0" />
-      <div className="relative h-4 w-48 sm:w-64 overflow-hidden">
+      <div className="relative min-h-[20px] flex-1 overflow-hidden">
         {announcements.map((item, idx) => (
           <div
             key={item.id}
-            className={`absolute inset-0 flex items-center transition-all duration-700 ease-in-out ${
+            className={`absolute inset-0 flex items-center transition-all duration-500 ease-in-out ${
               idx === current
                 ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4 pointer-events-none"
+                : "opacity-0 translate-y-3 pointer-events-none"
             }`}
           >
-            <span className="whitespace-nowrap text-[10px] sm:text-[11px] font-medium tracking-wide">
+            <span className="whitespace-nowrap text-[11px] sm:text-[12px] font-medium tracking-wide truncate block">
               {(item as any)[`content_${locale}`] || item.content_az}
             </span>
           </div>
