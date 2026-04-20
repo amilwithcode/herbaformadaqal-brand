@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { getSupabaseServerClient, getSupabaseAdminClient } from "@/lib/supabase-server";
 import { verifyAdmin } from "@/lib/auth-utils";
 
 export async function GET() {
@@ -11,20 +11,22 @@ export async function GET() {
       return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
     }
 
-    const { data, error } = await supabase
+    // Admin client istifadə edirik ki, RLS və ya cache problemlərindən yayınaq
+    const adminSupabase = getSupabaseAdminClient();
+    const { data, error } = await adminSupabase
       .from("testimonials")
       .select("*")
       .order("sort_order", { ascending: true });
 
     if (error) {
       console.error("Error fetching testimonials:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
     }
 
     return NextResponse.json(data);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Testimonials Admin GET error:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: `Server error: ${err.message || "Internal Server Error"}` }, { status: 500 });
   }
 }
 
@@ -39,12 +41,12 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     
-    // remove id if present and empty
     if (body.id === "" || body.id === null) {
       delete body.id;
     }
 
-    const { data, error } = await supabase
+    const adminSupabase = getSupabaseAdminClient();
+    const { data, error } = await adminSupabase
       .from("testimonials")
       .insert([body])
       .select()
@@ -52,12 +54,12 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Error creating testimonial:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
     }
 
     return NextResponse.json(data);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Testimonials Admin POST error:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: `Server error: ${err.message || "Internal Server Error"}` }, { status: 500 });
   }
 }
