@@ -55,18 +55,18 @@ export default function AdminAnnouncementSlider() {
 
   if (!mounted) {
     return (
-      <div className="flex items-center gap-2 min-w-0 flex-1 max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
-        <Megaphone size={14} className="text-emerald-300 shrink-0" />
-        <div className="h-4 w-32 bg-white/20 rounded animate-pulse" />
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 max-w-[120px] min-[360px]:max-w-[160px] min-[400px]:max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
+        <Megaphone size={12} className="text-emerald-300 shrink-0 sm:w-3.5 sm:h-3.5" />
+        <div className="h-3 w-20 sm:h-4 sm:w-32 bg-white/20 rounded animate-pulse" />
       </div>
     );
   }
 
   if (announcements.length === 0) {
     return (
-      <div className="flex items-center gap-2 min-w-0 flex-1 max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
-        <Megaphone size={14} className="text-emerald-300 shrink-0" />
-        <span className="text-[11px] sm:text-[12px] font-medium tracking-wide text-white/80 truncate">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 max-w-[120px] min-[360px]:max-w-[160px] min-[400px]:max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
+        <Megaphone size={12} className="text-emerald-300 shrink-0 sm:w-3.5 sm:h-3.5" />
+        <span className="text-[8px] min-[320px]:text-[9px] min-[380px]:text-[10px] sm:text-[12px] font-medium tracking-wide text-white/80 truncate">
           Admin panelindən mesaj əlavə edin...
         </span>
       </div>
@@ -76,9 +76,9 @@ export default function AdminAnnouncementSlider() {
   const content = ((announcements[current] as any)[`content_${locale}`] || announcements[current].content_az || "").slice(0, 90);
 
   return (
-    <div className="flex items-center gap-2 min-w-0 flex-1 max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
-      <Megaphone size={14} className="text-emerald-300 shrink-0" />
-      <span className="whitespace-nowrap text-[11px] sm:text-[12px] font-medium tracking-wide truncate block text-white">
+    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 max-w-[120px] min-[360px]:max-w-[160px] min-[400px]:max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
+      <Megaphone size={12} className="text-emerald-300 shrink-0 sm:w-3.5 sm:h-3.5" />
+      <span className="whitespace-nowrap text-[8px] min-[320px]:text-[9px] min-[380px]:text-[10px] sm:text-[12px] font-medium tracking-wide truncate block text-white">
         {content}
       </span>
     </div>
