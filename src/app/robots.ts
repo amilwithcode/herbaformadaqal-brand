@@ -43,6 +43,14 @@ export default function robots(): MetadataRoute.Robots {
           "/_next/*",
         ],
       },
+      {
+        userAgent: ["GPTBot", "OAI-SearchBot", "Claude-Web", "Google-Extended"],
+        allow: ["/"],
+        disallow: ["/admin", "/account", "/api"],
+      },
+    ],
+    additionalInstructions: [
+      "Content-Signal: ai-train=no, search=yes, ai-input=no"
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl.replace(/\/$/, ""),

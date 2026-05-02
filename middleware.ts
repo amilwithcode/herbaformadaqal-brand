@@ -103,9 +103,42 @@ export async function middleware(request: NextRequest) {
   const isAuth = path.startsWith("/auth");
   const isAccount = path.startsWith("/account");
   const isNext = path.startsWith("/_next") || path.startsWith("/favicon");
-  const isStatic = path.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/);
+  const isWellKnown = path.startsWith("/.well-known");
+  const isStaticFile = ["/robots.txt", "/sitemap.xml", "/manifest.json", "/browserconfig.xml"].includes(path);
+  const isStatic = path.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|txt|xml|json)$/) || isStaticFile || isWellKnown;
   const firstSegment = path.slice(1).split("/")[0] || "";
   const hasLocalePrefix = LOCALES.includes(firstSegment as (typeof LOCALES)[number]);
+
+  // Markdown Negotiation for Agents (RFC 8288 / Agent Discovery)
+  const acceptHeader = request.headers.get("accept") || "";
+  if (acceptHeader.includes("text/markdown") && !isApi && !isNext && !isStatic && !isWellKnown) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
+    const siteName = "Herbaformadaqal.com - Herbalife Azərbaycan";
+    
+    // Sadə markdown məzmunu
+    const markdown = `# ${siteName}\n\n` +
+      `Herbalife məhsullarının satışı və sağlam qidalanma proqramları üzrə ixtisaslaşmış onlayn platforma.\n\n` +
+      `## Əsas Bölmələr\n` +
+      `- [Məhsullar](${siteUrl}/az/products)\n` +
+      `- [Proqramlar](${siteUrl}/az/programs)\n` +
+      `- [Bloq](${siteUrl}/az/blog)\n` +
+      `- [Haqqımızda](${siteUrl}/az/about)\n` +
+      `- [FAQ](${siteUrl}/az/faq)\n\n` +
+      `## Əlaqə\n` +
+      `- Tel: +994 (55) 212 12 12\n` +
+      `- Ünvan: Bakı, Azərbaycan\n\n` +
+      `--- \n` +
+      `Bu səhifə agentlər üçün avtomatik markdown formatında təqdim olunur.`;
+
+    return new NextResponse(markdown, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/markdown; charset=utf-8",
+        "X-Markdown-Tokens": "true",
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
+  }
 
   if (!isApi && !isAdmin && !isAuth && !isAccount && !isNext && !isStatic) {
     if (path === "/" || path === "") {

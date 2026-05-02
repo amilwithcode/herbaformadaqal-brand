@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
     const longImmutable = "public, max-age=31536000, immutable";
     const longStale = "public, max-age=86400, stale-while-revalidate=604800"; // 1 gün + 7 gün SWR
     return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Link",
+            value: '</sitemap.xml>; rel="sitemap", </robots.txt>; rel="help"',
+          },
+        ],
+      },
       { source: "/popup.css", headers: [{ key: "Cache-Control", value: longStale }] },
       { source: "/popup.js", headers: [{ key: "Cache-Control", value: longStale }] },
       { source: "/robots.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },

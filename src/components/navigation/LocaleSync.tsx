@@ -16,5 +16,43 @@ export default function LocaleSync({ locale }: { locale: Locale }) {
     }
   }, [locale, currentLocale, setLocale]);
 
+  // WebMCP API - Expose site tools to AI agents via browser
+  useEffect(() => {
+    if (typeof window !== "undefined" && (navigator as any).modelContext?.provideContext) {
+      try {
+        (navigator as any).modelContext.provideContext({
+          tools: [
+            {
+              name: "get_products",
+              description: "Herbalife məhsullarını axtarır və siyahılayır",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  query: { type: "string", description: "Axtarış sözü" },
+                  category: { type: "string", description: "Kateqoriya slug-ı" }
+                }
+              },
+              execute: async (args: any) => {
+                const res = await fetch(`/api/products?q=${args.query || ""}&category=${args.category || ""}`);
+                return res.json();
+              }
+            },
+            {
+              name: "get_programs",
+              description: "Sağlamlıq və arıqlama proqramları haqqında məlumat verir",
+              inputSchema: { type: "object", properties: {} },
+              execute: async () => {
+                const res = await fetch("/api/programs");
+                return res.json();
+              }
+            }
+          ]
+        });
+      } catch (e) {
+        console.warn("WebMCP initialization failed:", e);
+      }
+    }
+  }, []);
+
   return null;
 }
