@@ -16,7 +16,16 @@ Next.js və Supabase əsasında qurulmuş, çoxdilli (AZ, EN, TR, RU) Herbalife 
 - **Hesab** — Qeydiyyat, giriş, profil, sifariş tarixi (Supabase Auth)
 - **Blog** — Məqalələr, kateqoriya
 - **Kontakt, FAQ, çatdırılma, qaytarma, məxfilik, şərtlər** — Statik/idinə idarə olunan səhifələr
-- **SEO** — Meta taglər, Open Graph, alternates (hər dil üçün canonical)
+- **SEO** — Meta taglər, Open Graph, alternates (hər dil üçün canonical), dinamik sitemap və təkmilləşdirilmiş robots.txt
+
+### Süni İntellekt (AI) və Agent Discovery
+- **Agent-Ready** — Sayt süni intellekt agentləri (GPTs, Claude, və s.) tərəfindən tam kəşf oluna və idarə oluna bilər.
+- **Markdown Negotiation** — Agentlər üçün HTML-in avtomatik Markdown formatında təqdim olunması (`Accept: text/markdown`).
+- **Discovery Headers** — RFC 8288 standartına uyğun `Link` başlıqları vasitəsilə resursların (sitemap, help, api-catalog) avtomatik tapılması.
+- **AI Bot Qaydaları** — `robots.txt` daxilində `GPTBot`, `Claude-Web` və digər botlar üçün xüsusi icazələr və `Content-Signal` (ai-train=no) direktivləri.
+- **API Catalog & MCP** — RFC 9727 (API Catalog) və Model Context Protocol (MCP) server kartı dəstəyi.
+- **Agentic Commerce** — Muxtar agentlərin alış-veriş edə bilməsi üçün ACP, UCP və MPP (Machine Payment Protocol) protokollarının inteqrasiyası.
+- **WebMCP** — Brauzer daxilində agentlərə məhsul axtarışı və proqram məsləhəti üçün `tools` təqdim olunması.
 
 ### Admin panel
 - Məhsul, kateqoriya, sifariş, istifadəçi idarəetməsi
