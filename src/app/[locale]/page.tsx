@@ -10,6 +10,7 @@ import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import { parseKeywords } from "@/lib/keywords-utils";
 import { getMessages } from "@/lib/i18n";
 import { productSearchHaystack } from "@/lib/product-search";
+import { getSiteUrl } from "@/lib/site-url";
 
 const OG_LOCALE_MAP: Record<string, string> = {
   az: "az_AZ",
@@ -43,12 +44,12 @@ export async function generateMetadata({
     getMetaTags("home"),
   ]);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
+  const siteUrl = getSiteUrl();
   const brandName = settings?.public_site_name || settings?.site_name || "Herbalife";
   const localePath = ["az", "en", "tr", "ru"].includes(locale) ? locale : "az";
 
   const title = metaTags?.title || `${brandName} - Sağlam Həyat Üçün Herbalife Məhsulları | Azərbaycan`;
-  const description = metaTags?.description || "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda rəsmi distribütor. Pulsuz çatdırılma Bakı daxilində.";
+  const description = metaTags?.description || "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda müstəqil Herbalife distribütoru. Pulsuz çatdırılma Bakı daxilində.";
   const keywordsRaw = metaTags?.keywords || "herbalife azərbaycan, herbalife bakı, arıqlama məhsulları, çəki itirmə, sağlam qidalanma, vitamin, əlavə, herbalife distribütor, sağlam həyat, herbalife məhsulları";
   const keywords = parseKeywords(keywordsRaw);
   const rawOgImage = metaTags?.og_image || metaTags?.image || settings?.logo || `${siteUrl}/og-image.jpg`;
@@ -78,7 +79,7 @@ export async function generateMetadata({
     alternates: {
       canonical: `${siteUrl}/${localePath}`,
       languages: {
-        "x-default": siteUrl,
+        "x-default": `${siteUrl}/az`,
         az: `${siteUrl}/az`,
         en: `${siteUrl}/en`,
         tr: `${siteUrl}/tr`,
@@ -134,7 +135,7 @@ export default async function Home({
     };
   });
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
+  const siteUrl = getSiteUrl();
 
   const logoUrl = ensureAbsoluteImageUrl(settings?.logo, siteUrl) || `${siteUrl}/logo.png`;
   const defaultImage = ensureAbsoluteImageUrl(settings?.logo, siteUrl) || `${siteUrl}/og-image.jpg`;

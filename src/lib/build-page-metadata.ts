@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getSiteSettings, getMetaTags } from "@/modules/settings/queries";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import { parseKeywords } from "@/lib/keywords-utils";
+import { getSiteUrl } from "@/lib/site-url";
 
 const OG_LOCALE_MAP: Record<string, string> = {
   az: "az_AZ",
@@ -50,8 +51,7 @@ export async function buildPageMetadata({
     getMetaTags(pageKey),
   ]);
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
+  const siteUrl = getSiteUrl();
   const brandName =
     settings?.public_site_name || settings?.site_name || "Herbalife";
 
@@ -89,7 +89,7 @@ export async function buildPageMetadata({
     : {
         canonical,
         languages: {
-          "x-default": siteUrl,
+          "x-default": `${siteUrl}/az${path}`,
           az: `${siteUrl}/az${path}`,
           en: `${siteUrl}/en${path}`,
           tr: `${siteUrl}/tr${path}`,

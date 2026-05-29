@@ -104,7 +104,14 @@ export async function middleware(request: NextRequest) {
   const isAccount = path.startsWith("/account");
   const isNext = path.startsWith("/_next") || path.startsWith("/favicon");
   const isWellKnown = path.startsWith("/.well-known");
-  const isStaticFile = ["/robots.txt", "/sitemap.xml", "/manifest.json", "/browserconfig.xml"].includes(path);
+  const isStaticFile = [
+    "/robots.txt",
+    "/ads.txt",
+    "/app-ads.txt",
+    "/sitemap.xml",
+    "/manifest.json",
+    "/browserconfig.xml",
+  ].includes(path);
   const isStatic = path.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|txt|xml|json)$/) || isStaticFile || isWellKnown;
   const firstSegment = path.slice(1).split("/")[0] || "";
   const hasLocalePrefix = LOCALES.includes(firstSegment as (typeof LOCALES)[number]);
@@ -302,6 +309,7 @@ export async function middleware(request: NextRequest) {
       https://va.vercel-scripts.com
       https://www.googletagmanager.com
       https://www.google-analytics.com
+      https://pagead2.googlesyndication.com
       https://www.googleadservices.com
       https://googleads.g.doubleclick.net
       https://*.doubleclick.net

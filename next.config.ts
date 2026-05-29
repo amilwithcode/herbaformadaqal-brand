@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
       { source: "/popup.css", headers: [{ key: "Cache-Control", value: longStale }] },
       { source: "/popup.js", headers: [{ key: "Cache-Control", value: longStale }] },
       { source: "/robots.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },
+      { source: "/ads.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/:path*.svg", headers: [{ key: "Cache-Control", value: longStale }] },
       { source: "/:path*.ico", headers: [{ key: "Cache-Control", value: longStale }] },
       { source: "/og-image.jpg", headers: [{ key: "Cache-Control", value: longStale }] },

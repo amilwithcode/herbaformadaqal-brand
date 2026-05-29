@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getSiteUrl } from "@/lib/site-url";
 
 // Only initialize Resend if API key is available
 const getResend = () => {
@@ -29,6 +30,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const siteUrl = getSiteUrl();
+
     // Welcome email templates in different languages
     const emailTemplates: Record<string, { subject: string; html: string }> = {
       az: {
@@ -53,7 +56,7 @@ export async function POST(req: NextRequest) {
                   Məhsullarımızı kəşf edin, fərdi qidalanma proqramlarımızdan yararlanın və sağlamlığınızı idarə edin.
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aformadaqal.com"}" 
+                  <a href="${siteUrl}" 
                      style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
                     Sayta keç
                   </a>
@@ -88,7 +91,7 @@ export async function POST(req: NextRequest) {
                   Explore our products, benefit from our personalized nutrition programs, and manage your health.
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aformadaqal.com"}" 
+                  <a href="${siteUrl}" 
                      style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
                     Go to Site
                   </a>
@@ -123,7 +126,7 @@ export async function POST(req: NextRequest) {
                   Изучите наши продукты, воспользуйтесь нашими персональными программами питания и управляйте своим здоровьем.
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aformadaqal.com"}" 
+                  <a href="${siteUrl}" 
                      style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
                     Перейти на сайт
                   </a>
@@ -158,7 +161,7 @@ export async function POST(req: NextRequest) {
                   Ürünlerimizi keşfedin, kişiselleştirilmiş beslenme programlarımızdan yararlanın ve sağlığınızı yönetin.
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://aformadaqal.com"}" 
+                  <a href="${siteUrl}" 
                      style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
                     Siteye Git
                   </a>

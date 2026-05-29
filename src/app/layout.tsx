@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { getSupabaseServerClient, getSupabasePublicClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import { parseKeywords } from "@/lib/keywords-utils";
+import { ADSENSE_PUBLISHER_ID, getSiteUrl } from "@/lib/site-url";
 import Script from "next/script";
 import SpeedInsightsWrapper from "@/components/common/SpeedInsightsWrapper";
 import "./globals.css";
@@ -59,8 +60,8 @@ export async function generateMetadata(): Promise<Metadata> {
     getSiteData(),
     getRequestLocale(),
   ]);
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
+  const siteUrl = getSiteUrl();
+  const canonicalHome = `${siteUrl}/${requestLocale}`;
 
   const title =
     meta?.title ||
@@ -69,7 +70,7 @@ export async function generateMetadata(): Promise<Metadata> {
     "Herbalife - Sağlam Həyat Üçün Məhsullar";
   const description =
     meta?.description ||
-    "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda rəsmi distribütor.";
+    "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda müstəqil Herbalife distribütoru.";
   const keywordsRaw =
     meta?.keywords ||
     "herbalife, sağlamlıq, arıqlama, çəki itirmə, qidalanma, vitamin, əlavə, azərbaycan, bakı, sağlam həyat";
@@ -94,7 +95,7 @@ export async function generateMetadata(): Promise<Metadata> {
     publisher: settings?.public_site_name || "Herbalife Distribütor",
     metadataBase: new URL(siteUrl),
     alternates: {
-      canonical: siteUrl,
+      canonical: canonicalHome,
       languages: {
         "x-default": `${siteUrl}/az`,
         az: `${siteUrl}/az`,
@@ -106,7 +107,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: OG_LOCALE_MAP[requestLocale] || "az_AZ",
-      url: siteUrl,
+      url: canonicalHome,
       siteName: settings?.public_site_name || "Herbalife",
       title: meta?.og_title || title,
       description: meta?.og_description || description,
@@ -154,8 +155,7 @@ export default async function RootLayout({
     getRequestLocale(),
   ]);
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
+  const siteUrl = getSiteUrl();
   const siteName =
     settings?.public_site_name || settings?.site_name || "Herbalife";
   const logoUrl = settings?.logo || `${siteUrl}/logo.png`;
@@ -169,14 +169,14 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteName,
-    url: siteUrl,
+    url: `${siteUrl}/az`,
     logo: {
       "@type": "ImageObject",
       url: logoUrl,
       width: 512,
       height: 512,
     },
-    sameAs: [siteUrl],
+    sameAs: [`${siteUrl}/az`],
   };
 
   /* ── JSON-LD: WebSite schema (sitelinks searchbox üçün) ── */
@@ -184,12 +184,12 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: siteName,
-    url: siteUrl,
+    url: `${siteUrl}/az`,
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${siteUrl}/search?q={search_term_string}`,
+        urlTemplate: `${siteUrl}/az/search?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
@@ -207,14 +207,14 @@ export default async function RootLayout({
           name="google-site-verification"
           content="dxY_YPSfH_pm788aIryoCAjNlbxzyTqmJn5xgvOK3Qs"
         />
-        <meta name="google-adsense-account" content="ca-pub-6351848176041276" />
+        <meta name="google-adsense-account" content={ADSENSE_PUBLISHER_ID} />
         <script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6351848176041276"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUBLISHER_ID}`}
           crossOrigin="anonymous"
         />
         {/* Google Ads: dil URL-də göstərilir (policy uyğunluğu) */}
-        <link rel="alternate" hrefLang="x-default" href={siteUrl} />
+        <link rel="alternate" hrefLang="x-default" href={`${siteUrl}/az`} />
         <link rel="alternate" hrefLang="az" href={`${siteUrl}/az`} />
         <link rel="alternate" hrefLang="en" href={`${siteUrl}/en`} />
         <link rel="alternate" hrefLang="tr" href={`${siteUrl}/tr`} />

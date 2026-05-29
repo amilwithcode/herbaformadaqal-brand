@@ -8,7 +8,7 @@ const extra = (Constants.expoConfig as any)?.extra;
 export const API_BASE_URL =
   extra?.apiUrl ||
   (typeof process !== "undefined" && (process as any).env?.EXPO_PUBLIC_API_URL) ||
-  "https://your-domain.com";
+  "https://www.herbaformadaqal.com";
 
 export const LOCALES = ["az", "en", "tr", "ru"] as const;
 export type Locale = (typeof LOCALES)[number];
