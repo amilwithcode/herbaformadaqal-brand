@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminRole } from "@/lib/roles";
+import { getSiteUrl } from "@/lib/site-url";
 
 // Simple in-memory rate limiter (Note: specific to single-instance/long-running server)
 // For distributed systems (Vercel/Serverless), use Redis (e.g., Upstash)
@@ -119,7 +120,7 @@ export async function middleware(request: NextRequest) {
   // Markdown Negotiation for Agents (RFC 8288 / Agent Discovery)
   const acceptHeader = request.headers.get("accept") || "";
   if (acceptHeader.includes("text/markdown") && !isApi && !isNext && !isStatic && !isWellKnown) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.herbaformadaqal.com";
+    const siteUrl = getSiteUrl();
     const siteName = "Herbaformadaqal.com - Herbalife Azərbaycan";
     
     // Sadə markdown məzmunu
@@ -132,7 +133,7 @@ export async function middleware(request: NextRequest) {
       `- [Haqqımızda](${siteUrl}/az/about)\n` +
       `- [FAQ](${siteUrl}/az/faq)\n\n` +
       `## Əlaqə\n` +
-      `- Tel: +994 (55) 212 12 12\n` +
+      `- Əlaqə səhifəsi: ${siteUrl}/az/contact\n` +
       `- Ünvan: Bakı, Azərbaycan\n\n` +
       `--- \n` +
       `Bu səhifə agentlər üçün avtomatik markdown formatında təqdim olunur.`;

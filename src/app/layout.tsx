@@ -4,7 +4,11 @@ import { unstable_cache } from "next/cache";
 import { getSupabaseServerClient, getSupabasePublicClient } from "@/lib/supabase-server";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
 import { parseKeywords } from "@/lib/keywords-utils";
-import { ADSENSE_PUBLISHER_ID, getSiteUrl } from "@/lib/site-url";
+import {
+  ADSENSE_PUBLISHER_ID,
+  getSiteUrl,
+  shouldEnableAdSense,
+} from "@/lib/site-url";
 import Script from "next/script";
 import SpeedInsightsWrapper from "@/components/common/SpeedInsightsWrapper";
 import "./globals.css";
@@ -32,7 +36,7 @@ const getCachedSiteData = unstable_cache(
     const [settingsData, metaData] = await Promise.all([
       supabase
         .from("site_settings")
-        .select("public_site_name, site_name, logo, footer_phone")
+        .select("public_site_name, site_name, logo, footer_phone, footer_email")
         .eq("id", 1)
         .maybeSingle(),
       supabase
@@ -62,6 +66,11 @@ export async function generateMetadata(): Promise<Metadata> {
   ]);
   const siteUrl = getSiteUrl();
   const canonicalHome = `${siteUrl}/${requestLocale}`;
+  const brandName =
+    settings?.public_site_name || settings?.site_name || "Herbalife";
+  const publisherName = brandName.includes("Herbalife")
+    ? `${brandName} (müstəqil distribütor)`
+    : brandName;
 
   const title =
     meta?.title ||
@@ -90,9 +99,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     keywords: keywords.length > 0 ? keywords : undefined,
-    authors: [{ name: settings?.public_site_name || "Herbalife Distribütor" }],
-    creator: settings?.public_site_name || "Herbalife Distribütor",
-    publisher: settings?.public_site_name || "Herbalife Distribütor",
+    authors: [{ name: publisherName }],
+    creator: publisherName,
+    publisher: publisherName,
     metadataBase: new URL(siteUrl),
     alternates: {
       canonical: canonicalHome,
@@ -150,14 +159,19 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [{ settings, meta }, requestLocale] = await Promise.all([
+  const [{ settings, meta }, requestLocale, requestHeaders] = await Promise.all([
     getSiteData(),
     getRequestLocale(),
+    headers(),
   ]);
 
   const siteUrl = getSiteUrl();
+  const adsenseEnabled = shouldEnableAdSense(requestHeaders.get("host"));
   const siteName =
     settings?.public_site_name || settings?.site_name || "Herbalife";
+  const publisherName = siteName.includes("Herbalife")
+    ? `${siteName} (müstəqil distribütor)`
+    : siteName;
   const logoUrl = settings?.logo || `${siteUrl}/logo.png`;
   const keywordsForMeta = parseKeywords(
     meta?.keywords || "herbalife, sağlamlıq, arıqlama, çəki itirmə, qidalanma, vitamin, əlavə, azərbaycan, bakı, sağlam həyat"
@@ -169,6 +183,8 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteName,
+    description:
+      "Müstəqil Herbalife distribütoru. Herbalife şirkətinin rəsmi saytı deyil.",
     url: `${siteUrl}/az`,
     logo: {
       "@type": "ImageObject",
@@ -176,6 +192,12 @@ export default async function RootLayout({
       width: 512,
       height: 512,
     },
+    ...(settings?.footer_phone
+      ? { telephone: settings.footer_phone }
+      : {}),
+    ...(settings?.footer_email
+      ? { email: settings.footer_email }
+      : {}),
     sameAs: [`${siteUrl}/az`],
   };
 
@@ -207,12 +229,16 @@ export default async function RootLayout({
           name="google-site-verification"
           content="dxY_YPSfH_pm788aIryoCAjNlbxzyTqmJn5xgvOK3Qs"
         />
-        <meta name="google-adsense-account" content={ADSENSE_PUBLISHER_ID} />
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUBLISHER_ID}`}
-          crossOrigin="anonymous"
-        />
+        {adsenseEnabled ? (
+          <>
+            <meta name="google-adsense-account" content={ADSENSE_PUBLISHER_ID} />
+            <script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUBLISHER_ID}`}
+              crossOrigin="anonymous"
+            />
+          </>
+        ) : null}
         {/* Google Ads: dil URL-də göstərilir (policy uyğunluğu) */}
         <link rel="alternate" hrefLang="x-default" href={`${siteUrl}/az`} />
         <link rel="alternate" hrefLang="az" href={`${siteUrl}/az`} />

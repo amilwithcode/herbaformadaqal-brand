@@ -3,18 +3,22 @@
 
 User-agent: *
 Allow: /
-Allow: /products
-Allow: /products/*
-Allow: /categories/*
-Allow: /blog/*
-Allow: /programs
-Allow: /programs/*
-Allow: /about
-Allow: /contact
-Allow: /faq
-Allow: /privacy
-Allow: /shipping
-Allow: /returns
+Allow: /az/
+Allow: /en/
+Allow: /tr/
+Allow: /ru/
+Allow: /az/products
+Allow: /az/products/*
+Allow: /az/categories/*
+Allow: /az/blog/*
+Allow: /az/programs
+Allow: /az/programs/*
+Allow: /az/about
+Allow: /az/contact
+Allow: /az/faq
+Allow: /az/privacy
+Allow: /az/shipping
+Allow: /az/returns
 
 # Admin & Account
 Disallow: /admin

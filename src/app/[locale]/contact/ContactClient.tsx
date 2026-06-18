@@ -76,47 +76,53 @@ export default function ContactClient({
             </h2>
             <p className="text-xs text-emerald-700">{t("contact.subtitle")}</p>
             <div className="space-y-6">
-              <div className="flex items-start gap-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                  <Phone size={24} />
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                    {t("contact.info.phone_label")}
+              {initialPhone ? (
+                <div className="flex items-start gap-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                    <Phone size={24} />
                   </div>
-                  <div className="text-base font-medium text-emerald-950">
-                    {initialPhone || t("footer.contact.phone")}
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                      {t("contact.info.phone_label")}
+                    </div>
+                    <div className="text-base font-medium text-emerald-950">
+                      {initialPhone}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : null}
 
-              <div className="flex items-start gap-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                  <Mail size={24} />
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                    {t("contact.info.email_label")}
+              {initialEmail ? (
+                <div className="flex items-start gap-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                    <Mail size={24} />
                   </div>
-                  <div className="text-base font-medium text-emerald-950">
-                    {initialEmail || t("footer.contact.email")}
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                      {t("contact.info.email_label")}
+                    </div>
+                    <div className="text-base font-medium text-emerald-950">
+                      {initialEmail}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : null}
 
-              <div className="flex items-start gap-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                  <MapPin size={24} />
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                    {t("contact.info.address_label")}
+              {initialAddress ? (
+                <div className="flex items-start gap-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                    <MapPin size={24} />
                   </div>
-                  <div className="text-base font-medium text-emerald-950">
-                    {initialAddress || t("footer.contact.address")}
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                      {t("contact.info.address_label")}
+                    </div>
+                    <div className="text-base font-medium text-emerald-950">
+                      {initialAddress}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           </div>
 

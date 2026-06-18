@@ -414,12 +414,12 @@ export default function SiteNavbar({
               </svg>
             </a>
           )}
-          <span className="flex items-center gap-1 min-[380px]:gap-1.5 text-white">
-            <Phone size={10} className="min-[380px]:w-3 min-[380px]:h-3" />
-            <span className="hidden min-[340px]:inline">
-              {siteSettings.topPhone || t("footer.contact.phone")}
+          {siteSettings.topPhone ? (
+            <span className="flex items-center gap-1 min-[380px]:gap-1.5 text-white">
+              <Phone size={10} className="min-[380px]:w-3 min-[380px]:h-3" />
+              <span className="hidden min-[340px]:inline">{siteSettings.topPhone}</span>
             </span>
-          </span>
+          ) : null}
           <LocaleSwitcher />
         </div>
       </div>

@@ -1,11 +1,12 @@
 import { MetadataRoute } from 'next';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { getCategories } from '@/modules/products/queries';
+import { getSiteUrl } from '@/lib/site-url';
 
 const LOCALES = ['az', 'en', 'ru', 'tr'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.herbaformadaqal.com').replace(/\/$/, '');
+  const siteUrl = getSiteUrl();
   const supabase = await getSupabaseServerClient();
   
   const staticPaths = [

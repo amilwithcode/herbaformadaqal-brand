@@ -4,7 +4,7 @@ export async function getSiteSettings() {
   const supabase = await getSupabaseServerClient();
   const { data } = await supabase
     .from("site_settings")
-    .select("public_site_name, site_name, logo, footer_phone, primary_color, hide_prices, hide_points")
+    .select("public_site_name, site_name, logo, footer_phone, footer_email, footer_address, primary_color, hide_prices, hide_points")
     .eq("id", 1)
     .maybeSingle();
   return data;

@@ -139,29 +139,44 @@ export default async function Home({
 
   const logoUrl = ensureAbsoluteImageUrl(settings?.logo, siteUrl) || `${siteUrl}/logo.png`;
   const defaultImage = ensureAbsoluteImageUrl(settings?.logo, siteUrl) || `${siteUrl}/og-image.jpg`;
-  const structuredData = {
+  const structuredData: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "HealthAndBeautyBusiness",
-    "name": brandName,
-    "description": structuredDesc,
-    "url": siteUrl,
-    "logo": logoUrl,
-    "image": defaultImage,
-    "telephone": settings?.footer_phone || "+994 50 123 45 67",
-    "address": {
+    name: brandName,
+    description: `${structuredDesc} Müstəqil Herbalife distribütoru.`,
+    url: `${siteUrl}/${locale}`,
+    logo: logoUrl,
+    image: defaultImage,
+    address: {
       "@type": "PostalAddress",
-      "addressCountry": "AZ",
-      "addressLocality": "Bakı",
+      addressCountry: "AZ",
+      addressLocality: "Bakı",
+      ...(settings?.footer_address
+        ? { streetAddress: settings.footer_address }
+        : {}),
     },
-    "sameAs": [],
-    "offers": {
+    sameAs: [],
+    offers: {
       "@type": "AggregateOffer",
-      "offerCount": featuredProducts.length,
-      "lowPrice": featuredProducts.length > 0 ? Math.min(...featuredProducts.map(p => p.price)) : 0,
-      "highPrice": featuredProducts.length > 0 ? Math.max(...featuredProducts.map(p => p.price)) : 0,
-      "priceCurrency": "AZN",
+      offerCount: featuredProducts.length,
+      lowPrice:
+        featuredProducts.length > 0
+          ? Math.min(...featuredProducts.map((p) => p.price))
+          : 0,
+      highPrice:
+        featuredProducts.length > 0
+          ? Math.max(...featuredProducts.map((p) => p.price))
+          : 0,
+      priceCurrency: "AZN",
     },
   };
+
+  if (settings?.footer_phone) {
+    structuredData.telephone = settings.footer_phone;
+  }
+  if (settings?.footer_email) {
+    structuredData.email = settings.footer_email;
+  }
 
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">

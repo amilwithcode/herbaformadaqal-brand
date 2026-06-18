@@ -180,18 +180,24 @@ const Footer = () => {
               {t("footer.contact.title")}
             </div>
             <div className="space-y-2 text-emerald-700">
-              <div className="flex items-center gap-2">
-                <Phone size={14} className="text-emerald-600" />
-                <span>{contactPhone || t("footer.contact.phone")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail size={14} className="text-emerald-600" />
-                <span>{contactEmail || t("footer.contact.email")}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin size={14} className="text-emerald-600 shrink-0" />
-                <span>{contactAddress || t("footer.contact.address")}</span>
-              </div>
+              {contactPhone ? (
+                <div className="flex items-center gap-2">
+                  <Phone size={14} className="text-emerald-600" />
+                  <span>{contactPhone}</span>
+                </div>
+              ) : null}
+              {contactEmail ? (
+                <div className="flex items-center gap-2">
+                  <Mail size={14} className="text-emerald-600" />
+                  <span>{contactEmail}</span>
+                </div>
+              ) : null}
+              {contactAddress ? (
+                <div className="flex items-start gap-2">
+                  <MapPin size={14} className="text-emerald-600 shrink-0" />
+                  <span>{contactAddress}</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
