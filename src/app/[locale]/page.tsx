@@ -4,6 +4,7 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
 import BenefitsStrip from "@/components/home/BenefitsStrip";
 import SiteNavbar from "@/components/layout/SiteNavbar";
+import { AdSenseAd } from "@/components/analytics/AdSenseAd";
 import { getHomeProducts, getCategories } from "@/modules/products/queries";
 import { getSiteSettings, getPageSections, getHeroSlides, getMetaTags } from "@/modules/settings/queries";
 import { ensureAbsoluteImageUrl } from "@/lib/seo-utils";
@@ -191,6 +192,9 @@ export default async function Home({
 
       <main className="mx-auto max-w-6xl space-y-12 sm:space-y-16 px-3 sm:px-4 md:px-6 py-6 sm:py-8 pb-20 sm:pb-24 md:pb-8">
         <FeaturedProductsSection products={featuredProducts} />
+        <div className="py-4">
+          <AdSenseAd adSlot="4825966200" />
+        </div>
         <BenefitsStrip sectionData={homeSections?.benefits} />
         <WeightCalculatorSection />
         <PromoBannerSection />
@@ -202,7 +206,21 @@ export default async function Home({
           <ProgramsSection />
         </section>
         <BlogSection />
+        <div className="py-4 flex justify-center">
+          <AdSenseAd
+            adSlot="4981878875"
+            style={{ display: "inline-block", width: "728px", height: "90px" }}
+            adFormat={undefined}
+            adLayoutKey={undefined}
+          />
+        </div>
         <FAQSection />
+        <div className="py-4">
+          <AdSenseAd
+            adSlot="3860368899"
+            adFormat="autorelaxed"
+          />
+        </div>
       </main>
       <GoalsStrip />
       <section id="contact" className="pb-20 md:pb-0">
