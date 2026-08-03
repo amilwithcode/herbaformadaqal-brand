@@ -185,7 +185,7 @@ export default function BlogListPage() {
                   {post.title}
                 </h2>
 
-                <p className="text-xs text-slate-500 line-clamp-3 mb-4 flex-1">
+                <p className="text-xs text-slate-500 line-clamp-3 mb-4 flex-1 whitespace-pre-wrap">
                   {post.excerpt || post.body?.slice(0, 150) || ""}
                 </p>
 

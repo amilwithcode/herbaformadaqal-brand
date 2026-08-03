@@ -158,10 +158,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           </div>
         )}
 
-        {/* Excerpt */}
+        {/* Excerpt — adminin daxil etdiyi boşluq və sətir sonları saxlanılır */}
         {post.excerpt && (
           <p
-            className={`text-slate-700 mb-6 leading-relaxed border-l-4 border-emerald-400 pl-4 bg-emerald-50/50 py-3 rounded-r-lg ${!post.excerpt_font_size && !post.excerpt_font_weight ? "text-base font-medium" : ""}`}
+            className={`text-slate-700 mb-6 leading-relaxed border-l-4 border-emerald-400 pl-4 bg-emerald-50/50 py-3 rounded-r-lg whitespace-pre-wrap ${!post.excerpt_font_size && !post.excerpt_font_weight ? "text-base font-medium" : ""}`}
             style={{
               ...(post.excerpt_font_size && { fontSize: post.excerpt_font_size }),
               ...(post.excerpt_font_weight && { fontWeight: post.excerpt_font_weight }),

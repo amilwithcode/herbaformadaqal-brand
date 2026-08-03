@@ -148,9 +148,9 @@ export default function BlogSection() {
               {post.title}
             </h3>
 
-            {/* Excerpt */}
+            {/* Excerpt — boşluq və sətir sonları saxlanılır */}
             <p
-              className="text-xs text-slate-600 line-clamp-4 mb-4 flex-1"
+              className="text-xs text-slate-600 line-clamp-4 mb-4 flex-1 whitespace-pre-wrap"
               style={{
                 ...(post.excerpt_font_size ? { fontSize: post.excerpt_font_size } : {}),
                 ...(post.excerpt_font_weight ? { fontWeight: post.excerpt_font_weight } : {}),

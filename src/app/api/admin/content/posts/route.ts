@@ -176,11 +176,17 @@ export async function POST(req: NextRequest) {
       if (loc && typeof loc === "object") {
         for (const field of FIELDS) {
           const val = loc[field];
-          if (typeof val === "string" && val.trim()) {
-            await supabase.from("translations").upsert(
-              { entity_table: TABLE, entity_id: insertedId, field, language: lang, value: val.trim() },
-              { onConflict: "entity_table,entity_id,field,language" }
-            );
+          if (typeof val === "string") {
+            const isEmpty =
+              field === "excerpt" || field === "body"
+                ? val.length === 0
+                : !val.trim();
+            if (!isEmpty) {
+              await supabase.from("translations").upsert(
+                { entity_table: TABLE, entity_id: insertedId, field, language: lang, value: val },
+                { onConflict: "entity_table,entity_id,field,language" }
+              );
+            }
           }
         }
       }
@@ -246,10 +252,13 @@ export async function PATCH(req: NextRequest) {
         for (const field of FIELDS) {
           const val = loc[field];
           if (typeof val === "string") {
-            const value = val.trim();
-            if (value) {
+            const isEmpty =
+              field === "excerpt" || field === "body"
+                ? val.length === 0
+                : !val.trim();
+            if (!isEmpty) {
               await supabase.from("translations").upsert(
-                { entity_table: TABLE, entity_id: Number(id), field, language: lang, value },
+                { entity_table: TABLE, entity_id: Number(id), field, language: lang, value: val },
                 { onConflict: "entity_table,entity_id,field,language" }
               );
             } else {
