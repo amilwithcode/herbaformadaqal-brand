@@ -232,8 +232,9 @@ export default async function RootLayout({
         {adsenseEnabled ? (
           <>
             <meta name="google-adsense-account" content={ADSENSE_PUBLISHER_ID} />
-            <script
-              async
+            <Script
+              id="adsbygoogle-script"
+              strategy="beforeInteractive"
               src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUBLISHER_ID}`}
               crossOrigin="anonymous"
             />

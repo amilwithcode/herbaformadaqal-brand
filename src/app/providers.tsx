@@ -56,7 +56,9 @@ export default function Providers({ children, initialLocale }: ProvidersProps) {
         <ToastProvider showToast={showToast}>
           <WishlistProvider showToast={showToast}>
             <CartProvider showToast={showToast}>
-              {children}
+              <div className="pb-28 sm:pb-32 md:pb-0">
+                {children}
+              </div>
               <ChatWidget />
               <FloatingWidgets />
               <MobileBottomNav />

@@ -100,17 +100,27 @@ function MobileNavActionLinks({ currentPath, cartCount, wishlistCount, t }: { cu
     <div className="mt-auto grid grid-cols-2 gap-4 border-t border-emerald-100 p-6 bg-emerald-50/50">
       <LocalizedLink
         href={`/wishlist?from=${encodeURIComponent(currentPathWithQuery)}`}
-        className="flex items-center justify-center gap-2 rounded-xl bg-white border border-emerald-200 py-3 text-sm font-semibold text-emerald-900"
+        className="flex items-center justify-center gap-3 rounded-xl bg-white border border-emerald-200 py-3 text-sm font-semibold text-emerald-900 relative overflow-visible"
       >
-        <Heart size={18} />
-        <span>{t("nav.wishlist")} ({wishlistCount})</span>
+        <span className="relative inline-flex shrink-0">
+          <Heart size={20} />
+          <span className="absolute -right-2.5 -top-2.5 flex min-w-[20px] h-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
+            {wishlistCount}
+          </span>
+        </span>
+        <span>{t("nav.wishlist")}</span>
       </LocalizedLink>
       <LocalizedLink
         href={`/cart?from=${encodeURIComponent(currentPathWithQuery)}`}
-        className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200"
+        className="flex items-center justify-center gap-3 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200 relative overflow-visible"
       >
-        <ShoppingCart size={18} />
-        <span>{t("nav.cart")} ({cartCount})</span>
+        <span className="relative inline-flex shrink-0">
+          <ShoppingCart size={20} />
+          <span className="absolute -right-2.5 -top-2.5 flex min-w-[20px] h-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-emerald-600 ring-2 ring-emerald-600 shadow-sm">
+            {cartCount}
+          </span>
+        </span>
+        <span>{t("nav.cart")}</span>
       </LocalizedLink>
     </div>
   );
@@ -393,8 +403,8 @@ export default function SiteNavbar({
         className="flex items-center justify-between px-2 min-[380px]:px-3 sm:px-6 py-1.5 sm:py-2 text-[8px] min-[320px]:text-[9px] min-[380px]:text-[10px] sm:text-[11px] text-white transition-colors duration-300"
         style={{ backgroundColor: siteSettings.primaryColor }}
       >
-        {/* Left: Admin Announcement Slider */}
-        <div className="flex items-center">
+        {/* Left: Admin Announcement Slider — Hər iki görünüşdə GİZLƏ, yalnız MobileBottomNav üstündə göstər */}
+        <div className="hidden items-center">
           <Suspense fallback={<div className="h-3 w-32 sm:h-4 sm:w-48 bg-white/10 rounded animate-pulse" />}>
             <AdminAnnouncementSlider />
           </Suspense>

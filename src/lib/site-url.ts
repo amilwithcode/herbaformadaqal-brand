@@ -26,6 +26,34 @@ export function isProductionHost(host: string | null | undefined): boolean {
   );
 }
 
+/**
+ * AdSense-i aktivləşdirmək üçün şərt.
+ * - Əvvəlcə NEXT_PUBLIC_FORCE_ADSENSE env varsa (1/true) → həmişə aktiv
+ * - Production hostlar → aktiv
+ * - Development rejimi → aktiv (local test üçün)
+ * - Vercel preview (*.vercel.app) → aktiv (test üçün)
+ */
 export function shouldEnableAdSense(host: string | null | undefined): boolean {
-  return isProductionHost(host);
+  const forceEnable =
+    process.env.NEXT_PUBLIC_FORCE_ADSENSE === "1" ||
+    process.env.NEXT_PUBLIC_FORCE_ADSENSE === "true";
+  if (forceEnable) return true;
+
+  const isNodeDev = process.env.NODE_ENV === "development";
+  const h = normalizeHost(host || "");
+  const isVercelPreview = h.endsWith(".vercel.app");
+  const isLocal =
+    h === "localhost" ||
+    h === "127.0.0.1" ||
+    h === "[::1]" ||
+    h.startsWith("192.168.") ||
+    h.startsWith("10.") ||
+    h.startsWith("172.");
+
+  return (
+    isProductionHost(host) ||
+    isNodeDev ||
+    isVercelPreview ||
+    isLocal
+  );
 }
