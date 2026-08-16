@@ -61,13 +61,13 @@ function MobileAnnouncementBar() {
     : (defaultText[locale] || defaultText.az);
 
   return (
-    <div className="w-full bg-emerald-600 text-white flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 overflow-hidden">
-      <Megaphone size={18} className="shrink-0 text-emerald-200 sm:w-5 sm:h-5 min-[400px]:w-[22px] min-[400px]:h-[22px]" />
-      <div className="shrink-0 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-emerald-500/40 flex items-center justify-center ring-1 ring-emerald-400/50">
-        <Sprout size={16} className="text-white sm:w-[18px] sm:h-[18px]" />
+    <div className="w-full bg-emerald-600 text-white flex items-center gap-2 min-[375px]:gap-2.5 sm:gap-3 px-2.5 min-[375px]:px-3 sm:px-4 py-2 min-[375px]:py-[10px] sm:py-2.5 overflow-hidden">
+      <Megaphone size={15} className="shrink-0 text-emerald-200 min-[375px]:w-4 min-[375px]:h-4 min-[400px]:w-[18px] min-[400px]:h-[18px] sm:w-5 sm:h-5" strokeWidth={2} />
+      <div className="shrink-0 h-6 w-6 min-[375px]:h-[26px] min-[375px]:w-[26px] min-[400px]:h-7 min-[400px]:w-7 sm:h-8 sm:w-8 rounded-full bg-emerald-500/40 flex items-center justify-center ring-1 ring-emerald-400/50">
+        <Sprout size={13} className="text-white min-[375px]:w-[14px] min-[375px]:h-[14px] min-[400px]:w-4 min-[400px]:h-4 sm:w-[18px] sm:h-[18px]" strokeWidth={2} />
       </div>
       <div className="flex-1 min-w-0 overflow-hidden">
-        <span className="block truncate whitespace-nowrap text-[13px] min-[375px]:text-sm sm:text-[15px] font-semibold tracking-wide text-white">
+        <span className="block whitespace-normal leading-snug text-[10.5px] min-[375px]:text-[11px] min-[400px]:text-[11.5px] min-[480px]:text-[12px] sm:text-xs font-semibold tracking-wide text-white">
           {content}
         </span>
       </div>

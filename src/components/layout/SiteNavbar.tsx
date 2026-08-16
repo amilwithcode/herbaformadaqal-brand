@@ -403,8 +403,8 @@ export default function SiteNavbar({
         className="flex items-center justify-between px-2 min-[380px]:px-3 sm:px-6 py-1.5 sm:py-2 text-[8px] min-[320px]:text-[9px] min-[380px]:text-[10px] sm:text-[11px] text-white transition-colors duration-300"
         style={{ backgroundColor: siteSettings.primaryColor }}
       >
-        {/* Left: Admin Announcement Slider — Hər iki görünüşdə GİZLƏ, yalnız MobileBottomNav üstündə göstər */}
-        <div className="hidden items-center">
+        {/* Left: Admin Announcement Slider — Yalnız Desktop-da göstər, Mobildə MobileBottomNav üstündədir */}
+        <div className="hidden md:flex items-center">
           <Suspense fallback={<div className="h-3 w-32 sm:h-4 sm:w-48 bg-white/10 rounded animate-pulse" />}>
             <AdminAnnouncementSlider />
           </Suspense>

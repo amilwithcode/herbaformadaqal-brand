@@ -236,7 +236,7 @@ export default function ChatWidget() {
     <>
       {/* Invite Bubble */}
       {showBubble && !open && (
-        <div className="fixed bottom-[138px] md:bottom-[88px] right-5 z-[70] animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="fixed bottom-[260px] md:bottom-[88px] right-5 z-[55] animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="relative max-w-[280px] sm:max-w-[320px] rounded-2xl bg-white p-4 shadow-2xl border border-emerald-100">
             <button
               type="button"
@@ -277,7 +277,7 @@ export default function ChatWidget() {
       <button
         type="button"
         onClick={() => { setOpen((prev) => !prev); setShowBubble(false); setBubbleDismissed(true); }}
-        className={`fixed bottom-[75px] md:bottom-6 right-5 z-[70] flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${
+        className={`fixed bottom-[190px] md:bottom-6 left-5 sm:left-6 md:right-5 md:left-auto z-[55] flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${
           open
             ? "bg-slate-800 rotate-0"
             : "bg-gradient-to-br from-emerald-500 to-emerald-700"
@@ -300,7 +300,7 @@ export default function ChatWidget() {
 
       {/* Chat Window - mobil görünüşdə navbar-dan yuxarıda */}
       {open && (
-        <div className="fixed bottom-[85px] md:bottom-24 right-5 z-[70] flex w-[360px] max-w-[calc(100vw-40px)] flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-[260px] md:bottom-24 right-5 z-[55] flex w-[360px] max-w-[calc(100vw-40px)] flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-5 py-4">
             <div className="flex items-center justify-between">
