@@ -25,7 +25,8 @@ import {
   ChevronRight,
   LogIn,
   UserPlus,
-  LayoutDashboard
+  LayoutDashboard,
+  BookOpen
 } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getLocalizedPath, getPathWithoutLocale } from "@/lib/localized-path";
@@ -578,6 +579,7 @@ export default function SiteNavbar({
           {[
             { href: "/products", label: t("nav.products") },
             { href: "/programs", label: t("nav.programs") },
+            { href: "/blog", label: t("nav.blog") },
             { href: "/about", label: t("nav.about") },
             { href: "/contact", label: t("nav.contact") },
           ].map((link) => (
@@ -651,6 +653,7 @@ export default function SiteNavbar({
                   { href: "/", label: t("nav.home"), icon: Home },
                   { href: "/products", label: t("nav.products"), icon: ShoppingBag },
                   { href: "/programs", label: t("nav.programs"), icon: Layers },
+                  { href: "/blog", label: t("nav.blog"), icon: BookOpen },
                   { href: "/about", label: t("nav.about"), icon: Info },
                   { href: "/contact", label: t("nav.contact"), icon: Phone },
                 ].map((link) => (

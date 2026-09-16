@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 import { useI18n } from "@/contexts/I18nContext";
 import { ScrollText } from "lucide-react";
 
@@ -42,6 +43,7 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
       <SiteNavbar />
+      <Breadcrumbs items={[{ label: t("footer.support.terms") }]} />
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-10">
         {/* Hero */}
         <section className="rounded-3xl bg-[#e4f3ec] px-6 py-8">

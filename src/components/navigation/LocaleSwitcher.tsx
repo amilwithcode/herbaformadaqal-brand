@@ -8,8 +8,15 @@ import type { Locale } from "@/modules/i18n/config";
 
 const locales: Locale[] = ["az", "ru", "en", "tr"];
 
+const localeDisplayNames: Record<Locale, string> = {
+  az: "Azərbaycan",
+  en: "English",
+  tr: "Türkçe",
+  ru: "Русский",
+};
+
 export function LocaleSwitcher() {
-  const { locale, setLocale } = useI18n();
+  const { locale, setLocale, t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -26,8 +33,11 @@ export function LocaleSwitcher() {
     });
   };
 
+  const ariaLabel = t("nav.languageSwitcherAria");
+
   return (
     <select
+      aria-label={ariaLabel}
       className="rounded-full border border-white/30 bg-white/10 backdrop-blur-sm px-2.5 py-1 text-[11px] text-white hover:bg-white/20 transition-colors cursor-pointer outline-none"
       value={locale}
       disabled={pending}
@@ -42,7 +52,7 @@ export function LocaleSwitcher() {
     >
       {locales.map((l) => (
         <option key={l} value={l} style={{ backgroundColor: '#047857', color: 'white' }}>
-          {l.toUpperCase()}
+          {localeDisplayNames[l]}
         </option>
       ))}
     </select>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useI18n } from "@/contexts/I18nContext";
 import { ArrowRight, BookOpen, Search } from "lucide-react";
 

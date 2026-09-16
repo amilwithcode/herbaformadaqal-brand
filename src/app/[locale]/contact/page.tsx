@@ -4,6 +4,7 @@ import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
 import ContactClient from "./ContactClient";
 import { buildPageMetadata } from "@/lib/build-page-metadata";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 
 async function getContactSettings() {
   const supabase = await getSupabaseServerClient();
@@ -52,6 +53,7 @@ export default async function ContactPage() {
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
       <SiteNavbar initialSettings={settings} />
+      <Breadcrumbs items={[{ label: "Contact", href: "/contact" }]} />
       <ContactClient
         initialPhone={contactPhone}
         initialEmail={contactEmail}

@@ -85,7 +85,7 @@ const Footer = () => {
   return (
     <footer className="mt-0 border-t border-emerald-100 bg-[#f5faf7] text-emerald-900">
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               {brandLogo ? (
@@ -136,6 +136,10 @@ const Footer = () => {
               </LocalizedLink>
               <LocalizedLink href="/programs" className="group relative block w-fit hover:text-emerald-900">
                 {t("footer.quick_links.programs")}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
+              </LocalizedLink>
+              <LocalizedLink href="/blog" className="group relative block w-fit hover:text-emerald-900">
+                {t("nav.blog")}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
               </LocalizedLink>
               <LocalizedLink href="/about" className="group relative block w-fit hover:text-emerald-900">
@@ -198,6 +202,29 @@ const Footer = () => {
                   <span>{contactAddress}</span>
                 </div>
               ) : null}
+            </div>
+          </div>
+          <div className="space-y-3 text-xs">
+            <div className="font-semibold text-emerald-900">
+              {t("footer.legal.title")}
+            </div>
+            <div className="space-y-1 text-emerald-700">
+              <LocalizedLink href="/cookie-policy" className="group relative block w-fit hover:text-emerald-900">
+                {t("footer.legal.cookiePolicy")}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
+              </LocalizedLink>
+              <LocalizedLink href="/disclaimer" className="group relative block w-fit hover:text-emerald-900">
+                {t("footer.legal.disclaimer")}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
+              </LocalizedLink>
+              <LocalizedLink href="/editorial-policy" className="group relative block w-fit hover:text-emerald-900">
+                {t("footer.legal.editorialPolicy")}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
+              </LocalizedLink>
+              <LocalizedLink href="/author" className="group relative block w-fit hover:text-emerald-900">
+                {t("footer.legal.author")}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-emerald-600 transition-all duration-300 ease-out group-hover:w-full" />
+              </LocalizedLink>
             </div>
           </div>
         </div>

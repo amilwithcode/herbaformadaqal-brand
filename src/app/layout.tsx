@@ -240,12 +240,6 @@ export default async function RootLayout({
             />
           </>
         ) : null}
-        {/* Google Ads: dil URL-də göstərilir (policy uyğunluğu) */}
-        <link rel="alternate" hrefLang="x-default" href={`${siteUrl}/az`} />
-        <link rel="alternate" hrefLang="az" href={`${siteUrl}/az`} />
-        <link rel="alternate" hrefLang="en" href={`${siteUrl}/en`} />
-        <link rel="alternate" hrefLang="tr" href={`${siteUrl}/tr`} />
-        <link rel="alternate" hrefLang="ru" href={`${siteUrl}/ru`} />
         {/* DNS Preconnect — xarici ölkələrdən sürətli yüklənmə (Speed Insights / LCP) */}
         <link rel="preconnect" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />
         <link rel="dns-prefetch" href="https://lhsmlimcxnuzlnpdbnbq.supabase.co" />

@@ -49,9 +49,33 @@ export async function generateMetadata({
   const brandName = settings?.public_site_name || settings?.site_name || "Herbalife";
   const localePath = ["az", "en", "tr", "ru"].includes(locale) ? locale : "az";
 
-  const title = metaTags?.title || `${brandName} - Sağlam Həyat Üçün Herbalife Məhsulları | Azərbaycan`;
-  const description = metaTags?.description || "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda müstəqil Herbalife distribütoru. Pulsuz çatdırılma Bakı daxilində.";
-  const keywordsRaw = metaTags?.keywords || "herbalife azərbaycan, herbalife bakı, arıqlama məhsulları, çəki itirmə, sağlam qidalanma, vitamin, əlavə, herbalife distribütor, sağlam həyat, herbalife məhsulları";
+  const HOME_FALLBACKS: Record<string, { title: string; description: string; keywords: string }> = {
+    az: {
+      title: `${brandName} - Sağlam Həyat Üçün Herbalife Məhsulları | Azərbaycan`,
+      description: "Herbalife məhsulları ilə sağlam həyat tərzi. Arıqlama, çəki artırma və sağlam qidalanma üçün professional həllər. Azərbaycanda müstəqil Herbalife distribütoru. Pulsuz çatdırılma Bakı daxilində.",
+      keywords: "herbalife azərbaycan, herbalife bakı, arıqlama məhsulları, çəki itirmə, sağlam qidalanma, vitamin, əlavə, herbalife distribütor, sağlam həyat, herbalife məhsulları",
+    },
+    en: {
+      title: `${brandName} - Herbalife Products for a Healthy Lifestyle`,
+      description: "Discover Herbalife nutrition products designed to support a balanced, healthy lifestyle. Explore meal replacements, protein supplements, vitamins, and wellness essentials for everyday wellbeing. Individual results vary.",
+      keywords: "herbalife, healthy lifestyle, meal replacement, protein supplements, nutrition, wellness, balanced diet, vitamins, weight management support, healthy habits",
+    },
+    tr: {
+      title: `${brandName} - Sağlıklı Yaşam için Herbalife Ürünleri`,
+      description: "Dengeli ve sağlıklı bir yaşamı desteklemek için tasarlanmış Herbalife beslenme ürünlerini keşfedin. Günlük iyi oluş için öğün yerine geçen ürünleri, protein takviyelerini, vitaminleri ve wellness ürünlerini inceleyin. Bireysel sonuçlar değişebilir.",
+      keywords: "herbalife, sağlıklı yaşam, öğün yerine geçen, protein takviyesi, beslenme, wellness, dengeli beslenme, vitamin, kilo yönetimi desteği, sağlıklı alışkanlıklar",
+    },
+    ru: {
+      title: `${brandName} - Продукты Herbalife для здорового образа жизни`,
+      description: "Откройте для себя продукты питания Herbalife, разработанные для поддержки сбалансированного здорового образа жизни. Изучите заменители приёмов пищи, белковые добавки, витамины и средства для хорошего самочувствия на каждый день. Индивидуальные результаты могут отличаться.",
+      keywords: "herbalife, здоровый образ жизни, заменитель приёма пищи, белковые добавки, питание, велнес, сбалансированное питание, витамины, поддержка управления весом, здоровые привычки",
+    },
+  };
+  const homeFb = HOME_FALLBACKS[localePath] ?? HOME_FALLBACKS.az;
+
+  const title = metaTags?.title || homeFb.title;
+  const description = metaTags?.description || homeFb.description;
+  const keywordsRaw = metaTags?.keywords || homeFb.keywords;
   const keywords = parseKeywords(keywordsRaw);
   const rawOgImage = metaTags?.og_image || metaTags?.image || settings?.logo || `${siteUrl}/og-image.jpg`;
   const ogImage = ensureAbsoluteImageUrl(rawOgImage, siteUrl) || `${siteUrl}/og-image.jpg`;

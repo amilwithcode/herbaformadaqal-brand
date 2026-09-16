@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocalizedLink } from "@/components/navigation/LocalizedLink";
 import { useI18n } from "@/contexts/I18nContext";
 
 export default function NotFound() {
@@ -13,12 +13,12 @@ export default function NotFound() {
       <p className="max-w-md text-sm text-emerald-700">
         {t("notfound.message")}
       </p>
-      <Link
+      <LocalizedLink
         href="/"
         className="mt-4 rounded-full bg-emerald-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors"
       >
         {t("notfound.back_home")}
-      </Link>
+      </LocalizedLink>
     </div>
   );
 }

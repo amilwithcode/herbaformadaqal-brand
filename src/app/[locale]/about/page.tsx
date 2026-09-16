@@ -6,6 +6,7 @@ import { getRecommendedProducts } from "@/modules/products/queries";
 import AboutClient from "@/app/about/AboutClient";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 
 async function getAboutData(locale = "az") {
   // Navbar üçün şemaya uyğun settings
@@ -59,9 +60,14 @@ export default async function AboutPage({
   const { locale } = await params;
   const { settings, aboutContent, products } = await getAboutData(locale);
 
+  const bcItems = [
+    { label: settings?.public_site_name || settings?.site_name ? String(settings.public_site_name || settings.site_name) : "About", href: "/about" as const },
+  ];
+
   return (
     <div className="min-h-screen bg-[#f5faf7] text-emerald-950">
       <SiteNavbar initialSettings={settings} />
+      <Breadcrumbs items={bcItems} />
       <AboutClient
         initialAboutContent={aboutContent}
         initialProducts={products}
