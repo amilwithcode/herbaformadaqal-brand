@@ -55,23 +55,28 @@ export default function AdminCategories() {
   }, []);
 
   const uploadFile = async (file: File) => {
-    const supabase = getSupabaseBrowserClient();
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const { data, error } = await supabase.storage
-      .from('categories')
-      .upload(fileName, file);
-    
-    if (error) {
-      console.error('Upload error:', error);
+    // #region debug-point C:categories-api-upload
+    (()=>{const p='.dbg/image-4k-quality-bug.env';let u='http://127.0.0.1:7777/event',s='image-4k-quality-bug';try{const e=require('fs').readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',body:JSON.stringify({sessionId:s,runId:'post',hypothesisId:'H3',location:'admin/categories/page.tsx:57',msg:'[DEBUG] Categories now using API route upload (with sharp resize)',data:{name:file.name,size:file.size,type:file.type,bucket:'categories',usesApiRoute:true},ts:Date.now()})}).catch(()=>{})})();
+    // #endregion
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", "categories");
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error("Upload error:", err);
+        return null;
+      }
+      const { publicUrl } = await res.json();
+      return publicUrl;
+    } catch (e) {
+      console.error("Upload error:", e);
       return null;
     }
-    
-    const { data: { publicUrl } } = supabase.storage
-      .from('categories')
-      .getPublicUrl(fileName);
-      
-    return publicUrl;
   };
 
   const add = async () => {

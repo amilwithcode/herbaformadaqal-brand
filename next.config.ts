@@ -44,15 +44,13 @@ const nextConfig: NextConfig = {
     ],
     // Şəkil optimallaşdırma: WebP/AVIF formatlarını dəstəklə (daha kiçik ölçü)
     formats: ["image/avif", "image/webp"],
-    // Lazım olan ölçülər - gərəksiz şəkil variantları yaratmasın
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2560, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
-    // Xarici CDN/edge üçün uzun keş — başqa ölkələrdən sürətli şəkil çəkilişi
-    minimumCacheTTL: 60 * 60 * 24 * 7, // 7 gün
+    minimumCacheTTL: 60 * 60 * 24 * 7,
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "5mb",
+      bodySizeLimit: "20mb",
     },
     // Paket optimallaşdırması - lazım olan modulları ağac silkələməsi ilə kiçilt
     optimizePackageImports: ["lucide-react"],
