@@ -3,42 +3,103 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isAdminRole } from "@/lib/roles";
 import { getSiteUrl } from "@/lib/site-url";
 
-// Simple in-memory rate limiter (Note: specific to single-instance/long-running server)
-// For distributed systems (Vercel/Serverless), use Redis (e.g., Upstash)
-const rateLimit = new Map<string, { count: number; startTime: number }>();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS = 1000000; // 1000000 requests per minute (increased to prevent false positives)
+// In-memory rate limiter (single-instance only).
+// For Vercel/Serverless/edge replace with Upstash Redis or Vercel Edge KV.
+const globalBuckets = new Map<string, { count: number; startTime: number }>();
+const authBuckets = new Map<string, { count: number; startTime: number }>();
+const aiBuckets = new Map<string, { count: number; startTime: number }>();
+const contactBuckets = new Map<string, { count: number; startTime: number }>();
 
-// Cleanup interval to prevent memory leaks (every 5 minutes)
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of rateLimit.entries()) {
-    if (now - record.startTime > RATE_LIMIT_WINDOW) {
-      rateLimit.delete(ip);
-    }
+const WINDOW_MS = 60_000; // 1 minute
+const GLOBAL_MAX = 180; // 180 req/min (~3 req/s) per IP — general pages
+const AUTH_MAX = 15; // 15 req/min — login / register / password reset
+const AI_MAX = 8; // 8 req/min — OpenAI / Gemini / Veo cost-sensitive routes
+const CONTACT_MAX = 5; // 5 req/min — contact form / reviews
+
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+function clean(
+  buckets: Map<string, { count: number; startTime: number }>,
+  now: number
+) {
+  for (const [k, v] of buckets.entries()) {
+    if (now - v.startTime > TEN_MINUTES_MS) buckets.delete(k);
   }
-}, 5 * 60 * 1000);
-
-function checkRateLimit(ip: string) {
+}
+let lastCleanup = 0;
+function cleanupAll() {
   const now = Date.now();
-  const record = rateLimit.get(ip);
+  if (now - lastCleanup < 60_000) return;
+  lastCleanup = now;
+  clean(globalBuckets, now);
+  clean(authBuckets, now);
+  clean(aiBuckets, now);
+  clean(contactBuckets, now);
+}
+if (typeof setInterval === "function") {
+  setInterval(cleanupAll, 2 * 60 * 1000).unref?.();
+}
 
-  if (!record) {
-    rateLimit.set(ip, { count: 1, startTime: now });
+type BucketKind = "global" | "auth" | "ai" | "contact";
+function hit(key: string, kind: BucketKind): boolean {
+  cleanupAll();
+  const now = Date.now();
+  const map =
+    kind === "auth"
+      ? authBuckets
+      : kind === "ai"
+      ? aiBuckets
+      : kind === "contact"
+      ? contactBuckets
+      : globalBuckets;
+  const max =
+    kind === "auth"
+      ? AUTH_MAX
+      : kind === "ai"
+      ? AI_MAX
+      : kind === "contact"
+      ? CONTACT_MAX
+      : GLOBAL_MAX;
+  const cur = map.get(key);
+  if (!cur || now - cur.startTime > WINDOW_MS) {
+    map.set(key, { count: 1, startTime: now });
     return false;
   }
-
-  if (now - record.startTime > RATE_LIMIT_WINDOW) {
-    rateLimit.set(ip, { count: 1, startTime: now });
-    return false;
-  }
-
-  if (record.count >= MAX_REQUESTS) {
-    return true;
-  }
-
-  record.count++;
+  if (cur.count >= max) return true;
+  cur.count += 1;
   return false;
+}
+
+function classifyBucket(path: string): BucketKind {
+  if (
+    path.startsWith("/auth/") ||
+    path.startsWith("/api/auth/") ||
+    path.startsWith("/admin/login")
+  ) {
+    return "auth";
+  }
+  if (
+    path.startsWith("/api/ai/") ||
+    path.startsWith("/api/chat") ||
+    path.startsWith("/api/admin/social/videos") ||
+    path.startsWith("/api/marketing/activity")
+  ) {
+    return "ai";
+  }
+  if (
+    path.startsWith("/api/contact") ||
+    path.endsWith("/reviews") ||
+    path.startsWith("/api/coupons")
+  ) {
+    return "contact";
+  }
+  return "global";
+}
+
+function getClientIp(request: NextRequest): string {
+  const fwd = request.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0]!.trim() || "unknown";
+  const real = request.headers.get("x-real-ip");
+  return (real || "unknown").slice(0, 64);
 }
 
 const LOCALES = ["az", "en", "tr", "ru"] as const;
@@ -177,17 +238,49 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 1. DDoS / Rate Limiting Protection
-  // Skip rate limiting for static assets and API routes (except admin)
-  const isStaticAsset = path.startsWith("/_next") || 
-                        path.startsWith("/api/chat") || 
-                        path.startsWith("/api/marketing") ||
-                        path.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/);
-  
-  if (!isStaticAsset) {
-    const ip = request.headers.get("x-forwarded-for") || "unknown";
-    if (checkRateLimit(ip)) {
-      return new NextResponse("Too Many Requests", { status: 429 });
+  // 1. Bucket-aware rate limiting
+  const skipRateLimit =
+    path.startsWith("/_next/static") ||
+    path.startsWith("/_next/image") ||
+    path === "/favicon.ico" ||
+    path === "/robots.txt" ||
+    path === "/ads.txt" ||
+    path === "/sitemap.xml" ||
+    (isStatic && !isApi) ||
+    isGoogleAdsenseCrawler(request);
+
+  if (!skipRateLimit) {
+    const ip = getClientIp(request);
+    const kind = isApi ? classifyBucket(path) : "global";
+    if (hit(ip, kind)) {
+      return new NextResponse("Too Many Requests", {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(WINDOW_MS / 1000)),
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      });
+    }
+    if (isApi) {
+      const contactKind = classifyBucket(path);
+      if (contactKind === "contact" && hit(`${ip}:c`, "contact")) {
+        return new NextResponse("Too Many Requests", {
+          status: 429,
+          headers: { "Retry-After": "60" },
+        });
+      }
+      if (contactKind === "auth" && hit(`${ip}:a`, "auth")) {
+        return new NextResponse("Too Many Requests", {
+          status: 429,
+          headers: { "Retry-After": "60" },
+        });
+      }
+      if (contactKind === "ai" && hit(`${ip}:ai`, "ai")) {
+        return new NextResponse("Too Many Requests", {
+          status: 429,
+          headers: { "Retry-After": "60" },
+        });
+      }
     }
   }
 

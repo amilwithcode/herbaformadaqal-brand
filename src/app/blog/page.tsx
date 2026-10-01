@@ -53,6 +53,13 @@ export default function BlogListPage() {
   const localeMap: Record<string, string> = {
     az: "az-AZ", en: "en-US", ru: "ru-RU", tr: "tr-TR",
   };
+  const uxStrings: Record<string, { searchPlaceholder: string; all: string; noResult: string; empty: string }> = {
+    az: { searchPlaceholder: "Axtar...", all: "Hamısı", noResult: "Nəticə tapılmadı.", empty: "Hələ yazı yoxdur." },
+    en: { searchPlaceholder: "Search articles...", all: "All", noResult: "No results found.", empty: "No articles yet." },
+    tr: { searchPlaceholder: "Makale ara...", all: "Tümü", noResult: "Sonuç bulunamadı.", empty: "Henüz yazı yok." },
+    ru: { searchPlaceholder: "Поиск статей...", all: "Все", noResult: "Ничего не найдено.", empty: "Статей пока нет." },
+  };
+  const ux = uxStrings[locale] ?? uxStrings.az;
 
   useEffect(() => {
     fetch(`/api/content/posts?locale=${locale}`)
@@ -115,7 +122,7 @@ export default function BlogListPage() {
                   : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-400"
               }`}
             >
-              Hamısı
+              {ux.all}
             </button>
             {categories.map((cat) => (
               <button
@@ -199,13 +206,13 @@ export default function BlogListPage() {
                       )}
                     </span>
                   )}
-                  <Link
+                  <LocalizedLink
                     href={`/blog/${post.slug || post.id}`}
                     className="inline-flex items-center gap-1.5 rounded-full border border-emerald-600 px-4 py-1.5 text-xs font-semibold text-emerald-700 transition-all hover:bg-emerald-600 hover:text-white ml-auto"
                   >
                     {t("blog.read_more")}
                     <ArrowRight size={13} />
-                  </Link>
+                  </LocalizedLink>
                 </div>
               </article>
             ))}

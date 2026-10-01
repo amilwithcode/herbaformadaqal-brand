@@ -30,11 +30,65 @@ Disallow: /auth/*
 Disallow: /api
 Disallow: /api/*
 
+# Locale-prefixed Admin & Account
+Disallow: /az/admin
+Disallow: /az/admin/*
+Disallow: /az/account
+Disallow: /az/account/*
+Disallow: /az/auth
+Disallow: /az/auth/*
+Disallow: /en/admin
+Disallow: /en/admin/*
+Disallow: /en/account
+Disallow: /en/account/*
+Disallow: /en/auth
+Disallow: /en/auth/*
+Disallow: /tr/admin
+Disallow: /tr/admin/*
+Disallow: /tr/account
+Disallow: /tr/account/*
+Disallow: /tr/auth
+Disallow: /tr/auth/*
+Disallow: /ru/admin
+Disallow: /ru/admin/*
+Disallow: /ru/account
+Disallow: /ru/account/*
+Disallow: /ru/auth
+Disallow: /ru/auth/*
+
 # Search & Cart
 Disallow: /search
 Disallow: /search?*
 Disallow: /cart
 Disallow: /wishlist
+Disallow: /checkout
+Disallow: /checkout/*
+
+# Locale-prefixed Search & Cart & Checkout
+Disallow: /az/search
+Disallow: /az/search?*
+Disallow: /az/cart
+Disallow: /az/wishlist
+Disallow: /az/checkout
+Disallow: /az/checkout/*
+Disallow: /en/search
+Disallow: /en/search?*
+Disallow: /en/cart
+Disallow: /en/wishlist
+Disallow: /en/checkout
+Disallow: /en/checkout/*
+Disallow: /tr/search
+Disallow: /tr/search?*
+Disallow: /tr/cart
+Disallow: /tr/wishlist
+Disallow: /tr/checkout
+Disallow: /tr/checkout/*
+Disallow: /ru/search
+Disallow: /ru/search?*
+Disallow: /ru/cart
+Disallow: /ru/wishlist
+Disallow: /ru/checkout
+Disallow: /ru/checkout/*
 
 # Next.js Internal
 Disallow: /_next
@@ -52,12 +106,26 @@ User-agent: CCBot
 User-agent: Applebot-Extended
 Allow: /
 Disallow: /admin
+Disallow: /admin/*
 Disallow: /account
+Disallow: /account/*
 Disallow: /api
+Disallow: /api/*
 Disallow: /auth
+Disallow: /auth/*
 Disallow: /cart
 Disallow: /wishlist
 Disallow: /search
+Disallow: /search?*
+Disallow: /checkout
+Disallow: /checkout/*
+Disallow: /*/admin
+Disallow: /*/account
+Disallow: /*/auth
+Disallow: /*/cart
+Disallow: /*/wishlist
+Disallow: /*/search
+Disallow: /*/checkout
 
 # AI Content Signal (RFC draft)
 Content-Signal: ai-train=no, search=yes, ai-input=no

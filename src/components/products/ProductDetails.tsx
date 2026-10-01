@@ -13,6 +13,7 @@ import type { Product as CartProduct } from "@/types";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { maskUserName } from "@/lib/mask-name";
+import { sanitizeHtml } from "@/lib/safe-html";
 
 type ProductDetailsProps = {
   product: Product;
@@ -501,15 +502,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
              <div className="prose prose-sm prose-slate max-w-none">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">{t("product.about")}</h3>
                 {translatedContent.description ? (
-                  // Admin panelindən gələn HTML-i render edirik.
-                  // \n sətir keçidlərini <br> ilə əvəz edirik ki, boşluqlar nəzərə alınsın.
                   <div
                     className="whitespace-pre-line leading-relaxed"
                     dangerouslySetInnerHTML={{
-                      __html: translatedContent.description
-                        // Artıq <br> teqi varsa, onları saxla; yalnız \n-ləri <br>-ə çevir
-                        .replace(/\r\n/g, "\n")
-                        .replace(/\n/g, "<br />"),
+                      __html: sanitizeHtml(
+                        String(translatedContent.description)
+                          .replace(/\r\n/g, "\n")
+                          .replace(/\n/g, "<br />")
+                      ),
                     }}
                   />
                 ) : (

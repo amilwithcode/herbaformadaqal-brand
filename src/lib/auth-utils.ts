@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
+import { isAdminRole } from "@/lib/roles";
 
 export async function verifyAdmin(supabase: SupabaseClient) {
   const {
@@ -13,13 +13,21 @@ export async function verifyAdmin(supabase: SupabaseClient) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_admin")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (profileError || !profile || profile.role !== "admin") {
+  if (profileError) {
     return { error: "Forbidden", status: 403 };
   }
 
-  return { user };
+  const hasAdminAccess = profile
+    ? isAdminRole(profile.role) || Boolean(profile.is_admin)
+    : false;
+
+  if (!hasAdminAccess) {
+    return { error: "Forbidden", status: 403 };
+  }
+
+  return { user, profile };
 }

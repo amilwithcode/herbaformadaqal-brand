@@ -1,9 +1,25 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { searchProducts, getCategories } from "@/modules/products/queries";
 import ProductsClient from "@/components/products/ProductsClient";
 import HomeFooter from "@/components/home/HomeFooter";
 import SiteNavbar from "@/components/layout/SiteNavbar";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      "max-video-preview": -1,
+      "max-image-preview": "none",
+      "max-snippet": -1,
+    },
+  },
+};
 
 export default async function SearchPage({
   searchParams,
